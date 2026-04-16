@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All PSP Banks, Issuer Banks, Beneficiary Banks, UPI App Providers, and Compliance Teams**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI ecosystem facilitates seamless digital transactions through a robust network of PSPs, Issuer Banks, and Beneficiary Banks, coordinated via the NPCI Switch. However, there is a growing need to enhance transaction security and user authentication, particularly in biometric-enabled environments. This gap in security measures poses a risk of unauthorized access and potential fraud, which necessitates a more secure authentication mechanism. In response, the issuer has decided to implement enhanced biometric authentication protocols, leveraging the Common Library's latest capabilities to ensure secure and efficient transaction processing."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement biometric authentication for UPI transactions to enhance security and user convenience.",
+      "The technical artifacts affected by this decision include the REQ_PAY and RESP_PAY message types, which will now support biometric authentication data.",
+      "The Common Library (CL) will be updated to version 2.36 to enable biometric support, and this update will be mandatory for all UPI Apps integrating with the NPCI Switch.",
+      "The CRED Block structure will be modified to include biometric data, and the refCategory field will be set to '05' for transactions authenticated biometrically."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) to support biometric authentication. This includes verifying that the clVersion field indicates compatibility with biometric features.",
+      "Issuer/Remitter Banks must implement necessary backend changes to support the processing of biometric-authenticated transactions, designated by refCategory='05'. This includes ensuring that their systems can handle the new transaction types without disruption.",
+      "Beneficiary/Payee Banks must update their systems to recognize and process credits from biometric-authenticated transactions. They are advised to monitor transaction statuses closely to handle any DEEMED status transactions promptly.",
+      "UPI App developers must incorporate the TEE or Secure Enclave for storing sensitive authentication data securely. They must also implement nonce-based challenges to prevent replay attacks."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must ensure that all relevant feature specifications and updates are communicated to their respective teams. This includes any changes in API flows or message types that affect product functionality.",
+      "Engineers are advised to review the technical documentation and integrate the necessary updates into the system architecture. Any changes in the UPI message types or processing flows must be implemented as per the guidelines.",
+      "Compliance teams must verify that all new features and updates adhere to regulatory requirements. Any discrepancies or compliance issues should be reported immediately to the designated authority."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

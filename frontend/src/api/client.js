@@ -62,7 +62,7 @@ export const deleteHistorySession = (session_id) =>
 
 // ── Document Generation (DocGen service on port 8001) ─────────────────────
 const docgenApi = axios.create({
-  baseURL: import.meta.env.VITE_DOCGEN_URL || 'http://localhost:8001',
+  baseURL: import.meta.env.VITE_DOCGEN_URL || 'http://localhost:8002',
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -89,3 +89,12 @@ export const getJobContent = (job_id) =>
 // DocGen health check
 export const docgenHealth = () =>
   docgenApi.get('/api/health')
+
+// ── RAG System (rag_system service on port 8001) ───────────────────────────
+const ragApi = axios.create({
+  baseURL: import.meta.env.VITE_RAG_URL || 'http://localhost:8001',
+  headers: { 'Content-Type': 'application/json' },
+})
+
+export const clarifyRag = (payload) => ragApi.post('/clarify', payload)
+

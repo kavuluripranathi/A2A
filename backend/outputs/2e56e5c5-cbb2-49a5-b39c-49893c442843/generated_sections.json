@@ -1,0 +1,129 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Organization Name",
+        "Circular Reference Number",
+        "Issue Date"
+      ],
+      "rows": [
+        [
+          "National Payments Corporation of India",
+          "NPCI/OPS/OC No. 001/2023-2024",
+          "October 25, 2023"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This section covers Addressee Line.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem facilitates seamless digital payments through a standardized message protocol, enabling interoperability among various banks and payment service providers. However, there is a growing demand for enhanced security measures, particularly in biometric-authenticated transactions, to prevent unauthorized access and ensure user trust. To address this gap, the issuer has decided to mandate the implementation of a nonce-based challenge mechanism for all biometric transactions, designated by refCategory='05', to strengthen cryptographic replay-attack prevention. This directive aims to enhance the security framework of UPI transactions, ensuring compliance with evolving security standards and user expectations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI transaction flow by integrating biometric authentication as a mandatory feature for all high-value transactions.",
+      "The technical artifacts affected by this decision include the REQ_PAY and RESP_PAY message types, which will now require additional biometric data fields.",
+      "The Common Library (CL) must be updated to support the new clVersion indicating biometric capability, and the CRED Block will incorporate encrypted biometric credentials.",
+      "The REQ_AUTH_DETAILS and RESP_AUTH_DETAILS APIs will be modified to handle the exchange of biometric authentication data between the PSP and the NPCI Switch."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Participant Impact & Obligations.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must ensure that all relevant teams are briefed on the new feature specifications and integration requirements.",
+      "Engineers are advised to review the technical documentation and update any system components affected by the new feature implementation.",
+      "Compliance teams must verify that the feature aligns with current regulatory standards and update any compliance documentation as necessary."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

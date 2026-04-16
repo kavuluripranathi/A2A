@@ -1,0 +1,275 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Document Overview.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Background.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The new feature introduces biometric authentication for UPI transactions, enhancing both security and user convenience. By leveraging biometric data such as fingerprints or facial recognition, users can authenticate transactions seamlessly without the need to enter a PIN. This feature is particularly beneficial for users who prefer a more intuitive and faster way to authorize payments, thereby improving the overall user experience on UPI-enabled applications.",
+      "This biometric authentication feature is integrated into the UPI ecosystem through the Common Library (CL) provided by NPCI. The CL ensures that all biometric data is securely encrypted and transmitted, maintaining the integrity and confidentiality of sensitive information. The feature supports a range of biometric modalities, allowing flexibility for users and ensuring compatibility with various devices that have biometric capabilities.",
+      "Security and privacy are at the forefront of this feature's design. Biometric data is stored securely within the device's Trusted Execution Environment (TEE) or Secure Enclave, ensuring that it cannot be accessed or tampered with by unauthorized applications. Additionally, the use of nonce-based challenges prevents replay attacks, further safeguarding transaction integrity. Compliance with regulatory standards is maintained, ensuring that all biometric data handling adheres to the highest privacy and security protocols."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Product Construct: Setting / Enrollment.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The transaction flow within the UPI ecosystem is designed to facilitate seamless and secure payment processing between various stakeholders, including PSP Banks, Issuer Banks, Beneficiary Banks, and the NPCI. The scope of this transaction flow encompasses the entire lifecycle of a payment request, from initiation to confirmation, ensuring that funds are accurately debited and credited across the involved accounts. This flow is integral to maintaining the reliability and efficiency of UPI transactions, supporting both real-time and asynchronous processing.",
+      "High-level system changes in this transaction flow include enhancements to the NPCI switch and the integration of the Common Library (CL) within UPI Apps. These changes aim to improve the security and speed of transactions by leveraging advanced encryption and authentication mechanisms. Additionally, updates to the PSP Bank's systems are necessary to handle new message types and ensure compatibility with the latest UPI specifications issued by NPCI.",
+      "The transaction flow supports multiple modes, including biometric and PIN-based authentication, to cater to diverse user preferences and security requirements. The standard REQ_PAY flow is predominantly used, which involves stages such as authentication, debit, credit, and confirmation. Each stage is meticulously designed to ensure that transaction integrity is maintained, and any potential issues are promptly addressed through fallback mechanisms like the REQ_CHK_TXN message type.",
+      "In the end-to-end transaction journey, the UPI App initiates the payment request by capturing the user's authentication details, which are securely encrypted by the Common Library. The PSP Bank then forwards this request to the NPCI, which orchestrates the transaction by communicating with the Issuer and Beneficiary Banks. The Issuer Bank is responsible for authenticating the payer and debiting their account, while the Beneficiary Bank credits the recipient's account. Finally, confirmation messages are sent back to the UPI App via the PSP Bank, completing the transaction cycle."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify user authentication details",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Encrypt and send payment request",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "Route request to Issuer Bank",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Authenticate and debit payer's account",
+          "Issuer Bank"
+        ],
+        [
+          "Step 4",
+          "Route credit request to Beneficiary Bank",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Credit recipient's account",
+          "Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "Send confirmation to UPI App",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [
+      "Optionality: Implement biometric authentication as an optional feature, allowing users to choose between biometric and PIN-based authentication methods.",
+      "Consent Scope: Ensure explicit user consent is obtained before enabling biometric authentication, with clear communication of the data usage and storage policies.",
+      "Storage: Store biometric data securely within the device's TEE or Secure Enclave, ensuring that no biometric data is transmitted or stored on external servers.",
+      "Key Rotation: Establish a regular key rotation policy for encryption keys used in biometric data storage to enhance security and mitigate potential breaches.",
+      "Disablement Scenarios: Provide users with an easy option to disable biometric authentication at any time, reverting to PIN-based authentication without loss of service.",
+      "Data Deletion: Upon disablement of biometric authentication, ensure that all biometric data is permanently deleted from the device's secure storage."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. All UPI transactions must adhere to the NPCI's security guidelines, ensuring data encryption and secure transmission at every stage.",
+      "2. The UPI App must integrate the latest version of the Common Library (CL) to support enhanced biometric authentication features.",
+      "3. PSP Banks are required to ensure that their systems can handle REQ_PAY and RESP_PAY messages within the stipulated timeframes to avoid transaction timeouts.",
+      "4. Any changes to the UPI App interface must be approved by the compliance team to ensure they meet regulatory and user experience standards.",
+      "5. The UPI system must support fallback mechanisms like REQ_CHK_TXN to resolve transaction status ambiguities in case of network issues.",
+      "6. All participants in the UPI ecosystem must regularly update their systems to comply with the latest NPCI specifications and mandates."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Dispute Management.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "The testing, certification, and audit process for UPI involves a comprehensive evaluation of various scenarios to ensure the robustness and reliability of the system. The test environments are designed to simulate real-world conditions, allowing product managers, engineers, and compliance teams to validate the functionality and performance of UPI features. These environments are equipped to handle different types of transactions, including enrollment, transaction processing, fallback mechanisms, and disablement procedures.",
+      "Mandatory testing scenarios include enrollment processes, where the focus is on verifying the correct registration of users and devices. Transaction scenarios are critical, ensuring that payment requests and responses are processed accurately and efficiently. Fallback scenarios are tested to confirm that the system can handle timeouts and other disruptions gracefully, maintaining transaction integrity. Disablement scenarios are also evaluated to ensure that users can deactivate services securely and without residual access issues.",
+      "Certification steps involve a series of approvals and validations conducted by the designated approving authority, typically the NPCI or a certified auditing body. These steps include reviewing test results, verifying compliance with UPI specifications, and ensuring that all security protocols are adhered to. Audits are conducted periodically to maintain compliance and to identify any potential areas for improvement. These audits assess both the technical and operational aspects of the UPI system, ensuring ongoing adherence to industry standards and best practices."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Enrollment Testing",
+          "Verify user and device registration processes",
+          "Product Manager"
+        ],
+        [
+          "Transaction Processing",
+          "Ensure accurate and efficient payment processing",
+          "Engineering Team"
+        ],
+        [
+          "Fallback Mechanisms",
+          "Test system response to timeouts and disruptions",
+          "Compliance Team"
+        ],
+        [
+          "Disablement Procedures",
+          "Validate secure deactivation of services",
+          "Product Manager"
+        ],
+        [
+          "Security Audits",
+          "Assess adherence to security protocols and standards",
+          "Certified Auditing Body"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "The pre-checks required before enrollment or enabling a UPI service are crucial to ensure a seamless and secure user experience. These checks are designed to verify the authenticity and eligibility of the user, as well as the readiness of the system to handle transactions. Failure to perform these checks can result in enrollment denial or service disruption, impacting both the user and the service provider.",
+      "At the transaction time, pre-checks are essential to confirm the validity and security of each transaction. These checks help in preventing fraudulent activities and ensuring compliance with regulatory requirements. If any of these checks fail, the transaction may be declined, leading to user dissatisfaction and potential financial loss for the involved parties."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Before Enrollment/Enabling: Identity Verification - The PSP Bank performs identity verification to ensure the user's credentials are valid. If this check fails, the user will not be able to enroll in the UPI service.",
+      "Before Enrollment/Enabling: Device Compatibility Check - The UPI App checks if the user's device meets the necessary technical requirements. Failure in this check will prevent the user from enabling the service on their device.",
+      "Before Enrollment/Enabling: Account Linking Verification - The Issuer Bank verifies the linkage of the user's bank account with the UPI App. If this check fails, the user will be unable to proceed with the enrollment process.",
+      "At Transaction Time: Authentication Validation - The Remitter Bank validates the authentication details provided by the user. If this check fails, the transaction will be declined, and the user will need to re-authenticate.",
+      "At Transaction Time: Balance Check - The Issuer Bank performs a balance check to ensure sufficient funds are available for the transaction. A failure in this check will result in the transaction being declined due to insufficient funds.",
+      "At Transaction Time: VPA Validation - The NPCI validates the Virtual Payment Address to ensure it is active and correctly mapped. If this check fails, the transaction will not proceed, and the user will be notified of the invalid VPA."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

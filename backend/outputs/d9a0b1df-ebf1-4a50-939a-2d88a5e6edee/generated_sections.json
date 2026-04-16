@@ -1,0 +1,327 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Background.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Product Overview.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI system is designed to facilitate seamless and secure digital payments across various banks and payment service providers. At the core of this system is the NPCI, which operates the UPI switch and the Common Library (CL). The UPI switch acts as the central routing engine, ensuring that all UPI messages are correctly directed between participants. The PSP Bank plays a crucial role by hosting the UPI App, which is the customer-facing application used to initiate payment requests. This app interacts with the CL to securely capture and encrypt authentication data before sending it to the NPCI.",
+      "The interaction topology of the UPI system involves multiple participants working in a coordinated manner. The Issuer or Remitter Bank is responsible for authenticating the payer and debiting their account, while the Beneficiary or Payee Bank credits the recipient's account. Communication between these entities is facilitated by the NPCI switch, which ensures messages such as REQ_PAY and RESP_PAY are properly routed. Key design decisions include the use of the CRED Block for secure transmission of credentials and the integration of the CL within UPI Apps to enhance security. This design ensures that transactions are not only efficient but also adhere to stringent security standards."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Process Flow: Setting & Enrollment.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Process Flow: Transaction.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section outlines the technical specifications for the integration and enhancement of UPI payment functionalities. It includes detailed specifications for the REQ_PAY, REQ_CHK_TXN, and REQ_AUTH_DETAILS APIs. The scope of changes encompasses improvements in transaction processing efficiency, enhanced security measures through biometric authentication, and refined error handling protocols. These updates aim to streamline the payment process, ensure compliance with regulatory standards, and enhance user experience across the UPI ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers i. Primary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The REQ_CHK_TXN API is a secondary API used primarily for transaction status checks. This API is crucial for resolving timeout or fallback scenarios where the transaction outcome is uncertain. It allows the PSP Bank to query the NPCI switch for the current status of a transaction, ensuring that both the payer and payee have accurate and up-to-date information.",
+      "The participant flow for the REQ_CHK_TXN API involves the UPI App initiating a status check request through the PSP Bank to the NPCI. The NPCI then processes this request and returns the transaction status to the PSP Bank, which subsequently relays the information back to the UPI App. This ensures seamless communication and resolution of any discrepancies in transaction status."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "TxnId",
+          "String",
+          "12",
+          "Unique transaction identifier",
+          "Y"
+        ],
+        [
+          "TxnDate",
+          "Date",
+          "10",
+          "Date of the transaction",
+          "Y"
+        ],
+        [
+          "TxnStatus",
+          "String",
+          "10",
+          "Current status of the transaction",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:REQ_CHK_TXN xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>123456789</upi:TxnId>\n  <upi:TxnDate>2023-10-01</upi:TxnDate>\n</upi:REQ_CHK_TXN>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RESP_CHK_TXN xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>123456789</upi:TxnId>\n  <upi:TxnStatus>SUCCESS</upi:TxnStatus>\n  <upi:TxnDate>2023-10-01</upi:TxnDate>\n</upi:RESP_CHK_TXN>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iii. Error Handling.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "Operation",
+        "Component",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "E1",
+          "E1",
+          "Eligibility or precondition failed",
+          "Pre-check",
+          "Originating service",
+          "BD"
+        ],
+        [
+          "E2",
+          "E2",
+          "Activation or registration failed",
+          "Setup",
+          "Credential service",
+          "TD"
+        ],
+        [
+          "E3",
+          "E3",
+          "Authentication or validation failed",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "E4",
+          "E4",
+          "Credential mismatch or replay detected",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "TO",
+          "TO",
+          "Timeout waiting for downstream response",
+          "Any",
+          "Switch / broker",
+          "TD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. All REQ_PAY messages must include a CRED Block encrypted by the Common Library (CL) to ensure secure transmission of authentication data from the PSP to NPCI.",
+      "2. In the event of a transaction timeout, the REQ_CHK_TXN message should be used by the PSP to verify the transaction status with NPCI, ensuring proper resolution and customer communication.",
+      "3. The clVersion field must be set to 2.36 or higher in REQ_LIST_ACCOUNT messages to indicate support for biometric authentication, particularly for transactions with refCategory='05'.",
+      "4. Transactions that achieve a DEEMED status require asynchronous settlement confirmation from the Beneficiary Bank, and the PSP must handle these confirmations appropriately to update the transaction status.",
+      "5. The nonce-based challenge mechanism must be implemented by the UPI App to prevent replay attacks, ensuring that each transaction request is unique and secure.",
+      "6. The standard UPI dispute process applies to all transactions unless explicitly modified by the Business Requirement Document (BRD), ensuring consistent handling of disputes across the ecosystem."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

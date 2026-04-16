@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All UPI Ecosystem Participants, including PSP Banks, Issuer/Remitter Banks, Beneficiary/Payee Banks, and UPI App Providers**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, users managing shared expenses face the inconvenience of manual calculations and delayed settlements, often relying on third-party applications outside the UPI ecosystem. This presents a significant gap in user convenience and efficiency, as these manual processes are time-consuming and prone to errors. Recognizing this limitation, the issuer has decided to implement the UPI AutoSplit feature, which automates the division and settlement of shared expenses directly within UPI apps. This directive aims to enhance user experience by leveraging UPI's robust infrastructure, thereby streamlining financial interactions and positioning UPI as a more comprehensive payment solution."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement the UPI AutoSplit feature to automate the process of managing shared expenses within the UPI ecosystem.",
+      "The UPI AutoSplit feature will affect the following technical artifacts: UPI App interfaces, the REQ_PAY and RESP_PAY message types, and the Common Library (CL) for secure transaction processing.",
+      "The implementation will require modifications to the UPI App to support user input for expense splitting and selection of participants, as well as enhancements to the CL to handle automated calculations and instant settlements.",
+      "The REQ_PAY and RESP_PAY message schemas will be updated to include parameters for expense division and participant details, ensuring seamless integration and real-time processing."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "Payment Service Provider (PSP) Banks must integrate the UPI AutoSplit feature into their existing UPI applications. They are responsible for ensuring that the feature is seamlessly available to users, allowing them to divide expenses and initiate payments directly within the app.",
+      "Issuer/Remitter Banks must update their systems to support real-time processing of split payments initiated through the UPI AutoSplit feature. They must ensure that debits from user accounts are executed promptly and accurately to facilitate instant settlements.",
+      "Beneficiary/Payee Banks must ensure their systems are capable of receiving and processing multiple credit transactions resulting from the UPI AutoSplit feature. They must verify that credits are applied to the correct accounts without delay.",
+      "UPI App developers are advised to enhance user interfaces to accommodate the UPI AutoSplit feature, ensuring that users can easily input total amounts and select participants for expense splitting. They must also ensure that the feature is intuitive and aligns with existing app functionalities."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "The UPI AutoSplit feature is designed to streamline the management of shared expenses by automating the process of splitting and settling costs among users within the UPI app. This feature eliminates the need for manual calculations and the use of separate applications, providing a seamless and efficient solution for users.",
+      "The integration of UPI AutoSplit into the existing UPI ecosystem addresses a significant user pain point by offering a real-time, automated solution for shared expenses. This feature is expected to capture a substantial portion of UPI P2P transaction volume, enhancing user convenience and driving further adoption of UPI services.",
+      "By embedding the expense tracking and settlement functionality directly within UPI, the AutoSplit feature offers a unique advantage over third-party applications. This deep integration reduces friction, enhances convenience, and positions UPI as a comprehensive payment solution, thus significantly improving the user experience.",
+      "Please disseminate the information contained herein to the officials concerned."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

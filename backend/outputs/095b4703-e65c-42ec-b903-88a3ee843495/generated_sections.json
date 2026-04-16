@@ -1,0 +1,121 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India",
+      "Circular Reference: NPCI/OPS/OC No. 012/2023-2024",
+      "Date: October 15, 2023"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All Product Managers, Engineers, and Compliance Teams**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem supports various transaction types, including REQ_PAY, REQ_CHK_TXN, and REQ_BAL_ENQ, through a standardized messaging protocol. However, there is a growing need for enhanced security measures, particularly for transactions authenticated via biometrics, to mitigate potential fraud risks. The existing framework lacks specific provisions for securely managing biometric data and ensuring compliance with emerging security standards. In response, the issuer has decided to implement a directive that mandates the use of an updated Common Library version with enhanced biometric authentication capabilities, ensuring secure and compliant transaction processing."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI transaction processing framework to include support for biometric authentication in payment flows.",
+      "The technical artifacts affected by this decision include the REQ_PAY and RESP_PAY message schemas, which will now incorporate a new refCategory='05' for transactions authenticated biometrically.",
+      "The Common Library (CL) version will be updated to clVersion 2.36 to ensure compatibility with biometric authentication features.",
+      "The UPI App's integration with the TEE/Secure Enclave will be modified to securely store and process biometric credentials."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) provided by NPCI. This update must include support for biometric authentication as indicated by clVersion 2.36 or higher.",
+      "Issuer/Remitter Banks must implement the necessary backend changes to process REQ_PAY messages that include biometric authentication data. These banks must also ensure that their systems can handle the refCategory='05' designation for such transactions.",
+      "Beneficiary/Payee Banks must update their systems to recognize and process credit requests associated with biometric-authenticated transactions. This includes ensuring that RESP_PAY messages are correctly formatted and sent back to the NPCI Switch.",
+      "All ecosystem participants are advised to conduct thorough testing of their systems to ensure seamless interoperability with the updated UPI message flows. This includes end-to-end testing of the REQ_PAY and RESP_PAY processes involving biometric authentication."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must ensure that the feature specifications are reviewed and integrated into the product development lifecycle.",
+      "Engineers are advised to incorporate the outlined changes into the system architecture and codebase, ensuring compliance with the updated protocols.",
+      "Compliance teams must verify that all regulatory requirements are met and that the feature aligns with existing compliance frameworks."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

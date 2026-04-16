@@ -1,3 +1,6 @@
+import { clarifyRag } from '../api/client'
+import ChatBubble from '../components/ChatBubble'
+
 import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -9,6 +12,7 @@ import {
   getJobContent,
 } from '../api/client'
 import useSessionStore from '../store/sessionStore'
+
 
 // ── Constants ──────────────────────────────────────────────────────────────── //
 
@@ -74,6 +78,8 @@ function buildPromptFromCanvas(canvas, structuredOutput) {
   if (!canvas?.sections) return ''
 
   const lines = []
+
+  console.log(structuredOutput , "structuredOutput ");
   const featureName = structuredOutput?.feature_name || 'Product Feature'
   lines.push(`Product: ${featureName}`)
   lines.push('')
@@ -299,6 +305,16 @@ export default function DocumentGeneration() {
   const [downloading, setDownloading] = useState(false)
   const pollRef = useRef(null)
 
+  // RAG clarification phase
+  const [clarifyPhase, setClarifyPhase] = useState('idle')
+  // idle | loading_questions | asking | done | skipped
+  const [ragQuestions, setRagQuestions]   = useState([])
+  const [ragAnswers, setRagAnswers]       = useState([])      // array of answer strings
+  const [currentQIndex, setCurrentQIndex] = useState(0)
+  const [currentAnswer, setCurrentAnswer] = useState('')
+  const [clarifyLoading, setClarifyLoading] = useState(false)
+
+
   // ── Stop polling on unmount ──────────────────────────────
   useEffect(() => {
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
@@ -329,44 +345,115 @@ export default function DocumentGeneration() {
     }, 2500)
   }
 
-  const handleGenerate = async () => {
-    if (!canvas) return
-    setError(null)
-    setGenerating(true)
-    clearDocBundle()
-    if (pollRef.current) clearInterval(pollRef.current)
+  // ── Step 1: fetch clarifying questions from rag_system ──────────────
+const handleStartClarify = async () => {
+  if (!canvas) return
+  setError(null)
+  setClarifyPhase('loading_questions')
 
-    const prompt = buildPromptFromCanvas(canvas, structuredOutput)
-    const featureName = structuredOutput?.feature_name || 'Product Feature'
+  const featureDescription = buildPromptFromCanvas(canvas, structuredOutput)
 
-    const payload = {
-      prompt,
-      session_id: sessionId,
-      organization_name: 'NPCI',
-      audience: 'Product managers, engineers, compliance teams',
-      desired_outcome: `Complete document suite for ${featureName}`,
-      use_rag: true,
-      include_diagrams: true,
-      brd_title: `Business Requirements Document — ${featureName}`,
-      tsd_title: `Technical Specification Document — ${featureName}`,
-      product_note_title: `Product Note — ${featureName}`,
-      circular_title: `Circular — ${featureName}`,
-      signatory_name: 'Chief Product Officer',
-      signatory_title: 'Chief Product Officer',
-      signatory_department: 'Product Management',
+  try {
+    const res = await clarifyRag({
+      feature_description: featureDescription,
+      document_type: 'TSD',   // ask for TSD — most technically specific
+    })
+    const questions = res.data.questions || []
+    if (questions.length === 0) {
+      // No questions — go straight to generation
+      setClarifyPhase('skipped')
+      await handleGenerate('')
+    } else {
+      setRagQuestions(questions)
+      setRagAnswers(Array(questions.length).fill(''))
+      setCurrentQIndex(0)
+      setClarifyPhase('asking')
     }
-
-    try {
-      const res = await generateDocBundle(payload)
-      const data = res.data
-      setDocBundle(data)
-      startPolling(data.bundle_id)
-    } catch (e) {
-      setError(e.response?.data?.detail || e.message || 'Failed to reach the DocGen service. Is it running on port 8001?')
-    } finally {
-      setGenerating(false)
-    }
+  } catch (e) {
+    // rag_system unreachable — skip clarification and generate anyway
+    console.warn('[RAG] Clarify endpoint unreachable, skipping:', e.message)
+    setClarifyPhase('skipped')
+    await handleGenerate('')
   }
+}
+
+// ── Step 2: user submits an answer for the current question ─────────
+const handleAnswerSubmit = async () => {
+  const answer = currentAnswer.trim()
+  if (!answer || clarifyLoading) return
+
+  const updated = [...ragAnswers]
+  updated[currentQIndex] = answer
+  setRagAnswers(updated)
+  setCurrentAnswer('')
+
+  if (currentQIndex + 1 < ragQuestions.length) {
+    setCurrentQIndex(currentQIndex + 1)
+  } else {
+    // All answered — proceed to generation
+    setClarifyPhase('done')
+    const answersText = ragQuestions
+      .map((q, i) => `Q: ${q}\nA: ${updated[i]}`)
+      .join('\n\n')
+    await handleGenerate(answersText)
+  }
+}
+
+// ── Step 3: skip remaining questions ────────────────────────────────
+const handleSkipClarify = async () => {
+  const answered = ragQuestions
+    .map((q, i) => ragAnswers[i] ? `Q: ${q}\nA: ${ragAnswers[i]}` : null)
+    .filter(Boolean)
+    .join('\n\n')
+  setClarifyPhase('skipped')
+  await handleGenerate(answered)
+}
+
+// ── Actual bundle generation (called after clarification) ────────────
+const handleGenerate = async (clarificationAnswers = '') => {
+  if (!canvas) return
+  setError(null)
+  setGenerating(true)
+  clearDocBundle()
+  if (pollRef.current) clearInterval(pollRef.current)
+
+  const prompt = buildPromptFromCanvas(canvas, structuredOutput)
+  const featureName = structuredOutput?.feature_name || 'Product Feature'
+
+  const fullPrompt = clarificationAnswers
+    ? `${prompt}\n\nClarification Q&A:\n${clarificationAnswers}`
+    : prompt
+
+  const payload = {
+    prompt: fullPrompt,
+    document_title: structuredOutput?.feature_name || 'Product Feature', 
+    session_id: sessionId,
+    organization_name: 'NPCI',
+    audience: 'Product managers, engineers, compliance teams',
+    desired_outcome: `Complete document suite for ${featureName}`,
+    use_rag: true,
+    include_diagrams: true,
+    brd_title: `Business Requirements Document — ${featureName}`,
+    tsd_title: `Technical Specification Document — ${featureName}`,
+    product_note_title: `Product Note — ${featureName}`,
+    circular_title: `Circular — ${featureName}`,
+    signatory_name: 'Chief Product Officer',
+    signatory_title: 'Chief Product Officer',
+    signatory_department: 'Product Management',
+  }
+
+  try {
+    const res = await generateDocBundle(payload)
+    const data = res.data
+    setDocBundle(data)
+    startPolling(data.bundle_id)
+  } catch (e) {
+    setError(e.response?.data?.detail || e.message || 'Failed to reach the DocGen service. Is it running on port 8001?')
+  } finally {
+    setGenerating(false)
+  }
+}
+
 
   const handleDownloadDoc = async (jobId, docType) => {
     try {
@@ -441,8 +528,9 @@ export default function DocumentGeneration() {
           )}
 
           <button
-            onClick={handleGenerate}
-            disabled={generating || isRunning || !canvas}
+            onClick={handleStartClarify}
+            disabled={generating || isRunning || clarifyPhase === 'loading_questions' || clarifyPhase === 'asking'}
+
             className="btn-primary gap-2 text-sm py-1.5"
           >
             {generating || isRunning ? (
@@ -551,6 +639,88 @@ export default function DocumentGeneration() {
           </div>
         </div>
       )}
+      {/* ── RAG Clarification Chat ────────────────────────────────────── */}
+{(clarifyPhase === 'loading_questions' || clarifyPhase === 'asking') && (
+  <div className="mb-6 card p-5 animate-fade-in">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-7 h-7 rounded-lg bg-accent-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+        AI
+      </div>
+      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+        A few quick questions before generating
+      </p>
+      <span className="ml-auto text-xs text-slate-400">
+        {currentQIndex + 1} / {ragQuestions.length}
+      </span>
+    </div>
+
+    {/* Progress bar */}
+    <div className="h-1 bg-slate-100 dark:bg-navy-700 rounded-full mb-4 overflow-hidden">
+      <div
+        className="h-full bg-accent-500 rounded-full transition-all duration-500"
+        style={{ width: `${((currentQIndex) / ragQuestions.length) * 100}%` }}
+      />
+    </div>
+
+    {/* Chat history — past Q&As */}
+    <div className="space-y-1 mb-3">
+      {ragQuestions.slice(0, currentQIndex).map((q, i) => (
+        <div key={i}>
+          <ChatBubble role="assistant" content={q} />
+          {ragAnswers[i] && <ChatBubble role="user" content={ragAnswers[i]} />}
+        </div>
+      ))}
+      {/* Current question */}
+      {clarifyPhase === 'loading_questions' ? (
+        <div className="flex items-end gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-full bg-accent-500 flex items-center justify-center text-white text-[10px] font-bold shrink-0">AI</div>
+          <div className="bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 rounded-2xl px-4 py-3">
+            <div className="flex gap-1 items-center h-4">
+              {[0, 150, 300].map((d) => (
+                <span key={d} className="w-2 h-2 bg-accent-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <ChatBubble role="assistant" content={ragQuestions[currentQIndex]} />
+      )}
+    </div>
+
+    {/* Answer input */}
+    {clarifyPhase === 'asking' && (
+      <div className="flex gap-2 items-end bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 rounded-2xl p-2 shadow-sm focus-within:ring-2 focus-within:ring-accent-500/20 focus-within:border-accent-500 transition-all">
+        <textarea
+          className="flex-1 bg-transparent text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none focus:outline-none px-2 py-1.5 min-h-[40px] max-h-28"
+          rows={2}
+          placeholder="Type your answer..."
+          value={currentAnswer}
+          onChange={(e) => setCurrentAnswer(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAnswerSubmit() } }}
+        />
+        <button
+          onClick={handleAnswerSubmit}
+          disabled={!currentAnswer.trim()}
+          className="shrink-0 w-9 h-9 rounded-xl bg-accent-500 hover:bg-accent-600 disabled:opacity-40 flex items-center justify-center text-white transition-all active:scale-95"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+          </svg>
+        </button>
+      </div>
+    )}
+
+    {/* Skip link */}
+    {clarifyPhase === 'asking' && (
+      <button
+        onClick={handleSkipClarify}
+        className="mt-2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 underline"
+      >
+        Skip remaining questions and generate now
+      </button>
+    )}
+  </div>
+)}
 
       {/* ── Document Cards ────────────────────────────────────── */}
       <div className="flex-1 min-h-0 overflow-y-auto">

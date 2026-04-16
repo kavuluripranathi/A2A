@@ -34,6 +34,9 @@ const useSessionStore = create((set, get) => ({
     docStatus: 'idle',
     loading: false,
     error: null,
+    ragClarifyStatus: 'idle',
+    ragQuestions: [],
+    ragAnswers: [],
   }),
 
   // ── Theme ─────────────────────────────────────────────────
@@ -97,6 +100,16 @@ const useSessionStore = create((set, get) => ({
   docStatus: 'idle',       // idle | generating | partial | completed | failed
   setDocBundle: (data) => set({ docBundle: data, docStatus: data?.overall_status || 'idle' }),
   clearDocBundle: () => set({ docBundle: null, docStatus: 'idle' }),
+
+  // ── RAG Clarification (pre-doc-gen) ──────────────────────────────────
+ragClarifyStatus: 'idle',   // idle | loading | asking | done | skipped
+ragQuestions: [],
+ragAnswers: [],
+setRagClarify: (status, questions = [], answers = []) =>
+  set({ ragClarifyStatus: status, ragQuestions: questions, ragAnswers: answers }),
+clearRagClarify: () =>
+  set({ ragClarifyStatus: 'idle', ragQuestions: [], ragAnswers: [] }),
+
 
   // ── UI State ──────────────────────────────────────────────
   loading: false,

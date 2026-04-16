@@ -142,17 +142,18 @@ def _expand_single_section(
     """Expand one section (sync). Returns (content, sources_list)."""
     llm = _llm()
     sources = []
+    req_text = json.dumps(requirement_data.get(section, {}), indent=2)  # ← add this back
 
     # 1. RAG retrieval (sync)
-    req_text = json.dumps(requirement_data.get(section, {}), indent=2)
-    rag_result = query_rag_sync(
-        f"{section} UPI payments embedded payments",
-        top_k=config.FINAL_TOP_K,
-        knowledge_type=_section_to_knowledge_type(section),
-    )
-    rag_context = rag_result["enriched_context"]
-    for r in rag_result["results"]:
-        sources.append(r["metadata"].get("source_file", "RAG"))
+    # req_text = json.dumps(requirement_data.get(section, {}), indent=2)
+    # rag_result = query_rag_sync(
+    #     f"{section} UPI payments embedded payments",
+    #     top_k=config.FINAL_TOP_K,
+    #     knowledge_type=_section_to_knowledge_type(section),
+    # )
+    # rag_context = rag_result["enriched_context"]
+    # for r in rag_result["results"]:
+    #     sources.append(r["metadata"].get("source_file", "RAG"))
 
     # 2. Tavily web search (sync via run)
     web_context = ""
@@ -171,8 +172,8 @@ def _expand_single_section(
 
     prompt_parts = [SECTION_PROMPTS[section]]
     prompt_parts.append(f"\n\nRequirement data for this section:\n{req_text}")
-    if rag_context:
-        prompt_parts.append(f"\n\nKnowledge base context:\n{rag_context[:3000]}")
+    # if rag_context:
+    #     prompt_parts.append(f"\n\nKnowledge base context:\n{rag_context[:3000]}")
     if web_context:
         prompt_parts.append(f"\n\nWeb research:\n{web_context[:2000]}")
     if existing_content and feedback:
@@ -183,7 +184,7 @@ def _expand_single_section(
 Write a detailed, well-structured research analysis section.
 Use markdown with headers (##, ###), bullet points, and bold for key terms.
 Be specific with numbers, benchmarks, and regulatory references where available.
-Cite sources inline as [Source: filename] when using knowledge base data.""")
+""")
 
     human = HumanMessage(content="\n".join(prompt_parts))
     response = llm.invoke([system, human])
