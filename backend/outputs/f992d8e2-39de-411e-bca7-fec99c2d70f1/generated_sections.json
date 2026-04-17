@@ -1,0 +1,118 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular is addressed to **all Payment Service Providers (PSPs), Issuer Banks, Beneficiary Banks, and UPI Application Developers** involved in the implementation and management of the Advanced Rule-Based Payment Splits feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current state of India's digital payment ecosystem lacks robust solutions for managing complex transactions involving multiple stakeholders, often resulting in manual complexity and delayed settlements. Existing applications provide only basic split functionalities, which are insufficient for the growing demand for efficient and automated payment management. This gap presents an opportunity to introduce the Advanced Rule-Based Payment Splits feature, which offers advanced capabilities such as percentage-based splits, priority handling, and cap limits. In response, the issuer has decided to implement this feature to enhance user experience, streamline processes, and align with the government's push towards a cashless economy."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement the Advanced Rule-Based Payment Splits feature to enhance the efficiency of managing multi-party transactions within the UPI ecosystem.",
+      "The implementation will involve modifications to the UPI App interface, the Common Library (CL) for secure transaction processing, and the NPCI Switch to support new rule-based logic for payment distribution.",
+      "The feature will require updates to the REQ_PAY and RESP_PAY message schemas to accommodate percentage-based splits, priority handling, and cap limits.",
+      "Integration of the Advanced Split Engine will be necessary to facilitate the automatic distribution of payments according to predefined rules, thereby reducing manual intervention and errors."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "Payment Service Provider (PSP) Banks must integrate the Advanced Rule-Based Payment Splits feature into their UPI applications. This integration requires compliance with the NPCI specifications to ensure seamless operation and user experience.",
+      "Issuer/Remitter Banks must update their transaction processing systems to accommodate the new payment split rules. This includes ensuring that percentage-based splits and priority handling are correctly processed and reflected in customer accounts.",
+      "Beneficiary/Payee Banks are advised to enhance their reconciliation processes to handle the advanced payment splits. This will aid in minimizing settlement delays and ensuring accurate crediting of funds to the appropriate parties.",
+      "UPI App developers must implement a user-friendly interface that guides users through setting up payment rules. The interface should support percentage-based splits and provide clear instructions to reduce user errors and enhance satisfaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "The Advanced Rule-Based Payment Splits feature must be communicated to all relevant product managers, engineers, and compliance teams. This ensures that all stakeholders are aware of the new capabilities and can integrate them into their respective domains effectively.",
+      "Product managers must understand the feature's potential to enhance user experience by automating complex payment splits. They should prepare to incorporate this feature into their product roadmaps and align it with strategic objectives.",
+      "Engineers are required to familiarize themselves with the technical specifications and integration points of the Advanced Split Engine. This knowledge is essential for seamless implementation and support.",
+      "Compliance teams must review the feature for alignment with regulatory requirements and ensure that all necessary approvals are in place. This step is critical to maintaining adherence to industry standards and legal mandates."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

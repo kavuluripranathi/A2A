@@ -10,6 +10,8 @@ import threading
 import uuid
 from pathlib import Path
 from typing import Optional
+from agents.rag_client import call_rag_clarify
+
 
 logger = logging.getLogger(__name__)
 
@@ -136,6 +138,17 @@ def generate_docsuite(
     bundle_id = str(uuid.uuid4())
     prompt = _build_prompt(canvas_sections, research_report, feature_request)
 
+    # Call RAG /clarify once — shared intelligence for all 4 doc types
+    rag_intelligence = call_rag_clarify(feature_request, canvas_sections, research_report)
+    proposals = rag_intelligence.get("proposed_skeleton") or {}
+    taxonomy = rag_intelligence.get("taxonomy") or {}
+    if rag_intelligence.get("blocking_gaps"):
+        logger.warning(
+            "[docsuite] Blocking gaps detected before generation: %s",
+            rag_intelligence["blocking_gaps"],
+        )
+
+
     job_ids: dict[str, str] = {}
 
     for doc_type in DOC_TYPES:
@@ -187,6 +200,9 @@ def generate_docsuite(
             "output_path": None,
             "status": "pending",
             "error": None,
+            "proposals": proposals,
+            "taxonomy": taxonomy,
+
         }
 
         t = threading.Thread(

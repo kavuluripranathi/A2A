@@ -1,0 +1,122 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India",
+      "Circular Reference: NPCI/UPI/OC No. 001/2023-2024",
+      "Date: October 25, 2023"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular is addressed to **all UPI ecosystem participants, including Payment Service Provider (PSP) Banks, Issuer/Remitter Banks, Beneficiary/Payee Banks, UPI Application Developers, and Compliance Teams**."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, users managing shared expenses face the inconvenience of manual calculations and delayed settlements, often relying on multiple applications to track and settle these expenses. This presents a significant gap in the UPI ecosystem, as users seek more efficient and integrated solutions for managing shared financial responsibilities. The introduction of the UPI AutoSplit feature addresses this gap by automating the division and settlement of expenses directly within the UPI app, thereby enhancing user convenience and satisfaction. In response, the issuer has decided to implement this feature to streamline shared expense management, leveraging UPI's existing infrastructure to offer a seamless and efficient solution."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement the UPI AutoSplit feature to automate the management of shared expenses within the UPI ecosystem.",
+      "The UPI AutoSplit feature will affect the UPI App, specifically the user interface and backend modules responsible for transaction processing and settlement.",
+      "The feature will require updates to the REQ_PAY and RESP_PAY message types to accommodate automated splitting and settlement functionalities.",
+      "Modifications to the Common Library (CL) will be necessary to support the new AutoSplit logic and ensure secure handling of shared expense transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must integrate the UPI AutoSplit feature into their UPI applications to enable automated expense splitting and settlement. They are responsible for ensuring that the feature is seamlessly incorporated into the user interface and provides a smooth user experience.",
+      "Issuer/Remitter Banks must support the real-time processing of split transactions initiated by the UPI AutoSplit feature. They must ensure that the necessary backend systems are capable of handling the increased transaction volume and complexity introduced by this feature.",
+      "Beneficiary/Payee Banks must ensure that their systems can accurately receive and process the credit transactions resulting from the UPI AutoSplit feature. They must maintain robust mechanisms for transaction confirmation and error handling to ensure reliability.",
+      "UPI App developers are advised to conduct thorough testing of the UPI AutoSplit feature within their applications to ensure functionality and user satisfaction. They must also ensure compliance with NPCI's security standards and guidelines for handling sensitive transaction data."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "The UPI AutoSplit feature introduces an automated solution for managing shared expenses within the UPI ecosystem. This feature is designed to enhance user convenience by eliminating the need for manual calculations and enabling instant settlements.",
+      "Product managers must ensure that the UPI AutoSplit feature aligns with existing product strategies and enhances the user experience by integrating seamlessly with the current UPI infrastructure.",
+      "Engineers are required to implement the UPI AutoSplit feature in accordance with the provided specifications, ensuring robust integration with the UPI app and maintaining system integrity.",
+      "Compliance teams must review the UPI AutoSplit feature to ensure adherence to regulatory requirements and guidelines, safeguarding user data and transaction security."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

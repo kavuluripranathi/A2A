@@ -1,0 +1,116 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI rewards ecosystem is fragmented, with rewards being non-transferable and confined to individual apps such as Google Pay, PhonePe, and Paytm, leading to inconsistent user experiences. This fragmentation limits the utility and perceived value of rewards, presenting a strategic opportunity to introduce a standardized rewards system. In response, the issuer has decided to implement a unified rewards system that allows users to collect and redeem rewards across all UPI apps, thereby enhancing user satisfaction and engagement while aligning with government initiatives for digital financial inclusion."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement a unified rewards system for UPI transactions to standardize and enhance user rewards experience across different UPI applications.",
+      "The technical artifacts affected by this decision include the UPI App interfaces, the NPCI Switch, and the Common Library (CL) SDK, which will require updates to support the new rewards aggregation and redemption functionalities.",
+      "The UPI message schemas, particularly those related to transaction confirmation and reward notification, will be updated to accommodate the new unified rewards system.",
+      "The integration of a centralized rewards dashboard will necessitate modifications to the existing APIs, including REQ_PAY and RESP_PAY, to ensure seamless tracking and redemption of rewards across all participating UPI applications."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "Payment Service Provider (PSP) Banks must integrate the unified rewards system within their UPI applications to facilitate the collection and redemption of rewards across different platforms. This integration is mandatory to ensure seamless user experience and interoperability of rewards.",
+      "Issuer/Remitter Banks are advised to update their systems to support the tracking and reporting of reward transactions in alignment with the new standardized rewards framework. This will enhance transparency and user trust in the rewards system.",
+      "Beneficiary/Payee Banks must ensure that their systems can process reward redemption requests efficiently and accurately. This includes updating their transaction processing systems to recognize and apply rewards as part of the payment process.",
+      "UPI App developers must incorporate the unified rewards dashboard into their applications, providing users with a centralized view of their rewards. This feature is crucial for enhancing user engagement and satisfaction by simplifying rewards management."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "The unified rewards system for UPI transactions is a strategic enhancement aimed at resolving the current fragmentation in the rewards ecosystem. This feature will allow users to consolidate rewards from various UPI apps into a single, accessible dashboard, thereby increasing user satisfaction and engagement.",
+      "Product managers must ensure that the integration of this rewards system aligns with existing UPI app functionalities and enhances the user experience by providing a seamless interface for reward tracking and redemption.",
+      "Engineers are required to implement the necessary technical infrastructure to support the unified rewards dashboard, ensuring interoperability across different UPI applications and maintaining secure data handling practices.",
+      "Compliance teams must verify that the implementation of the unified rewards system adheres to all regulatory requirements and aligns with government initiatives for digital financial inclusion."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

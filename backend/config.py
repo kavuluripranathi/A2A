@@ -13,7 +13,8 @@ TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")
 
 # RAG configuration
 RAG_MODE = os.getenv("RAG_MODE", "local")          # "local" or "remote"
-RAG_ENDPOINT = os.getenv("RAG_ENDPOINT", "http://localhost:8000/rag/query")
+RAG_SYSTEM_URL = os.getenv("RAG_SYSTEM_URL", "http://localhost:8001")
+
 DOCUMENTS_DIR = os.getenv("DOCUMENTS_DIR", "../documents")
 CHROMA_PERSIST_DIR = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
 CHROMA_COLLECTION = os.getenv("CHROMA_COLLECTION", "upi_knowledge")
@@ -31,4 +32,5 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 PROTOTYPE_MODEL_NAME = os.getenv("PROTOTYPE_MODEL_NAME", "gpt-4.1")
 
 # CORS origins
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+

@@ -1,0 +1,297 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The purpose of this document is to provide a comprehensive overview of the Advanced Rule-Based Payment Splits feature. This feature is designed to enhance the efficiency and accuracy of managing payments in scenarios involving multiple participants. By automating the distribution of payments according to predefined rules, it aims to eliminate manual calculations and reduce errors. This document will guide stakeholders through the feature's functionalities, benefits, and implementation details, ensuring a clear understanding of its impact on digital payment processes.",
+      "The primary audience for this document includes product managers, engineers, and compliance teams who are involved in the development, deployment, and regulation of digital payment solutions. Product managers will find insights into how this feature aligns with market needs and strategic goals, while engineers will gain technical clarity on implementation requirements. Compliance teams will benefit from understanding the regulatory implications and how the feature supports adherence to financial standards and practices.",
+      "The scope of this document encompasses the detailed description of the Advanced Rule-Based Payment Splits feature, including its operational mechanics, user interface design, and integration points within existing payment systems. It will cover the feature's role in addressing current market gaps and its potential impact on the digital payment landscape in India. Additionally, the document will outline the feature's alignment with governmental and regulatory objectives, particularly in the context of promoting a cashless economy and enhancing the efficiency of digital transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The current state of digital payments in India is characterized by a rapid increase in transaction volumes, driven by the government's push towards a cashless economy. However, existing solutions for managing payments, especially those involving multiple parties, are often inadequate. Users frequently face challenges when attempting to split payments for group activities or business events, as the available tools lack the sophistication needed for complex transactions. This results in manual calculations, increased potential for errors, and a cumbersome user experience.",
+      "The Advanced Rule-Based Payment Splits feature is designed to address these limitations by providing a more efficient and user-friendly solution. By allowing users to set predefined rules for payment distribution, this feature automates the process of splitting payments among multiple participants. This not only reduces the likelihood of errors but also saves time and effort, making the transaction process smoother and more intuitive. The feature is particularly beneficial in scenarios where payments need to be divided according to specific percentages or priorities, which are not adequately supported by current solutions.",
+      "This innovation is crucial as it aligns with the Reserve Bank of India's vision for an efficient and reliable payment system. By enhancing automation and reducing manual intervention, the Advanced Rule-Based Payment Splits feature supports banks and Payment Service Providers (PSPs) in managing transaction complexities and reconciliation overheads. It also fosters trust and confidence in digital payments by ensuring timely and accurate settlements. As a result, this feature not only meets the immediate needs of users but also contributes to the broader goal of advancing India's digital payment landscape."
+    ],
+    "bullet_points": [
+      "Current solutions are inadequate for managing complex transactions involving multiple stakeholders.",
+      "Manual calculations lead to increased potential for errors and delays in settlements.",
+      "Existing applications lack advanced capabilities such as percentage-based splits and priority handling.",
+      "The feature automates payment distribution, reducing manual complexity and cognitive load.",
+      "Enhances user satisfaction by providing a smoother, more intuitive transaction experience.",
+      "Supports RBI's vision for an efficient, reliable, and cashless payment ecosystem."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to streamline the management of complex payment scenarios, particularly when multiple parties are involved. This feature allows users to set predefined rules for distributing payments, eliminating the need for manual calculations. For instance, in situations like group dinners or business events, users can specify that one participant pays a certain percentage while others cover the remaining balance. This automation not only reduces the potential for errors but also saves significant time, making the payment process more efficient and user-friendly.",
+      "For users, this feature translates into a smoother and more intuitive experience when handling intricate transactions. The user interface is crafted to be accessible, guiding users through the process of setting up their payment rules effortlessly. By automating the distribution of payments, the feature ensures that transactions are settled accurately and promptly, enhancing overall user satisfaction. This capability is particularly vital in the context of India's rapidly growing digital payment landscape, where the need for reliable and efficient transaction management tools is paramount.",
+      "The introduction of Advanced Rule-Based Payment Splits addresses a critical gap in the market by providing a robust solution for managing complex transactions involving multiple stakeholders. Current solutions often fall short, leading to manual complexities and delayed settlements. This feature supports the Reserve Bank of India's vision for an efficient payment system and aligns with the national push towards a cashless economy. By offering advanced capabilities such as percentage-based splits and priority handling, this feature not only enhances user experience but also fosters trust and confidence in digital payments, setting a new standard in the market."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is integrated into the user interface of UPI apps, providing a seamless and intuitive experience for users. The UI placement is designed to be easily accessible, typically located within the payment settings or transaction management section of the app. This strategic placement ensures that users can quickly navigate to the feature when they need to set up or modify payment rules. The interface guides users through the process with clear instructions and prompts, making it straightforward to configure complex payment splits without confusion.",
+      "The indicative user journey begins with the user accessing the payment settings in their UPI app. Upon selecting the Advanced Rule-Based Payment Splits option, the user is prompted to define the participants and set the rules for payment distribution. The system allows users to specify percentages for each participant, ensuring flexibility and precision in how payments are split. Once the rules are set, the user reviews and confirms the setup, with the app capturing their consent through an explicit confirmation step. This consent is crucial for compliance and ensures that users are fully aware of the rules they are implementing.",
+      "In terms of technical flow, the UPI app communicates with the PSP bank's systems to validate the user's input and ensure that the rules comply with regulatory standards. The PSP bank is responsible for processing the enrollment request and coordinating with the NPCI switch to update the necessary records. The NPCI switch plays a pivotal role in routing the transaction data and ensuring that the payment splits are executed according to the defined rules. Each participant in the ecosystem, including the PSP bank, beneficiary bank, and NPCI, has specific responsibilities to ensure the process is smooth and compliant with all regulatory requirements."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "User accesses payment settings in UPI app",
+          "User"
+        ],
+        [
+          "Step 1",
+          "Select Advanced Rule-Based Payment Splits",
+          "User"
+        ],
+        [
+          "Step 2",
+          "Define participants and set payment rules",
+          "User"
+        ],
+        [
+          "Step 3",
+          "Review and confirm payment rules",
+          "User"
+        ],
+        [
+          "Step 4",
+          "Validate input and compliance",
+          "PSP Bank"
+        ],
+        [
+          "Step 5",
+          "Process enrollment request",
+          "PSP Bank"
+        ],
+        [
+          "Step 6",
+          "Update records and route data",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "Confirmation of setup completion",
+          "User"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to streamline the management of payments involving multiple parties. This feature allows users to set predefined rules for splitting payments, which can be particularly useful in scenarios such as group dinners or business events. Users can specify how the payment should be divided, such as assigning specific percentages to different participants. This automation not only reduces the likelihood of errors but also saves time by eliminating the need for manual calculations.",
+      "In terms of system changes, this feature introduces an advanced split engine that enhances the existing payment infrastructure. The engine supports complex transaction scenarios by allowing percentage-based splits, priority handling, and cap limits. These capabilities are integrated into the UPI ecosystem, ensuring that the feature aligns with the current digital payment standards and processes. The system changes are designed to be seamless, requiring minimal adjustments from banks and PSPs while providing significant enhancements in transaction management.",
+      "The transaction flow for this feature begins with the user setting up the payment rules through a user-friendly interface on the UPI app. Once the rules are configured, the payment initiation process follows the standard UPI flow, with the PSP bank sending a request to the NPCI. The NPCI then processes the transaction according to the predefined rules, ensuring that the payment is split as specified. The final step involves confirmation of the payment distribution to all parties involved, ensuring transparency and accuracy in the transaction.",
+      "The supported modes for this feature include both peer-to-peer and peer-to-business transactions. This flexibility allows users to apply the advanced payment splits in various contexts, whether they are splitting a bill with friends or managing payments for a business event. The feature is designed to cater to the diverse needs of the digital payment landscape, providing a robust solution for complex transaction scenarios.",
+      "The roles and responsibilities in the payment execution flow are clearly defined to ensure smooth operation. The user is responsible for setting up the payment rules, while the PSP bank handles the initiation of the payment request. The NPCI is responsible for processing the transaction and ensuring that the payment is split according to the rules. Finally, the beneficiary banks are responsible for crediting the respective accounts as per the split instructions. This clear delineation of responsibilities helps maintain efficiency and accountability throughout the transaction process."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "User sets up payment rules in the UPI app",
+          "User"
+        ],
+        [
+          "Step 1",
+          "Initiate payment request with rules",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "Process transaction and apply splits",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Credit accounts as per split instructions",
+          "Beneficiary Banks"
+        ],
+        [
+          "Post Response",
+          "Confirm payment distribution to all parties",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [
+      "Optionality: Users must have the option to enable or disable the Advanced Rule-Based Payment Splits feature at their discretion, ensuring flexibility in managing payment preferences.",
+      "Consent Scope: Explicit consent is required from all parties involved in the payment split before any transaction is processed, ensuring transparency and agreement among stakeholders.",
+      "Storage: All payment rules and user preferences must be securely stored in compliance with data protection regulations, ensuring confidentiality and integrity of user data.",
+      "Key Rotation: Regular key rotation is mandatory for securing encrypted payment data, minimizing the risk of unauthorized access and ensuring compliance with security standards.",
+      "Disablement Scenarios: Users must have the ability to disable the feature instantly in case of any discrepancies or errors, providing a safeguard against unintended transactions.",
+      "Audit Trails: Comprehensive audit trails must be maintained for all transactions processed through the feature, ensuring traceability and accountability for compliance and dispute resolution."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The Advanced Rule-Based Payment Splits feature must allow users to define custom percentage splits for each participant in a transaction, ensuring flexibility and precision in payment distribution.",
+      "2. Users should be able to set priority levels for participants, determining the order in which payments are allocated, which is crucial for managing hierarchical payment obligations.",
+      "3. The system must support cap limits, enabling users to specify maximum amounts that any participant can be charged, thus preventing overpayment and ensuring fairness.",
+      "4. The user interface should provide clear guidance and feedback during the setup of payment rules, minimizing the potential for user error and enhancing the overall user experience.",
+      "5. All transactions processed through this feature must adhere to existing security protocols and compliance requirements to maintain trust and integrity in the digital payment ecosystem.",
+      "6. The feature should seamlessly integrate with existing UPI applications, ensuring that users can access and utilize the advanced payment split functionalities without needing to switch platforms or undergo additional onboarding processes."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature does not alter the existing dispute management process within the UPI ecosystem. The standard UPI dispute resolution procedures remain applicable. This ensures that all stakeholders, including PSPs, banks, and end-users, continue to have a consistent and reliable framework for addressing any transaction-related disputes.",
+      "The feature's automation of payment splits is designed to minimize errors and disputes by accurately distributing payments based on predefined rules. However, in the event of a discrepancy or error, the standard dispute channels will be utilized. This includes the established processes for raising and resolving disputes through the respective banks and PSPs involved in the transaction.",
+      "Liability in disputes remains unchanged and follows the existing protocols. The payer's bank, as the remitter, and the payee's bank, as the beneficiary, will continue to handle disputes according to the current UPI guidelines. This ensures that the introduction of advanced payment splitting does not introduce new complexities or liabilities into the dispute management process."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "The testing and certification process for the Advanced Rule-Based Payment Splits feature is designed to ensure seamless integration and operation within the digital payment ecosystem. The test environments will simulate real-world conditions to validate the feature's performance, reliability, and security. These environments will replicate various scenarios, including different user configurations and transaction complexities, to ensure the feature meets all operational requirements. The testing phase will include both functional and non-functional testing to cover all aspects of the feature's capabilities.",
+      "Mandatory testing scenarios will include enrollment, transaction execution, fallback mechanisms, and disablement processes. Enrollment scenarios will focus on the initial setup of payment rules, ensuring that users can configure their preferences accurately and without errors. Transaction scenarios will test the feature's ability to handle multiple splits, percentage-based allocations, and priority handling under various conditions. Fallback scenarios will evaluate the system's resilience and ability to handle unexpected issues, such as network failures or incorrect user inputs, ensuring that transactions can proceed smoothly or revert safely.",
+      "Certification steps will involve rigorous validation by the approving authority, which will typically be the compliance teams within banks and PSPs. These steps will ensure that the feature complies with regulatory standards and aligns with the strategic goals of promoting a cashless economy. Additionally, audits will be conducted periodically to assess the feature's ongoing performance and compliance. These audits will focus on the feature's impact on transaction accuracy, user satisfaction, and overall system efficiency, providing insights for continuous improvement."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Enrollment",
+          "Ensure accurate setup of payment rules",
+          "Product Managers"
+        ],
+        [
+          "Transaction Execution",
+          "Validate split accuracy and priority handling",
+          "Engineers"
+        ],
+        [
+          "Fallback Mechanisms",
+          "Test system resilience to errors",
+          "Compliance Teams"
+        ],
+        [
+          "Disablement",
+          "Verify safe deactivation of payment rules",
+          "Product Managers"
+        ],
+        [
+          "Audit",
+          "Assess compliance and performance",
+          "Compliance Teams"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "Before enabling the Advanced Rule-Based Payment Splits feature, several pre-checks must be conducted to ensure a seamless integration and operation. These checks are crucial for maintaining system integrity and user satisfaction. They involve verifying user credentials, ensuring compliance with regulatory standards, and confirming the technical readiness of all involved systems. Each check is assigned to a specific participant, and failure to pass any check can lead to significant operational disruptions.",
+      "At the transaction time, additional pre-checks are necessary to ensure that each transaction adheres to the predefined rules and parameters set by the user. These checks focus on validating the transaction details, ensuring the availability of funds, and confirming the correct application of the payment split rules. The outcome of these checks directly impacts the transaction's success and the user's experience. If any check fails, it can result in transaction delays or failures, affecting user trust and satisfaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Before Enrollment/Enabling: User Authentication Check - Conducted by the PSP Bank to verify the identity of the user. Failure to authenticate results in the user being unable to access the feature.",
+      "Before Enrollment/Enabling: Compliance Verification - Performed by the compliance team to ensure all regulatory requirements are met. Non-compliance leads to feature access being denied until issues are resolved.",
+      "Before Enrollment/Enabling: System Compatibility Check - Managed by the engineering team to confirm that the user's device and app version support the feature. Incompatibility results in the feature being disabled for the user.",
+      "At Transaction Time: Rule Validation Check - Executed by the UPI App to ensure the payment split rules are correctly configured. Invalid rules prevent the transaction from proceeding.",
+      "At Transaction Time: Fund Availability Check - Conducted by the Issuer Bank to verify sufficient funds in the user's account. Insufficient funds result in transaction failure.",
+      "At Transaction Time: Transaction Limit Check - Performed by the PSP Bank to ensure the transaction does not exceed predefined limits. Exceeding limits causes the transaction to be declined."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

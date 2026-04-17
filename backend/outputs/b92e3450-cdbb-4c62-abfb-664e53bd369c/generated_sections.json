@@ -1,0 +1,369 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem facilitates a wide range of peer-to-peer (P2P) and peer-to-merchant (P2M) transactions, but it does not inherently support automated expense splitting. The primary participants in the existing UPI flow include the NPCI, which operates the UPI switch, the PSP Bank that hosts the UPI app, the Issuer Bank responsible for debiting the payer's account, and the Beneficiary Bank that credits the recipient's account. Users initiate transactions through their UPI apps, which are integrated with the Common Library provided by NPCI for secure authentication and transaction processing. The process involves capturing user authentication details, routing payment requests through the NPCI switch, and executing debit and credit operations across the involved banks.",
+      "In the current scenario, managing shared expenses requires users to manually calculate each participant's share and initiate individual transactions to settle these amounts. This manual process often involves using external tools or apps to track expenses and determine who owes what, leading to potential errors and delays. Once the calculations are complete, users must initiate separate UPI transactions for each participant, which can be time-consuming and cumbersome. The existing system does not offer a streamlined or automated way to handle shared expenses, leaving users to rely on manual methods that can detract from the convenience and efficiency that UPI aims to provide."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The current state of managing shared expenses through UPI lacks the automation and seamless integration needed to fully satisfy user needs. While UPI is a robust platform for individual transactions, it falls short in addressing the complexities of group expense management. The absence of an automated solution results in inefficiencies and user dissatisfaction. These limitations highlight the need for enhancements to improve user experience and operational efficiency."
+    ],
+    "bullet_points": [
+      "Security Concerns: NPCI must ensure that the UPI AutoSplit feature adheres to stringent security protocols to prevent unauthorized access and data breaches, which could compromise user trust.",
+      "User Friction: PSP Banks face challenges in providing a smooth user experience, as the current manual process requires users to switch between apps, leading to potential errors and frustration.",
+      "Scalability Issues: Issuer Banks may encounter difficulties in scaling the AutoSplit feature to handle high transaction volumes efficiently, potentially affecting transaction processing times.",
+      "Regulatory Compliance: Beneficiary Banks need to ensure that the AutoSplit feature complies with existing financial regulations, which may require additional oversight and adjustments to current processes."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit feature is introduced to address a significant gap in the current digital payment landscape, aligning with the Reserve Bank of India's (RBI) guidelines for enhancing user convenience and promoting digital transactions. As UPI continues to dominate the retail payment sector, accounting for 84% of transactions in FY25, there is a pressing need to innovate and offer features that simplify everyday financial interactions. The manual process of calculating and settling shared expenses is cumbersome and prone to errors, often leading to user dissatisfaction. By automating this process, UPI AutoSplit not only enhances user experience but also aligns with regulatory mandates to promote seamless and efficient digital payment solutions.",
+      "The expected benefits of UPI AutoSplit are substantial, primarily focusing on improving user experience and increasing UPI adoption. By automating the division and settlement of shared expenses, the feature significantly reduces manual effort and eliminates the need for multiple apps, providing a streamlined experience within the existing UPI framework. This approach was chosen over alternatives due to its ability to leverage UPI's robust infrastructure, ensuring reliability and accessibility. Instant settlements reduce waiting times, enhancing user satisfaction and trust in the UPI system. This strategic enhancement positions UPI as a comprehensive payment solution, offering a competitive edge over third-party applications by integrating expense management directly into the payment process."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit feature is a transformative addition to the UPI ecosystem, designed to streamline the management of shared expenses. This feature allows users to effortlessly divide costs among a group, such as friends dining out or roommates sharing rent, and settle them instantly within the UPI app. By automating the calculation and payment processes, UPI AutoSplit eliminates the need for manual calculations or the use of separate applications, offering a seamless experience for users. This innovation is particularly beneficial in scenarios where quick and accurate expense management is essential, enhancing user convenience and satisfaction.",
+      "UPI AutoSplit primarily affects users of UPI apps, PSP Banks, and the broader UPI infrastructure managed by NPCI. For users, it acts as a personal assistant, simplifying the often cumbersome task of tracking and settling shared expenses. PSP Banks benefit by offering a more comprehensive service to their customers, potentially increasing user engagement and retention. NPCI, as the operator of the UPI switch, ensures the feature's integration is smooth and reliable, leveraging the existing UPI infrastructure that already handles a significant portion of India's retail payments. This feature addresses the business problem of delayed settlements and manual errors, providing a strategic advantage by capturing a larger share of the UPI P2P transaction volume.",
+      "From a business perspective, UPI AutoSplit addresses a significant market gap by providing a solution to the common user pain point of managing shared expenses. It enhances the user experience by reducing manual effort, enabling instant settlements, and ensuring seamless integration within the UPI app. This deep integration differentiates UPI from third-party applications, positioning it as a comprehensive payment solution that reduces friction and enhances convenience. By embedding this functionality within the UPI ecosystem, the feature not only drives UPI adoption but also strengthens its position as a leading digital payment platform in India."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers ii. Product Construct: Setting / Enrollment.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iii. Product Construct: Transaction Flow.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Users must opt-in to use the UPI AutoSplit feature, providing explicit consent within the UPI app before any shared expenses can be automatically split and settled.",
+      "2. The UPI AutoSplit feature is backward-compatible with existing UPI infrastructure, ensuring that users on older app versions can still receive split payments, though they may not initiate splits themselves.",
+      "3. Users can withdraw consent for the UPI AutoSplit feature at any time through the app settings, which will immediately halt any further automatic expense splitting and settlement.",
+      "4. The feature is constrained to devices that support the latest UPI app version with Common Library integration, ensuring secure and efficient processing of split transactions.",
+      "5. In the event of a failed transaction during the AutoSplit process, the system will automatically retry the payment up to three times before notifying the user of the failure and suggesting manual intervention.",
+      "6. Exception handling for the UPI AutoSplit feature includes a fallback mechanism where, if a participant's bank does not support real-time settlement, the transaction will be marked as 'DEEMED' and settled asynchronously."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature does not alter the existing dispute management framework within the UPI ecosystem. All transactions processed through the AutoSplit feature will adhere to the standard UPI dispute resolution process. This ensures consistency and reliability, leveraging the established mechanisms for handling transaction discrepancies, chargebacks, and user grievances. Users can continue to rely on the robust dispute management protocols that have been effective in maintaining trust and transparency in UPI transactions.",
+      "Since there are no changes to the dispute management process, the liability assignment remains as per the standard UPI guidelines. The PSP Bank is responsible for initiating the transaction and ensuring its integrity, while the Issuer Bank handles authentication and debiting of the payer's account. The Beneficiary Bank is accountable for crediting the recipient's account. The Service Level Agreement (SLA) for dispute resolution will continue to follow the existing timelines, ensuring prompt attention to any issues. Escalation paths remain unchanged, with users directed to their respective banks for initial resolution, and further escalation to NPCI if necessary."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit feature introduces a streamlined approach to managing shared expenses directly within the UPI ecosystem. This feature automates the division and settlement of expenses among a group, eliminating the need for manual calculations and multiple applications. By leveraging UPI's existing infrastructure, AutoSplit offers a seamless, integrated solution that enhances user convenience and satisfaction. The following table outlines the functional requirements necessary to implement this feature effectively."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall allow users to enter a total expense amount and select participants for the split.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall automatically calculate each participant's share based on the total amount and number of participants.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall enable instant settlement of calculated shares through UPI transactions.",
+          "High"
+        ],
+        [
+          "FR-04",
+          "The system shall provide users with a summary of the split and settlement status within the UPI app.",
+          "Medium"
+        ],
+        [
+          "FR-05",
+          "The system shall allow users to adjust individual shares if needed before finalizing the split.",
+          "Medium"
+        ],
+        [
+          "FR-06",
+          "The system shall send notifications to participants once the split is initiated and upon successful settlement.",
+          "Medium"
+        ],
+        [
+          "FR-07",
+          "The system shall support splitting expenses in multiple currencies, converting them to the base currency as needed.",
+          "Low"
+        ],
+        [
+          "FR-08",
+          "The system shall ensure data security and privacy by encrypting transaction details and user information.",
+          "High"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature necessitates several changes to the NPCI platform, Common Library (CL), and associated schemas. These changes are essential to support the automated splitting and settlement of shared expenses within the UPI ecosystem. The modifications will involve new API messages, updates to existing schema fields, and enhancements to the CL version to accommodate the new functionalities. Each change is designed to ensure seamless integration and operation of the AutoSplit feature, enhancing user experience and driving adoption.",
+      "NPCI will be responsible for implementing these changes, ensuring that the UPI platform can handle the complexities of automated expense splitting. The changes will include the introduction of new configuration flags and updates to the CL to support the new feature. By making these enhancements, NPCI aims to provide a robust infrastructure that supports real-time settlements and reduces the manual effort required by users. The following numbered items detail the specific changes required for the successful implementation of the UPI AutoSplit feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Introduction of a new API message, REQ_AUTO_SPLIT, to facilitate the initiation of shared expense transactions. This API will be implemented by the PSP Bank to initiate AutoSplit requests to NPCI.",
+      "2. Modification of existing schema fields to include additional parameters for participant details and expense distribution. This change will be required by both the PSP Bank and the Beneficiary Bank to ensure accurate processing of split transactions.",
+      "3. Update to the Common Library (CL) to version 2.40, incorporating support for the AutoSplit feature. This update will be managed by NPCI and must be integrated by all UPI Apps to enable seamless user interaction.",
+      "4. Implementation of new configuration flags within the NPCI platform to manage AutoSplit settings and preferences. These flags will allow customization of the feature and must be adhered to by all participating banks to maintain consistency across the UPI network."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature necessitates several changes to the transaction flow and processing managed by NPCI. These changes are crucial to ensure seamless integration and operation of the AutoSplit functionality within the existing UPI framework. NPCI will be responsible for implementing these changes, which include modifications to routing, processing, and validation protocols. By addressing these areas, NPCI will facilitate the automatic division and settlement of shared expenses, enhancing user experience and operational efficiency.",
+      "To support the AutoSplit feature, NPCI will need to handle specific requirements related to credential validation and switch routing. The changes will ensure that transactions are processed correctly and securely, leveraging the existing UPI infrastructure. These modifications will also involve handling new transaction categories and ensuring that responses are managed efficiently. The following numbered requirements outline the specific changes NPCI will implement to accommodate the AutoSplit feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI will update the routing logic to handle transactions with the new refCategory designated for AutoSplit payments, ensuring these are processed distinctly from standard transactions.",
+      "2. NPCI will enhance the credential validation process to accommodate the AutoSplit feature, ensuring that all participant credentials are verified before transaction initiation.",
+      "3. NPCI will modify the switch routing to support the simultaneous processing of multiple payment requests within a single AutoSplit transaction, ensuring efficient and accurate settlement.",
+      "4. NPCI will implement changes in response handling to provide real-time feedback to users on the status of each participant's payment within the AutoSplit transaction, ensuring transparency and user satisfaction."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature necessitates several changes to the UPI App and PSP infrastructure to facilitate seamless enrollment, consent capture, and device binding. These changes are crucial to ensure that users can easily manage shared expenses directly within the app, enhancing the overall user experience and driving adoption. The UPI App and PSP must implement specific UI modifications, integrate the Common Library (CL) SDK for secure operations, and establish robust local key storage and device check logic.",
+      "Each of these changes is designed to support the AutoSplit feature's functionality, ensuring that users can effortlessly divide expenses and process payments in real-time. The UPI App will need to provide intuitive interfaces for users to input expense details and select participants. Additionally, the PSP must ensure that all security protocols are adhered to, leveraging the CL SDK for encryption and authentication processes. These enhancements will collectively contribute to a more efficient and user-friendly payment solution."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The UPI App must update its user interface to include a dedicated section for the AutoSplit feature, allowing users to enter the total expense amount and select participants for the split.",
+      "The PSP is responsible for invoking the CL SDK to encrypt user credentials and manage secure authentication during the AutoSplit process, ensuring data integrity and security.",
+      "Local key storage must be implemented by the UPI App to securely store user consent and authorization details, facilitating quick access and processing during transactions.",
+      "Device check logic needs to be enhanced by the PSP to verify device integrity and ensure that only authorized devices can initiate the AutoSplit feature, thereby preventing unauthorized access."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature necessitates several transaction-time changes within the UPI App and PSP systems. These changes are crucial to ensure seamless integration and functionality of the AutoSplit feature, enabling users to manage shared expenses efficiently. The enhancements focus on credential capture, invocation of the Common Library (CL), fallback handling, and response presentation. Each of these elements plays a vital role in delivering a smooth and reliable user experience during transaction processing.",
+      "For the UPI AutoSplit feature to function effectively, the UPI App and PSP must implement specific changes. These changes are designed to automate the process of splitting expenses and settling payments instantly, thereby enhancing user satisfaction and driving UPI adoption. By addressing these transaction-time requirements, the UPI ecosystem can provide a more comprehensive and convenient financial tool, positioning itself as a leader in digital payments."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The UPI App must capture user credentials securely, ensuring that the process is intuitive and aligns with existing authentication mechanisms. This involves leveraging the Common Library (CL) for secure credential handling and encryption.",
+      "The PSP Bank is responsible for invoking the CL during transaction processing to encrypt and securely transmit user credentials to NPCI. This step is critical to maintain the integrity and security of the transaction data.",
+      "In the event of a transaction failure or timeout, the PSP Bank must implement robust fallback handling procedures. This includes initiating a REQ_CHK_TXN to NPCI to verify the status of the transaction and ensure timely resolution.",
+      "The UPI App must present transaction responses clearly and promptly to the user. This involves displaying confirmation messages for successful transactions and providing detailed error messages for failed transactions, ensuring users are informed at every step."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature necessitates several changes in the authentication and registration processes managed by the Issuer Bank. These changes are essential to ensure that the bank can effectively support the seamless division and settlement of shared expenses. The Issuer Bank must adapt its systems to handle new data storage requirements, validate transaction requests, and respond appropriately to ensure a smooth user experience. As the feature integrates deeply with UPI, the bank's role in managing credentials and authenticating users becomes even more critical.",
+      "To support the UPI AutoSplit feature, the Issuer Bank must implement specific changes in how it manages user authentication and registration. These changes will not only enhance security but also ensure that transactions are processed efficiently and accurately. By storing relevant data and validating transaction requests, the bank will play a pivotal role in the successful deployment of this feature. The following numbered requirements outline the specific changes needed for the Issuer Bank."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The Issuer Bank must store user consent for participating in AutoSplit transactions, ensuring compliance with regulatory requirements and user privacy standards.",
+      "The Issuer Bank must validate each participant's share in an AutoSplit transaction to ensure that the calculated amounts are accurate and that the total does not exceed the original transaction amount.",
+      "The Issuer Bank must respond to authentication requests by verifying user credentials and ensuring that the user is authorized to initiate or participate in an AutoSplit transaction.",
+      "The Issuer Bank must manage and store transaction history related to AutoSplit activities, enabling users to access past transactions and ensuring transparency in shared expense management."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature necessitates several changes in the transaction flow for Issuer Banks. These changes are essential to ensure seamless processing of authenticated debit requests as part of the automated expense splitting process. The Issuer Bank will play a critical role in validating credentials, processing debits, and managing response codes. Additionally, the bank must handle timeouts and fallbacks efficiently to maintain transaction integrity and user satisfaction.",
+      "The Issuer Bank's responsibilities will expand to accommodate the new feature, requiring updates in their processing systems. These updates will ensure that the bank can handle the increased volume and complexity of transactions associated with UPI AutoSplit. By implementing these changes, the Issuer Bank will support the feature's goal of providing a hassle-free experience for users managing shared expenses. The following numbered requirements outline the specific changes needed for the Issuer Bank's transaction flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Credential and Authentication Validation: The Issuer Bank must enhance its systems to validate encrypted credential blocks received from the PSP Bank. This includes ensuring that the credentials are decrypted and authenticated securely before processing any debit requests.",
+      "2. Debit Processing: The Issuer Bank is required to update its debit processing systems to handle multiple, simultaneous debit requests efficiently. This includes ensuring that each participant's share of the expense is debited accurately and promptly from their respective accounts.",
+      "3. Response Codes: The Issuer Bank must implement new response codes to communicate the status of each debit transaction to the NPCI. These codes should cover successful transactions, failures due to insufficient funds, and any authentication errors encountered during processing.",
+      "4. Timeout and Fallback Handling: The Issuer Bank needs to establish robust timeout and fallback procedures to manage scenarios where transactions are delayed or fail. This includes retry mechanisms and clear communication protocols with the NPCI to ensure that users are informed of any issues and that transactions are completed as expected."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

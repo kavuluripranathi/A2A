@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current state of UPI dispute resolution is characterized by a reliance on traditional bank customer care systems, which are overwhelmed by the increasing volume of disputes due to the high transaction rates on the UPI platform. This results in slow, fragmented processes that are heavily dependent on manual intervention, leading to user dissatisfaction and operational inefficiencies. The existing system lacks a streamlined, user-friendly approach for resolving transaction issues directly through UPI apps.",
+      "The gap identified is the absence of a self-serve resolution mechanism that empowers users to independently address transaction disputes without the need for prolonged interactions with customer service. This gap presents an opportunity to enhance user satisfaction by reducing resolution times and operational costs while maintaining regulatory compliance with grievance rate standards.",
+      "In response, the issuer has decided to implement a self-serve resolution engine for UPI disputes. This feature will introduce guided dispute flows with auto-detection of issue types and suggested resolution paths, significantly improving the current process. The directive aims to streamline dispute management, reduce dependency on customer care, and provide a seamless user experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "The National Payments Corporation of India (NPCI) has decided to implement a self-serve resolution engine for UPI disputes to enhance user experience and operational efficiency.",
+      "This initiative involves the enhancement of the existing ReqChkTxn API and the introduction of a new ReqComplaint API to facilitate automated dispute detection and resolution.",
+      "The scope of this feature includes modifications to the UPI App interfaces to integrate the self-serve resolution engine, ensuring seamless user interaction and guided dispute resolution flows.",
+      "The implementation of this feature will require updates to the Common Library (CL) and adjustments to the NPCI Switch to support the new and enhanced APIs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "Payment Service Provider (PSP) Banks must integrate the enhanced ReqChkTxn API and the new ReqComplaint API into their systems to facilitate the self-serve resolution engine for UPI disputes. This integration is mandatory to ensure seamless dispute management and user empowerment.",
+      "Issuer/Remitter Banks are advised to update their backend systems to support the auto-detection and resolution path suggestions provided by the self-serve resolution engine. This enhancement will aid in reducing manual intervention and operational inefficiencies.",
+      "Beneficiary/Payee Banks must ensure that their systems are capable of processing dispute resolutions initiated through the self-serve engine promptly. Compliance with this requirement is essential to maintain the efficiency and reliability of the UPI ecosystem.",
+      "UPI App providers must incorporate the guided dispute resolution flows into their user interfaces. This integration is crucial to offer users a streamlined and user-friendly experience, minimizing the need for customer service intervention."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "The introduction of the self-serve resolution engine for UPI disputes necessitates the dissemination of relevant information to all concerned parties. This feature is designed to streamline the dispute resolution process by allowing users to independently address transaction issues through a guided process on their UPI app.",
+      "The self-serve engine will leverage the existing ReqChkTxn API, which will be enhanced to support this new functionality. Additionally, a new ReqComplaint API will be introduced to facilitate the online dispute resolution process. These enhancements aim to reduce the dependency on traditional customer care systems and improve user satisfaction.",
+      "Product managers, engineers, and compliance teams must familiarize themselves with the updated API functionalities and the operational changes required to support the self-serve resolution engine. This includes understanding the auto-detection capabilities for issue types and the suggested resolution paths that will be integrated into the UPI app.",
+      "Please disseminate the information contained herein to the officials concerned. Ensure that all relevant stakeholders are informed about the implementation timelines and any required adjustments to current processes to accommodate the new feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

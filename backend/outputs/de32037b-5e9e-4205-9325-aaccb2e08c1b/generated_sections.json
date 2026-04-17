@@ -1,0 +1,115 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the digital payment ecosystem in India lacks advanced functionalities for managing complex transactions involving multiple stakeholders, resulting in manual complexity, delayed settlements, and limited flexibility. Existing solutions provide only basic split functionalities, which are insufficient for the growing demand for efficient and automated transaction management. To address this gap, the issuer is introducing the Advanced Rule-Based Payment Splits feature, which automates the distribution of payments according to predefined rules, thereby enhancing efficiency and accuracy. This directive aims to align with the government's push towards a cashless economy and supports RBI's vision for a robust and efficient payment system, ultimately fostering trust and confidence in digital payments."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement the Advanced Rule-Based Payment Splits feature to enhance the efficiency and accuracy of multi-party payment transactions.",
+      "The technical artifacts affected by this decision include the UPI App interface, the PSP Bank's transaction processing modules, and the NPCI Switch routing logic.",
+      "This feature will necessitate updates to the REQ_PAY and RESP_PAY message schemas to accommodate rule-based split parameters and ensure seamless integration with existing transaction flows.",
+      "Additionally, the Common Library (CL) utilized by UPI Apps will require modifications to support the new user interface elements and rule configuration capabilities."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must integrate the Advanced Rule-Based Payment Splits feature into their existing UPI applications. This integration should ensure seamless user experience and compliance with NPCI specifications for automated payment distribution.",
+      "Issuer/Remitter Banks must update their transaction processing systems to accommodate the new payment split rules. This includes ensuring accurate debiting of customer accounts according to the predefined split percentages and priorities.",
+      "Beneficiary/Payee Banks must ensure their systems are capable of receiving and processing split payments as per the rules defined by the payer. This includes updating reconciliation processes to handle multiple credits from a single transaction.",
+      "UPI App developers are advised to enhance their user interfaces to support the setup and management of complex payment rules. This should include intuitive guidance for users to create, modify, and apply payment splits efficiently."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to enhance the efficiency of managing payments involving multiple parties. This feature automates the distribution of payments according to predefined rules, reducing manual errors and saving time.",
+      "This feature is crucial for addressing the growing demand for reliable digital payment tools in India's cashless economy. It supports the RBI's vision for an efficient payment system by automating complex transactions and enhancing user satisfaction.",
+      "Product managers, engineers, and compliance teams must ensure that the Advanced Rule-Based Payment Splits feature is integrated seamlessly into existing systems. This includes aligning with current digital payment standards and ensuring compatibility with the UPI framework.",
+      "Please disseminate the information contained herein to the officials concerned. Ensure that all relevant departments are informed about the implementation and operational guidelines of this feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

@@ -69,3 +69,51 @@ async def _remote_query(
         resp = await client.post(config.RAG_ENDPOINT, json=payload)
         resp.raise_for_status()
         return resp.json()
+    
+def call_rag_clarify(
+    feature_description: str,
+    canvas_sections: list = None,
+    research_report: dict = None,
+) -> dict:
+    """
+    Call rag_system /clarify to get taxonomy + proposals before doc generation.
+    Returns {taxonomy, proposed_skeleton, blocking_gaps} or empty dict on failure.
+    """
+    import httpx
+    import config
+
+    product_canvas = ""
+    if canvas_sections:
+        product_canvas = "\n".join(
+            f"{s.get('title','')}: {s.get('content','')}"
+            for s in canvas_sections if s.get("content")
+        )
+
+    research_summary = ""
+    if research_report:
+        research_summary = research_report.get("summary", "")
+
+    try:
+        resp = httpx.post(
+            f"{config.RAG_SYSTEM_URL}/clarify",
+            json={
+                "feature_description": feature_description,
+                "product_canvas": product_canvas,
+                "research_summary": research_summary,
+                "document_type": "TSD",   # TSD gives the richest proposals (APIs, fields, error codes)
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        logger.info(
+            "[rag_clarify] taxonomy=%s proposals_apis=%d blocking_gaps=%d",
+            data.get("taxonomy", {}).get("primary_category", "unknown"),
+            len((data.get("proposed_skeleton") or {}).get("apis", [])),
+            len(data.get("blocking_gaps", [])),
+        )
+        return data
+    except Exception as e:
+        logger.warning("[rag_clarify] RAG /clarify unavailable — skipping enrichment: %s", e)
+        return {}
+

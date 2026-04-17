@@ -1,0 +1,391 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI ecosystem is a robust and widely adopted digital payment system in India, handling the majority of retail transactions. It provides a seamless and efficient platform for users to conduct transactions through various UPI-enabled applications. However, as the volume of transactions has surged, so has the number of disputes, which are traditionally managed through bank customer care systems. These systems rely heavily on manual intervention and are often slow and fragmented, leading to user dissatisfaction. The existing process involves users contacting their banks to resolve issues, which can be time-consuming and cumbersome.",
+      "A significant limitation in the current dispute resolution process is its dependency on manual handling and the lack of a streamlined, user-friendly interface for resolving issues. Users often face long wait times and a lack of transparency in the resolution process, which can be frustrating. Additionally, the current system does not provide users with the ability to directly raise chargebacks or complaints through their UPI apps, further complicating the resolution process. This gap has been exacerbated by the increasing transaction volumes, which have overwhelmed traditional customer service channels.",
+      "The rationale for introducing a self-serve resolution engine is to empower users to independently resolve disputes through a guided process on their mobile devices. This feature aims to automate the detection of issue types and suggest appropriate resolution paths, thereby reducing the reliance on customer care and enhancing user satisfaction. By integrating this functionality directly into UPI apps, the process becomes more efficient and less fragmented. This approach not only aligns with regulatory mandates to maintain a low grievance rate but also provides a competitive advantage by offering a more proactive and user-centric dispute resolution experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The self-serve resolution engine for UPI disputes is a transformative feature designed to empower users by allowing them to resolve transaction issues directly through their UPI app. This feature addresses common problems such as failed transactions or duplicate deductions without the need for lengthy interactions with bank customer service. By integrating a guided process that automatically detects the type of dispute and suggests appropriate resolution steps, users can quickly and efficiently manage their own transaction issues. This innovation significantly enhances the user experience by reducing wait times and simplifying the resolution process.",
+      "This feature is particularly important given the scale and impact of UPI in India's digital payment landscape, where it accounts for a significant portion of retail transactions. As the volume of transactions continues to grow, so does the potential for disputes, which can overwhelm traditional bank systems. By enabling users to independently resolve their disputes, the system not only improves user satisfaction but also alleviates the operational burden on banks and payment service providers. This ensures that UPI remains a reliable and preferred payment method, while also meeting regulatory standards for grievance management.",
+      "The implementation of this self-serve resolution engine involves key participants in the UPI ecosystem, including the NPCI, PSP banks, and UPI apps. The NPCI plays a central role by operating the UPI switch and facilitating the communication between different entities. PSP banks host the UPI apps and are responsible for initiating and managing the dispute resolution process. The UPI apps serve as the user interface where customers can access the self-serve tool. This collaborative effort ensures a seamless and efficient dispute resolution process, ultimately enhancing the overall efficiency and trustworthiness of the UPI system."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The self-serve resolution engine for UPI disputes is designed to streamline the process of resolving transaction issues directly through the UPI app. This feature integrates seamlessly into the existing UPI ecosystem, leveraging both existing and new APIs to facilitate dispute resolution. The primary participants in this system include the UPI App, the PSP Bank, the NPCI, and the Issuer/Remitter and Beneficiary/Payee Banks. Each participant plays a critical role in ensuring that disputes are resolved efficiently and effectively. The UPI App serves as the user interface, guiding users through the dispute resolution process with auto-detection of issues and suggested resolution paths.",
+      "The interaction topology involves the UPI App initiating a dispute resolution request via the PSP Bank, which communicates with the NPCI using the enhanced ReqChkTxn API and the new ReqComplaint API. The NPCI acts as the central routing engine, coordinating between the PSP Bank and the relevant Issuer/Remitter and Beneficiary/Payee Banks to verify transaction details and facilitate resolution. Key design decisions include the automation of issue detection and the provision of a guided resolution process, which reduces user effort and speeds up dispute handling. This system design not only enhances user satisfaction by providing a seamless experience but also alleviates the operational burden on banks, allowing them to focus on more complex issues."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The self-serve resolution engine for UPI disputes is designed to streamline the process of resolving transaction issues directly through the UPI app. This feature allows users to independently manage disputes without the need for extensive customer service interactions. The process begins with the UPI app detecting potential transaction issues, followed by guided steps to resolve these issues efficiently. The integration of enhanced APIs, such as ReqChkTxn and the new ReqComplaint, facilitates seamless communication between the UPI app, PSP, NPCI, and banks, ensuring a cohesive and user-friendly experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Identify potential transaction issues using auto-detection algorithms.",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Initiate the dispute resolution process by sending a request to check transaction status.",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Receive transaction status and determine the nature of the dispute.",
+          "PSP"
+        ],
+        [
+          "Step 3",
+          "Send the transaction status to NPCI for further processing.",
+          "PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI processes the request and communicates with the Issuer Bank if necessary.",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Issuer Bank verifies transaction details and responds with resolution options.",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "NPCI consolidates responses and sends resolution suggestions back to the PSP.",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "PSP updates the UPI app with suggested resolution paths for user action.",
+          "PSP"
+        ],
+        [
+          "Post Response",
+          "User selects a resolution path and completes the dispute resolution process.",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The self-serve resolution engine for UPI disputes streamlines the process of resolving transaction issues directly through the user's UPI app. This feature allows users to manage disputes such as failed transactions or duplicate deductions without needing to contact their bank's customer service. The process leverages automated detection of issue types and provides guided resolution paths, enhancing user satisfaction and operational efficiency. This innovation is crucial given the increasing volume of UPI transactions and the corresponding rise in disputes, ensuring that users can resolve issues swiftly and independently."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "User initiates dispute resolution via UPI app",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "App auto-detects issue type and suggests resolution path",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "User follows guided steps to resolve the issue",
+          "User"
+        ],
+        [
+          "Step 3",
+          "App sends ReqChkTxn to check transaction status",
+          "UPI App"
+        ],
+        [
+          "Step 4",
+          "NPCI processes the status check and returns results",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "If unresolved, app initiates ReqComplaint for further action",
+          "UPI App"
+        ],
+        [
+          "Step 6",
+          "NPCI routes complaint to relevant bank for resolution",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "User receives confirmation of dispute resolution",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section outlines the enhancements and new implementations required for the self-serve resolution engine for UPI disputes. This feature aims to streamline the dispute resolution process by introducing a guided, user-friendly approach directly within the UPI app. The scope of changes includes the enhancement of the existing ReqChkTxn API and the introduction of a new ReqComplaint API. These APIs are pivotal in facilitating the automated detection and resolution of transaction issues, thereby reducing dependency on traditional customer service channels and improving user satisfaction. The document will detail the proposed API flows and interactions necessary to support this innovative feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers i. Primary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The ReqComplaint API is a newly introduced API designed to facilitate the self-serve resolution of UPI disputes. This API allows users to initiate a complaint directly from their UPI app, streamlining the process of dispute resolution by automating the detection and categorization of transaction issues. The primary purpose of this API is to reduce the dependency on traditional customer care systems and provide users with a faster, more efficient way to resolve transaction disputes.",
+      "In the participant flow, the user initiates a complaint through their UPI app, which communicates with the PSP Bank. The PSP Bank then sends a ReqComplaint message to the NPCI, which processes the complaint and routes it to the appropriate Issuer or Beneficiary Bank for resolution. This process ensures that disputes are handled promptly and efficiently, minimizing user frustration and enhancing the overall UPI experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "TxnId",
+          "String",
+          "12",
+          "Unique transaction identifier",
+          "Y"
+        ],
+        [
+          "ComplaintType",
+          "String",
+          "2",
+          "Type of complaint",
+          "Y"
+        ],
+        [
+          "Description",
+          "String",
+          "256",
+          "Description of the issue",
+          "N"
+        ],
+        [
+          "VPA",
+          "String",
+          "100",
+          "Virtual Payment Address of the user",
+          "Y"
+        ],
+        [
+          "Status",
+          "String",
+          "10",
+          "Status of the complaint",
+          "Y"
+        ],
+        [
+          "ResolutionTime",
+          "String",
+          "20",
+          "Estimated time for resolution",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqComplaint xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>1234567890</upi:TxnId>\n    <upi:ComplaintType>01</upi:ComplaintType>\n    <upi:Description>Transaction not credited</upi:Description>\n    <upi:UserDetails>\n        <upi:VPA>user@bank</upi:VPA>\n    </upi:UserDetails>\n</upi:ReqComplaint>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespComplaint xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>1234567890</upi:TxnId>\n    <upi:Status>Success</upi:Status>\n    <upi:ResolutionTime>24 hours</upi:ResolutionTime>\n</upi:RespComplaint>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The self-serve resolution engine for UPI disputes introduces a streamlined process for users to resolve transaction issues independently. This feature leverages enhanced APIs to facilitate faster and more efficient dispute management. However, various failure scenarios may arise during the process, necessitating a comprehensive error handling mechanism.",
+      "The table below outlines the error codes associated with the APIs involved in the dispute resolution process. These error codes cover a range of failure scenarios, including eligibility, activation, authentication, timeout, and feature-specific issues. Understanding these errors is crucial for integration engineers to ensure seamless operation and user satisfaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "400",
+          "ERR_ELIGIBILITY",
+          "User not eligible for self-serve dispute resolution.",
+          "ReqComplaint",
+          "User",
+          "TD"
+        ],
+        [
+          "401",
+          "ERR_AUTH_FAILED",
+          "Authentication failed due to incorrect credentials.",
+          "ReqChkTxn",
+          "PSP Bank",
+          "TD"
+        ],
+        [
+          "408",
+          "ERR_TIMEOUT",
+          "Request timed out due to network issues.",
+          "ReqComplaint",
+          "NPCI",
+          "TD"
+        ],
+        [
+          "403",
+          "ERR_ACTIVATION_REQUIRED",
+          "User needs to activate the feature before use.",
+          "ReqChkTxn",
+          "UPI App",
+          "TD"
+        ],
+        [
+          "500",
+          "ERR_SYSTEM_FAILURE",
+          "Internal server error occurred during processing.",
+          "ReqComplaint",
+          "NPCI",
+          "BD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "The self-serve resolution engine must integrate with the enhanced ReqChkTxn API to allow users to check transaction statuses directly from the UPI app, ensuring real-time feedback on dispute status.",
+      "The new ReqComplaint API must be implemented to facilitate the initiation of complaints directly through the UPI app, enabling users to report issues without needing to contact customer care.",
+      "All dispute resolutions initiated through the self-serve engine must be logged with the 'UDIR' identifier in the originating channel column to ensure traceability and compliance with regulatory standards.",
+      "In cases where transaction disputes cannot be resolved instantly through the app, the system must automatically escalate the issue to the bank's back-office operations, ensuring no manual intervention is required from the user."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

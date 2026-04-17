@@ -1,0 +1,296 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The purpose of this document is to provide a comprehensive overview of the new unified rewards system for UPI transactions. This feature aims to streamline the way users earn and redeem rewards across different UPI apps, such as Google Pay, PhonePe, and Paytm. By consolidating rewards into a single, user-friendly dashboard, the system seeks to enhance user satisfaction and engagement with digital payments. This document outlines the feature's objectives, benefits, and implementation strategies, offering stakeholders a clear understanding of its impact on the UPI ecosystem.",
+      "The primary audience for this document includes product managers, engineers, and compliance teams involved in the development and deployment of the unified rewards system. Product managers will find detailed insights into the feature's strategic alignment with market needs and government initiatives. Engineers will benefit from technical guidelines and integration requirements necessary for implementing the feature across various UPI platforms. Compliance teams will gain an understanding of the regulatory considerations and standards that must be adhered to during the rollout of this system.",
+      "The scope of this document encompasses the design, implementation, and operational aspects of the unified rewards system. It covers the technical architecture, user interface design, and interoperability requirements needed to ensure seamless integration across multiple UPI apps. Additionally, the document addresses the strategic goals of increasing user engagement and loyalty by providing a consistent and valuable rewards experience. By aligning with digital financial inclusion efforts, the scope extends to enhancing the overall user experience in the digital payments landscape, setting a new standard for rewards systems in the UPI domain."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The current state of the UPI rewards ecosystem is marked by fragmentation and inconsistency. Users engaging with various UPI applications such as Google Pay, PhonePe, and Paytm encounter a disparate rewards system where each app maintains its own rewards structure. This isolation of rewards within individual apps limits the user's ability to maximize the benefits of their transactions. The lack of interoperability among these rewards systems results in a cumbersome experience for users who must navigate multiple platforms to understand and utilize their rewards.",
+      "This fragmented landscape presents significant challenges for users who wish to consolidate their rewards for greater value. The inability to transfer or combine rewards across different UPI apps diminishes the perceived value of these incentives. Users are often left with small, scattered rewards that are difficult to track and redeem effectively. This situation not only frustrates users but also reduces the overall engagement with UPI services, as the rewards do not provide the anticipated added value.",
+      "The proposed solution is a unified rewards system that aims to simplify and enhance the user experience by consolidating rewards from various UPI apps into a single, accessible platform. This system will provide users with a comprehensive dashboard where they can view, track, and redeem their rewards seamlessly, much like a credit card points system. By standardizing rewards across apps, this feature is expected to increase user engagement and loyalty, as it offers a more integrated and user-friendly approach to digital payments."
+    ],
+    "bullet_points": [
+      "Current rewards are isolated within individual UPI apps, limiting their utility.",
+      "Users face difficulty in tracking and redeeming scattered rewards across multiple platforms.",
+      "The lack of interoperability among rewards systems reduces user engagement.",
+      "Fragmentation leads to a suboptimal user experience and diminished perceived value.",
+      "A unified rewards system will provide a single dashboard for all UPI rewards.",
+      "Standardizing rewards across apps will enhance user satisfaction and loyalty."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The unified rewards system for UPI transactions is a groundbreaking feature designed to streamline and enhance the user experience across various UPI applications. Currently, users earn rewards that are confined to individual apps like Google Pay, PhonePe, or Paytm, leading to a fragmented experience. This new feature allows users to consolidate their rewards into a single, centralized dashboard, regardless of the app used for the transaction. This consolidation makes it easier for users to track, manage, and redeem their rewards, akin to managing credit card points, thereby maximizing the utility and satisfaction derived from their digital payment activities.",
+      "This feature addresses a significant pain point in the current UPI ecosystem by eliminating the fragmentation of rewards and offering a standardized, interoperable system. By providing a unified rewards dashboard, users can seamlessly view and redeem their rewards across multiple UPI platforms, enhancing the overall user experience. This not only simplifies the process of reward redemption but also encourages increased engagement and loyalty among users, as they find greater value in using UPI for their transactions. The system is designed to align with government initiatives for digital financial inclusion, promoting a more integrated and user-friendly digital payment landscape.",
+      "Security and privacy are paramount in the implementation of this unified rewards system. The feature ensures that all user data is handled with the highest standards of security, employing encryption and secure data management practices to protect user information. By centralizing rewards, the system also reduces the risk of data breaches associated with multiple app-specific reward systems. This approach not only enhances the security of user data but also builds trust and confidence among users, encouraging wider adoption of digital payment solutions. Overall, the unified rewards system represents a significant advancement in the UPI ecosystem, setting a new standard for digital financial innovation and user engagement."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The unified rewards system introduces a streamlined user interface that consolidates rewards from various UPI apps into a single dashboard. This dashboard is prominently placed within the UPI app's main menu to ensure easy access. Users can view their accumulated rewards across different apps like Google Pay, PhonePe, and Paytm, all in one place. The interface is designed to be intuitive, allowing users to quickly navigate through their rewards history, check their balance, and redeem points seamlessly.",
+      "The indicative user journey begins with the user opening their preferred UPI app and navigating to the rewards section. Here, they are prompted to enroll in the unified rewards system through a simple consent mechanism. This involves agreeing to terms and conditions that allow the app to aggregate rewards data from multiple sources. Once consent is given, the app fetches the user's rewards information from the NPCI's centralized system, displaying it on the unified dashboard. This process is designed to be quick and user-friendly, ensuring minimal friction during enrollment.",
+      "Each participant in the ecosystem plays a crucial role in the enrollment process. The UPI app is responsible for capturing user consent and initiating the enrollment request. The PSP Bank facilitates the secure transmission of this request to the NPCI. The NPCI, acting as the central aggregator, verifies user consent and consolidates rewards data from various sources. Finally, the UPI app updates the user's dashboard with the aggregated rewards information. This collaborative effort ensures that the user's rewards are accurately reflected and can be easily managed."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "User opens UPI app and navigates to rewards section",
+          "User"
+        ],
+        [
+          "Step 1",
+          "User consents to enroll in the unified rewards system",
+          "User"
+        ],
+        [
+          "Step 2",
+          "UPI app sends enrollment request to PSP Bank",
+          "UPI App"
+        ],
+        [
+          "Step 3",
+          "PSP Bank forwards request to NPCI for processing",
+          "PSP Bank"
+        ],
+        [
+          "Step 4",
+          "NPCI verifies consent and aggregates rewards data",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "UPI app updates dashboard with unified rewards",
+          "UPI App"
+        ],
+        [
+          "Post Response",
+          "User views and manages rewards on the dashboard",
+          "User"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The scope of this feature is to introduce a unified rewards system for UPI transactions, which will streamline the way users earn and redeem rewards across different UPI apps. Currently, users face the challenge of fragmented rewards that are locked within individual apps like Google Pay, PhonePe, and Paytm. This new system will allow users to consolidate their rewards into a single dashboard, providing a comprehensive view of all rewards earned, regardless of the app used. This approach not only simplifies the user experience but also enhances the utility of rewards by making them more accessible and easier to manage.",
+      "High-level system changes involve the integration of a centralized rewards management platform that interfaces with existing UPI apps. This platform will aggregate rewards data from various apps and present it in a unified dashboard accessible to users. The system will require modifications to existing UPI app architectures to support data sharing with the centralized rewards platform. Additionally, a standardized API will be developed to facilitate seamless communication between UPI apps and the rewards system, ensuring that reward points are accurately tracked and updated in real-time.",
+      "The supported modes for this transaction flow include all standard UPI payment methods, such as peer-to-peer transfers, merchant payments, and bill payments. Users will continue to initiate transactions through their preferred UPI apps, and upon completion, the rewards earned will be automatically updated in the unified dashboard. This ensures that users can continue using their preferred payment methods while benefiting from the enhanced rewards system. The integration will be seamless, with no additional steps required from the user to earn or redeem rewards.",
+      "The end-to-end transaction journey begins with the user initiating a UPI transaction through their chosen app. Once the transaction is completed, the rewards data is sent to the centralized platform, which updates the user's dashboard with the new rewards information. Users can then view and manage their rewards through the dashboard, which provides options for redemption and tracking. This process is designed to be intuitive and requires minimal user intervention, thus enhancing the overall user experience and satisfaction with UPI transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify user eligibility for rewards",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Initiate UPI transaction",
+          "User"
+        ],
+        [
+          "Step 2",
+          "Process transaction and calculate rewards",
+          "UPI App"
+        ],
+        [
+          "Step 3",
+          "Send rewards data to centralized platform",
+          "UPI App"
+        ],
+        [
+          "Step 4",
+          "Update unified rewards dashboard",
+          "Centralized Platform"
+        ],
+        [
+          "Post Response",
+          "Display updated rewards to user",
+          "Unified Dashboard"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Optionality: Users must have the option to opt-in or opt-out of the unified rewards system at any time. This ensures user autonomy and aligns with privacy and consent regulations.",
+      "2. Consent Scope: Explicit user consent is required before aggregating rewards data from multiple UPI apps. Users must be informed about how their data will be used and the benefits of the unified system.",
+      "3. Data Storage: All rewards data must be securely stored in compliance with applicable data protection laws. The storage system should ensure data integrity and prevent unauthorized access.",
+      "4. Key Rotation: Implement regular key rotation for encryption keys used in storing rewards data. This practice enhances security and protects against potential data breaches.",
+      "5. Disablement Scenarios: Provide a clear process for users to disable their participation in the rewards system. Upon disablement, users' rewards data should be deleted or anonymized to protect privacy.",
+      "6. Interoperability: Ensure that the rewards system is interoperable across all participating UPI apps, allowing seamless data exchange and rewards redemption without technical barriers."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The unified rewards system must integrate seamlessly with all major UPI apps, ensuring users can access their rewards regardless of the app used for the transaction.",
+      "2. Users should be able to view and manage their rewards through a centralized dashboard, which will aggregate rewards from all participating UPI apps.",
+      "3. The system must support the transferability of rewards, allowing users to combine rewards earned from different UPI apps into a single pool for redemption.",
+      "4. Compliance with data privacy regulations is mandatory, ensuring that user data related to rewards is securely managed and shared only with necessary parties.",
+      "5. The rewards system should be designed to enhance user engagement by providing clear, easy-to-understand information on how to earn and redeem rewards.",
+      "6. The feature must align with government initiatives for digital financial inclusion, promoting broader adoption of UPI by making rewards more accessible and valuable."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the unified rewards system for UPI transactions does not alter the existing dispute management processes. All disputes related to UPI transactions will continue to be handled under the standard UPI dispute resolution framework. This ensures consistency and reliability in addressing any issues that may arise during UPI transactions, including those involving rewards.",
+      "The unified rewards system is designed to enhance user experience by consolidating rewards across different UPI apps into a single dashboard. However, this feature does not impact the underlying transaction processes or the way disputes are managed. Users will still follow the same procedures for raising disputes, and banks will resolve them according to the established guidelines provided by NPCI.",
+      "Stakeholders such as banks, PSPs, and TPAPs can rest assured that the implementation of the unified rewards system will not introduce any new liabilities or responsibilities in terms of dispute management. The focus remains on providing a seamless and integrated rewards experience without complicating the existing transaction and dispute resolution workflows."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "The unified rewards system for UPI transactions requires a comprehensive testing and certification process to ensure seamless integration across various UPI apps. The test environments must simulate real-world conditions, allowing for thorough validation of the rewards accumulation and redemption processes. This includes testing the interoperability of rewards across different UPI platforms, ensuring that users can view and redeem their rewards from a centralized dashboard. The testing phase will focus on identifying any discrepancies in reward calculations and ensuring that the user experience remains consistent across all participating apps.",
+      "Mandatory testing scenarios include enrollment, transaction, fallback, and disablement processes. Enrollment testing will verify that users can successfully register for the unified rewards system through any UPI app, ensuring their rewards are accurately tracked from the onset. Transaction testing will involve simulating various UPI transactions to confirm that rewards are correctly accumulated and reflected in the user's dashboard. Fallback scenarios will test the system's resilience, ensuring that users can still access their rewards even if one of the UPI apps experiences downtime or technical issues.",
+      "Certification steps will involve a multi-tier approval process, with oversight from both technical and compliance teams. The approving authority will ensure that all security protocols are adhered to, and that the system complies with regulatory standards. Additionally, audit expectations will include regular reviews of the rewards system to ensure ongoing compliance and performance. These audits will focus on data integrity, security measures, and user satisfaction metrics, ensuring that the system remains robust and user-friendly over time."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Enrollment",
+          "Verify user registration and reward tracking initiation",
+          "Product Manager"
+        ],
+        [
+          "Transaction",
+          "Ensure accurate reward accumulation and dashboard reflection",
+          "Engineering Team"
+        ],
+        [
+          "Fallback",
+          "Test system resilience during app downtime",
+          "QA Team"
+        ],
+        [
+          "Disablement",
+          "Validate user ability to opt-out and remove rewards data",
+          "Compliance Team"
+        ],
+        [
+          "Audit",
+          "Conduct regular reviews for data integrity and security",
+          "Audit Team"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "Before enrollment or enabling the unified rewards system, several pre-checks must be conducted to ensure a seamless integration and user experience. These checks are crucial for maintaining the integrity of the rewards system and ensuring that all stakeholders are aligned with the operational requirements. Each check is designed to verify the readiness of the system and the compliance of all participants involved in the UPI ecosystem.",
+      "At the transaction time, additional pre-checks are necessary to ensure that the rewards system functions correctly and that users can earn and redeem rewards without any issues. These checks help in maintaining the reliability of the system and in providing a consistent user experience across different UPI applications. It is essential that these checks are performed accurately to prevent any disruptions in the transaction process."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Before Enrollment/Enabling: Identity Verification - Conducted by the UPI App provider to ensure the user's identity is verified. If this check fails, the user will not be able to enroll in the rewards system.",
+      "Before Enrollment/Enabling: App Compatibility Check - Performed by the PSP Bank to ensure that the user's UPI app is compatible with the unified rewards system. Failure to pass this check will result in the user being unable to access the rewards dashboard.",
+      "Before Enrollment/Enabling: Account Linking Verification - Managed by the NPCI to confirm that the user's bank account is correctly linked to the UPI app. If this check fails, the user will not be able to track or redeem rewards.",
+      "At Transaction Time: Transaction Authentication - Executed by the Issuer Bank to authenticate the transaction. If this check fails, the transaction will be declined, and no rewards will be earned.",
+      "At Transaction Time: Reward Eligibility Check - Conducted by the NPCI to verify if the transaction qualifies for rewards. If this check fails, the transaction will proceed, but no rewards will be credited.",
+      "At Transaction Time: Reward Balance Update - Managed by the UPI App to update the user's reward balance post-transaction. Failure in this check will result in the user's rewards dashboard not reflecting the latest earned rewards."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

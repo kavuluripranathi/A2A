@@ -1,0 +1,344 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI ecosystem in India is robust, supporting a wide range of digital transactions across various platforms. UPI has become a cornerstone of the country's digital payment infrastructure, enabling seamless peer-to-peer and merchant transactions. However, when it comes to splitting payments among multiple parties, the existing solutions are relatively basic. Typically, users must manually calculate and distribute payment amounts, which can be cumbersome and error-prone, especially in scenarios involving multiple stakeholders or complex financial arrangements.",
+      "Despite the widespread adoption of UPI, the system lacks advanced functionalities for handling complex payment splits. This gap becomes evident in situations such as group events or business transactions where payments need to be divided according to specific rules or percentages. The manual nature of current solutions leads to inefficiencies, delayed settlements, and increased potential for errors. These limitations are particularly challenging for businesses and payment service providers (PSPs) that deal with high volumes of transactions and require precise reconciliation processes.",
+      "The rationale for introducing the Advanced Rule-Based Payment Splits feature is to address these limitations by providing a more sophisticated and automated solution. By allowing users to set predefined rules for payment distribution, this feature enhances the efficiency and accuracy of transactions. It aligns with the broader push towards a cashless economy by reducing manual intervention and errors, thereby fostering trust in digital payment systems. Additionally, this feature supports the Reserve Bank of India's vision for a streamlined and efficient payment system, offering banks and PSPs a competitive edge in managing complex financial transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to streamline the process of managing payments in scenarios involving multiple participants. This feature is particularly beneficial in situations such as group dinners or business events where expenses need to be distributed among several individuals or entities. By allowing users to set predefined rules for payment distribution, the system automates the allocation process, ensuring that each participant pays their designated share, such as 30% for one person, 20% for another, and the remainder evenly split among others. This automation not only reduces the likelihood of errors but also saves time, enhancing the overall efficiency of payment management.",
+      "From a user perspective, this feature offers a seamless and intuitive experience, eliminating the need for manual calculations and reducing the potential for mistakes. The user-friendly interface guides users through the setup of payment rules, making the process both faster and more satisfying. By ensuring that payments are settled promptly and accurately, the feature enhances user satisfaction and trust in digital transactions. This is particularly important in the context of India's growing digital payment landscape, where the government's push towards a cashless economy has led to an increase in digital transactions. The Advanced Rule-Based Payment Splits feature supports this transition by providing a reliable tool for managing complex transactions efficiently.",
+      "The introduction of this feature addresses a significant gap in the current digital payment ecosystem in India. Existing solutions often fall short when it comes to handling complex transactions involving multiple stakeholders, leading to manual complexity and delayed settlements. By automating the payment split process, this feature reduces settlement complexities and reconciliation overheads for banks and Payment Service Providers (PSPs). It aligns with the Reserve Bank of India's vision for an efficient payment system, enhancing trust, automation, and fraud risk management. This feature represents a significant advancement in the market, offering capabilities such as percentage-based splits, priority handling, and cap limits, which cater to complex business needs and set our solution apart from existing applications.",
+      "The Advanced Split Engine significantly enhances the user experience by simplifying complex transactions through an intuitive interface. It reduces manual errors and delays, thereby increasing user satisfaction. By streamlining processes through automation, the feature reduces cognitive load and saves time for users. This innovation not only expands the market by introducing advanced capabilities but also positions our solution as a leader in the digital payment landscape. The feature's impact extends to existing applications like Splitwise and Splitkar, offering a more sophisticated and flexible solution for managing payment splits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to streamline the management of complex payment transactions involving multiple participants. This system allows users to define specific rules for splitting payments, such as percentage-based allocations or priority handling, which are automatically executed by the platform. The primary participants in this system include the UPI App, PSP Bank, NPCI, and the banks of the involved parties. The UPI App serves as the user interface where individuals configure their payment split rules. Once the rules are set, the PSP Bank acts as the intermediary, initiating the payment request to NPCI, which then processes the transaction according to the predefined rules.",
+      "In this operating model, NPCI plays a critical role as the central switch that routes the payment instructions to the respective banks. The Issuer/Remitter Bank is responsible for debiting the payer's account, while the Beneficiary/Payee Bank credits the respective amounts to the recipients' accounts. Key design decisions include the use of a rule engine that interprets and executes the payment split instructions, ensuring accuracy and efficiency. The interaction topology is structured to minimize latency and errors, with each participant's role clearly defined to facilitate seamless transaction processing. This design not only enhances user experience but also aligns with regulatory requirements and supports the broader goal of a cashless economy."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers Process Flow: Setting & Enrollment.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature streamlines the process of managing payments that involve multiple parties by automating the distribution of funds according to predefined rules. This feature is particularly useful in scenarios such as group dinners or business events where the bill needs to be split among several participants. Users can set specific rules, such as percentage-based splits, to ensure that payments are distributed accurately and efficiently. This automation not only reduces the potential for errors but also saves time, providing a seamless and intuitive experience for users. By addressing the complexities of multi-party transactions, this feature supports the growing demand for reliable digital payment solutions in India, aligning with the government's push towards a cashless economy."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "User sets up payment rules and initiates transaction",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Capture and encrypt payment credentials",
+          "Common Library"
+        ],
+        [
+          "Step 2",
+          "Send REQ_PAY message with payment rules to NPCI",
+          "PSP Bank"
+        ],
+        [
+          "Step 3",
+          "Route payment request to Remitter Bank for authentication",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Authenticate and debit payer's account",
+          "Remitter Bank"
+        ],
+        [
+          "Step 5",
+          "Route credit request to Beneficiary Bank",
+          "NPCI"
+        ],
+        [
+          "Step 6",
+          "Credit beneficiary's account as per payment rules",
+          "Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "Send confirmation of transaction completion",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section outlines the APIs and system changes necessary for implementing the Advanced Rule-Based Payment Splits feature. This feature introduces automation in payment distribution, allowing users to set predefined rules for splitting payments among multiple participants. The scope of changes includes the specification of new APIs for rule configuration and transaction processing, as well as modifications to existing UPI message flows to support percentage-based splits, priority handling, and cap limits. These enhancements aim to streamline complex transactions, reduce manual errors, and improve user satisfaction in line with India's digital payment growth."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers i. Primary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers ii. Secondary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iii. Error Handling.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "Operation",
+        "Component",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "E1",
+          "E1",
+          "Eligibility or precondition failed",
+          "Pre-check",
+          "Originating service",
+          "BD"
+        ],
+        [
+          "E2",
+          "E2",
+          "Activation or registration failed",
+          "Setup",
+          "Credential service",
+          "TD"
+        ],
+        [
+          "E3",
+          "E3",
+          "Authentication or validation failed",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "E4",
+          "E4",
+          "Credential mismatch or replay detected",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "TO",
+          "TO",
+          "Timeout waiting for downstream response",
+          "Any",
+          "Switch / broker",
+          "TD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Ensure that the Advanced Rule-Based Payment Splits feature integrates seamlessly with existing UPI message types, particularly REQ_PAY and RESP_PAY, to maintain transaction integrity across all stages of payment processing.",
+      "2. Implement robust timeout handling mechanisms for scenarios where payment splits involve multiple participants, ensuring that any delays in response from one participant do not affect the overall transaction completion.",
+      "3. Validate that the percentage-based splits and priority handling rules are correctly configured and tested for edge cases, such as when the total percentage does not sum to 100% or when cap limits are exceeded.",
+      "4. Incorporate comprehensive logging and monitoring to track rule execution and payment distribution, enabling quick identification and resolution of any discrepancies or errors during the split process."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

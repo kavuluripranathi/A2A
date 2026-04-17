@@ -1,0 +1,8 @@
+{
+  "errors": [],
+  "warnings": [
+    "Section 'Process Flow: Setting & Enrollment' was configured for a diagram but no diagram was attached.",
+    "Section 'Process Flow: Transaction' was configured for a diagram but no diagram was attached.",
+    "Section 'i. Primary API Specifications' was configured for a diagram but no diagram was attached."
+  ]
+}

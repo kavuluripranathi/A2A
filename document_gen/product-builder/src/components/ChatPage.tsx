@@ -19,6 +19,7 @@ type ContentBlock =
   | { type: 'thinking'; steps: ThinkingStep[]; totalMs: number; expanded: boolean }
   | { type: 'artifact'; canvas: CanvasData; active: boolean; approved?: boolean }
   | { type: 'prototype-ready'; canvas: CanvasData; prototype: PrototypeData }
+  | { type: 'prototype-choice'; canvas: CanvasData; aiMsgId: string }
   | { type: 'analyzing' };
 
 interface Message {
@@ -657,14 +658,14 @@ export default function ChatPage({ prompt, featureName, messages, setMessages, o
     })));
   };
 
-  /* ── Approve Canvas & Generate Prototype ── */
+  /* ── Approve Canvas → offer Generate or Skip ── */
   const handleApproveCanvasInternal = (canvasToApprove: CanvasData) => {
     setActiveCanvas(null);
-    
+
     const userMsg: Message = {
       id: 'u-appr-canv-final',
       role: 'user',
-      blocks: [{ type: 'text', text: 'Product Canvas is approved. Please generate the interactive prototype.' }],
+      blocks: [{ type: 'text', text: 'Product Canvas is approved.' }],
       createdAt: Date.now(),
     };
 
@@ -673,6 +674,22 @@ export default function ChatPage({ prompt, featureName, messages, setMessages, o
       blocks: m.blocks.map((b: ContentBlock) => b.type === 'artifact' ? { ...b, active: false, approved: true } : b),
     })).concat(userMsg));
 
+    const aiMsgId = `a${Date.now()}`;
+    const aiMsg: Message = {
+      id: aiMsgId,
+      role: 'assistant',
+      blocks: [
+        { type: 'text', text: 'Canvas approved! Would you like to generate an interactive prototype, or skip and proceed directly to the Product Kit?' },
+        { type: 'prototype-choice', canvas: canvasToApprove, aiMsgId },
+      ],
+      createdAt: Date.now() + 1,
+    };
+    setMessages(prev => [...prev, aiMsg]);
+  };
+
+  /* ── Generate Prototype (after user chooses to generate) ── */
+  const handleGeneratePrototype = (canvasToApprove: CanvasData, choiceMsgId: string) => {
+    // Replace the choice block with thinking animation
     const steps: ThinkingStep[] = [
       { label: 'Reading approved product canvas sections…', detail: 'Analysing all 10 modules for UI mapping.', duration: 800 },
       { label: 'Extracting user journey and UI requirements…', detail: 'Determining necessary screens and user flow.', duration: 900 },
@@ -686,16 +703,13 @@ export default function ChatPage({ prompt, featureName, messages, setMessages, o
     setThinkingStepsForStream(steps);
     setThinkingStep(0);
 
-    const aiMsgId = `a${Date.now()}`;
-    const aiMsg: Message = {
-      id: aiMsgId,
-      role: 'assistant',
-      blocks: [{ type: 'thinking', steps: [], totalMs: 0, expanded: false }],
-      createdAt: Date.now() + 1,
-    };
-
-    setMessages(prev => [...prev, aiMsg]);
-    setStreamingMsgId(aiMsgId);
+    setMessages(prev => prev.map(m =>
+      m.id !== choiceMsgId ? m : {
+        ...m,
+        blocks: [{ type: 'thinking', steps: [], totalMs: 0, expanded: false }],
+      }
+    ));
+    setStreamingMsgId(choiceMsgId);
     setIsGenerating(true);
 
     const startMs = Date.now();
@@ -733,7 +747,7 @@ export default function ChatPage({ prompt, featureName, messages, setMessages, o
       setStreamingMsgId(null);
 
       setMessages(prev => prev.map(m => {
-        if (m.id !== aiMsgId) return m;
+        if (m.id !== choiceMsgId) return m;
         return {
           ...m,
           blocks: [
@@ -899,6 +913,28 @@ export default function ChatPage({ prompt, featureName, messages, setMessages, o
           approved={block.approved}
           onClick={() => handleArtifactClick(block.canvas, msg.id)}
         />
+      );
+    }
+
+    if (block.type === 'prototype-choice') {
+      return (
+        <div key={blockIdx} className="mt-3 flex flex-wrap gap-3">
+          <button
+            onClick={() => handleGeneratePrototype(block.canvas, block.aiMsgId)}
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-600 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_20px_rgba(79,70,229,0.5)] transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Sparkles className="w-4 h-4 text-indigo-200" />
+            Generate Prototype
+          </button>
+          <button
+            onClick={() => onApprove(block.canvas)}
+            disabled={isGenerating}
+            className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 text-slate-700 font-semibold rounded-xl border border-slate-200 hover:bg-slate-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Skip & Continue to Product Kit
+          </button>
+        </div>
       );
     }
 

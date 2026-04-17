@@ -1,0 +1,384 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem facilitates straightforward peer-to-peer and peer-to-merchant transactions through a well-established process involving multiple participants. The primary participants in this flow include the NPCI, which operates the UPI switch, the PSP Bank that hosts the UPI App, the Issuer Bank responsible for authenticating and debiting the payer's account, and the Beneficiary Bank that credits the recipient's account. Users initiate transactions via UPI Apps like PhonePe or GPay, which are integrated with the NPCI's Common Library for secure authentication. The process is streamlined to ensure quick and secure transactions, leveraging encrypted credentials and the NPCI switch for routing messages between banks.",
+      "In the context of splitting payments, the current system offers basic functionalities that allow users to manually calculate and distribute payment amounts among participants. This is typically done outside the UPI framework, requiring users to perform manual calculations to determine each participant's share. Once calculated, individual payment requests must be initiated for each participant, which can be cumbersome and prone to errors. The existing system lacks the capability to automate complex payment splits based on predefined rules, such as percentage-based distributions or priority handling. As a result, users often face delays and inaccuracies, particularly in scenarios involving multiple stakeholders or complex transactions, which can lead to dissatisfaction and inefficiencies."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The current state of payment split functionalities in the digital payment ecosystem presents several limitations that hinder efficiency and user satisfaction. These challenges are particularly pronounced in scenarios involving multiple stakeholders, where manual processes dominate. The lack of advanced automation in payment splits leads to increased complexity, potential for errors, and delays in settlement. Addressing these limitations is crucial for enhancing the user experience and aligning with regulatory expectations in India's rapidly evolving digital economy."
+    ],
+    "bullet_points": [
+      "Security Gaps: Current systems lack robust security measures to protect sensitive financial data during the payment split process, affecting all stakeholders and increasing the risk of data breaches.",
+      "Friction Points: Manual calculations and input errors are prevalent, particularly affecting users and PSP Banks, leading to dissatisfaction and increased customer support overhead.",
+      "Scalability Concerns: Existing solutions struggle to handle high transaction volumes efficiently, impacting PSP Banks and Issuer Banks by causing delays and bottlenecks in transaction processing.",
+      "Regulatory Gaps: The absence of compliance with emerging RBI guidelines on digital transactions affects PSP Banks and Beneficiary Banks, potentially leading to regulatory penalties and loss of consumer trust."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature is driven by a compelling business case and regulatory context. As India's digital payment landscape evolves, the Reserve Bank of India (RBI) has been advocating for more efficient and transparent payment systems to support the nation's transition to a cashless economy. Current solutions in the market fall short in handling complex transactions involving multiple parties, often resulting in manual errors and delayed settlements. This feature aligns with RBI's guidelines by providing a robust mechanism for automating payment splits, thereby enhancing the overall efficiency and reliability of digital transactions. By addressing these regulatory and operational challenges, the feature not only meets compliance requirements but also supports banks and Payment Service Providers (PSPs) in reducing reconciliation overheads and improving settlement accuracy.",
+      "The expected benefits of implementing this feature are substantial, making it a preferred choice over existing alternatives. The Advanced Rule-Based Payment Splits feature offers a user-friendly interface that simplifies the management of complex transactions, thus improving the user experience significantly. By automating the payment distribution process, it reduces manual errors and delays, leading to increased user satisfaction and trust in digital payment systems. This approach was chosen because it introduces advanced capabilities such as percentage-based splits and priority handling, which are not available in current market offerings. These enhancements cater to the sophisticated needs of businesses and individuals, setting this solution apart from basic split functionalities found in existing applications. Ultimately, this feature not only expands the market by addressing unmet needs but also fosters greater confidence in digital payment systems, supporting the broader goal of a cashless economy."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to streamline and automate the process of dividing payments among multiple parties, whether they are individuals or businesses. This feature allows users to establish predefined rules for payment distribution, such as percentage-based allocations or priority handling, which are automatically applied during transactions. By doing so, it eliminates the need for manual calculations and reduces the likelihood of errors, thereby enhancing the efficiency and accuracy of payment settlements. This feature is particularly beneficial in scenarios like group dinners or business events where the bill needs to be split among several participants.",
+      "This innovative feature primarily affects Payment Service Providers (PSP Banks), Issuer Banks, and Beneficiary Banks by simplifying the reconciliation and settlement processes. For PSP Banks, it offers a competitive edge by enhancing their service offerings with advanced payment management capabilities. Issuer Banks benefit from reduced operational overheads and improved customer satisfaction due to the seamless handling of complex transactions. Beneficiary Banks experience faster and more accurate crediting of funds, which contributes to improved cash flow management. Overall, this feature addresses the growing demand for sophisticated digital payment solutions in India's rapidly evolving cashless economy.",
+      "The introduction of Advanced Rule-Based Payment Splits addresses a critical gap in the current digital payment landscape, where existing solutions often fall short in handling complex transactions involving multiple stakeholders. By automating the payment split process, this feature not only reduces delays and manual errors but also enhances trust and confidence in digital payments. It aligns with the Reserve Bank of India's vision for an efficient payment system and supports the broader governmental push towards a cashless economy. This feature represents a significant advancement over existing applications by offering unique functionalities such as cap limits and priority handling, thereby expanding the market and setting a new standard for digital payment solutions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers ii. Product Construct: Setting / Enrollment.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature facilitates seamless and efficient handling of transactions involving multiple parties. Once a user has enrolled and set up their payment rules, the transaction flow begins with the triggering condition of a payment initiation. The UPI App, hosted by the PSP Bank, captures the payment details and user-defined rules for splitting the payment. The authentication path involves the UPI App encrypting the user's credentials using the Common Library, ensuring secure transmission to the NPCI switch.",
+      "Upon successful authentication, the NPCI routes the debit request to the Issuer Bank, which is responsible for debiting the specified amounts from the payer's account according to the predefined rules. The Beneficiary Bank then receives the credit instructions and credits the respective amounts to each participant's account. This sequence ensures that payments are accurately split and settled in real-time, enhancing user satisfaction and trust in digital transactions. The roles and responsibilities of each participant in this transaction flow are outlined in the table below."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify user enrollment and rule setup",
+          "PSP Bank"
+        ],
+        [
+          "Step 1",
+          "Capture payment details and split rules",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Encrypt credentials and send to NPCI",
+          "PSP Bank"
+        ],
+        [
+          "Step 3",
+          "Authenticate transaction and route debit request",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Debit payer's account as per rules",
+          "Issuer Bank"
+        ],
+        [
+          "Step 5",
+          "Credit beneficiary accounts",
+          "Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "Send confirmation to payer and payee",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The Advanced Rule-Based Payment Splits feature is opt-in for users, allowing them to activate or deactivate the functionality through their UPI App settings. PSP Banks are responsible for ensuring that users can easily access these settings within the app interface.",
+      "2. Users can withdraw consent for automated payment splits at any time. The PSP Bank must provide a clear and straightforward process for users to revoke their consent, ensuring that no further automated splits occur without explicit reauthorization.",
+      "3. The feature must maintain backward compatibility with existing UPI infrastructure. NPCI will ensure that the Advanced Split Engine integrates seamlessly with current systems, allowing transactions to proceed without disruption to users who do not opt into the new feature.",
+      "4. Device constraints must be considered, particularly for older smartphones. The UPI App should be optimized to function efficiently on devices with limited processing power, ensuring accessibility for all users.",
+      "5. In the event of a transaction failure during an automated split, the PSP Bank must implement a retry logic. This logic should attempt to reprocess the transaction up to three times before notifying the user of the failure and providing alternative options.",
+      "6. Exception handling is critical for transactions involving multiple stakeholders. The Issuer Bank must ensure that any discrepancies in payment splits are promptly addressed, with a clear dispute resolution process in place to manage any errors or disagreements."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature does not alter the existing dispute management framework within the UPI ecosystem. All disputes arising from transactions utilizing this feature will continue to be governed by the standard UPI dispute resolution process. This ensures consistency and reliability in handling any discrepancies or issues that may arise during the payment split process. The standard framework is well-equipped to address disputes efficiently, providing a robust mechanism for resolution without necessitating any changes.",
+      "Under the standard UPI dispute framework, liability for any transaction discrepancies remains with the respective banks involved in the transaction. The PSP Bank is responsible for initiating the dispute process, while the Issuer Bank and Beneficiary Bank work collaboratively to resolve the issue within the stipulated Service Level Agreement (SLA) timelines. The escalation path follows the established hierarchy, beginning with the PSP Bank and, if unresolved, escalating to NPCI for further intervention. This structured approach ensures that any disputes related to the Advanced Rule-Based Payment Splits are handled promptly and effectively, maintaining user trust and satisfaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is designed to streamline the process of dividing payments among multiple parties, enhancing efficiency and accuracy in complex transactions. This feature is particularly beneficial for scenarios such as group dinners or business events where the bill needs to be split according to predefined rules. By automating the distribution process, it reduces manual errors and saves time, offering a seamless user experience. The following table outlines the functional requirements necessary to implement this feature, ensuring that it meets the needs of users and aligns with the broader goals of India's digital payment ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall allow users to define percentage-based splits for payments.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall support priority handling to determine the sequence of payment allocation.",
+          "Medium"
+        ],
+        [
+          "FR-03",
+          "The system shall enable users to set cap limits on individual contributions.",
+          "Medium"
+        ],
+        [
+          "FR-04",
+          "The system shall provide an intuitive interface for setting up payment rules.",
+          "High"
+        ],
+        [
+          "FR-05",
+          "The system shall automatically calculate and distribute payments based on predefined rules.",
+          "High"
+        ],
+        [
+          "FR-06",
+          "The system shall offer real-time updates on payment status to all involved parties.",
+          "High"
+        ],
+        [
+          "FR-07",
+          "The system shall integrate with existing UPI applications to facilitate seamless transactions.",
+          "High"
+        ],
+        [
+          "FR-08",
+          "The system shall maintain a log of all transactions for audit and reconciliation purposes.",
+          "Medium"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature necessitates several changes to the NPCI platform, Common Library (CL), and associated schemas. These changes are essential to support the automation of complex payment splits, ensuring that transactions involving multiple stakeholders are processed efficiently and accurately. The modifications will involve new API messages, schema updates, and enhancements to the Common Library to accommodate the advanced functionalities of this feature.",
+      "The implementation of these changes will require collaboration among various participants, including NPCI, PSP Banks, and Issuer Banks. Each participant will have specific responsibilities to ensure seamless integration and functionality. The changes are designed to enhance the user experience by automating the payment split process, reducing manual errors, and aligning with the broader objectives of India's digital payment ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. A new API message, REQ_SPLIT_RULE, will be introduced to facilitate the configuration of payment split rules. This API will be implemented by PSP Banks to allow users to define their payment distribution preferences.",
+      "2. The schema for REQ_PAY will be updated to include additional fields for specifying split rules and percentages. This change must be adopted by both PSP Banks and Issuer Banks to ensure accurate processing of split payments.",
+      "3. The Common Library (CL) version will be upgraded to support the new split rule functionalities, including secure handling of split configurations. NPCI will be responsible for releasing the updated CL version, while PSP Banks must integrate it into their UPI applications.",
+      "4. A configuration flag will be added to the NPCI platform to enable or disable the Advanced Rule-Based Payment Splits feature at the bank level. This flag will allow Issuer Banks to control the availability of this feature for their customers."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature necessitates several changes to the NPCI's transaction flow and processing mechanisms. These changes are essential to support the seamless execution of complex payment splits, ensuring that transactions are processed efficiently and accurately. The NPCI will implement modifications in routing, processing, and validation to accommodate the new feature, focusing on enhancing the user experience and maintaining the integrity of the UPI platform.",
+      "To support this feature, NPCI will undertake specific changes in credential validation and switch routing. These changes will ensure that the payment splits are executed according to predefined rules, minimizing errors and delays. Additionally, the handling of refCategory and response processing will be adjusted to reflect the new transaction dynamics, providing clear and accurate feedback to all participants involved in the transaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI will update the switch routing logic to support rule-based payment splits, ensuring that transactions are directed to the appropriate banks based on the predefined split rules.",
+      "2. NPCI will enhance credential validation processes to accommodate the advanced rule-based splits, verifying that all participants and their respective split percentages are authenticated and authorized.",
+      "3. NPCI will modify the handling of refCategory to include additional designations for transactions processed under the advanced split rules, ensuring accurate categorization and reporting.",
+      "4. NPCI will implement changes in response handling to provide detailed transaction confirmations, reflecting the successful execution of the payment splits and the respective amounts credited to each participant."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature necessitates several changes on the UPI App and PSP side to ensure seamless enrollment, consent capture, and device binding. These changes are critical to providing a user-friendly interface that simplifies complex payment transactions, thereby enhancing user satisfaction and trust in digital payments. The UPI App must integrate these functionalities to automate the payment split process effectively, aligning with the broader push towards a cashless economy.",
+      "To implement this feature, the UPI App and PSP must focus on updating the user interface, invoking the Common Library (CL) SDK, managing local key storage, and incorporating device check logic. These changes will enable users to set up advanced payment rules effortlessly, ensuring that payments are distributed according to predefined preferences. By automating these processes, the feature will reduce manual errors and delays, ultimately fostering a more efficient and reliable digital payment ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The UPI App must update its user interface to include a new section for setting up Advanced Rule-Based Payment Splits. This section should guide users through the process of defining percentage-based splits, priority handling, and cap limits, ensuring clarity and ease of use.",
+      "The PSP must invoke the Common Library (CL) SDK to securely handle authentication and authorization processes during enrollment and consent capture. This ensures that all transactions are conducted securely, maintaining user trust and compliance with regulatory standards.",
+      "The UPI App must implement local key storage solutions to securely store user preferences and payment rules on the device. This will facilitate quick access and retrieval of data during transactions, enhancing the overall user experience.",
+      "The PSP must incorporate device check logic to verify the integrity and security of the device before allowing any payment rule setup or execution. This step is crucial to prevent unauthorized access and ensure that only verified devices can initiate or modify payment splits."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The implementation of the Advanced Rule-Based Payment Splits feature necessitates several transaction-time changes within the UPI App and PSP systems. These changes are crucial to ensure seamless integration and operation of the new feature, which aims to automate and simplify the payment splitting process. The focus is on enhancing user experience by reducing manual intervention and potential errors during complex transactions. This requires modifications in credential capture, invocation of the Common Library (CL), fallback handling, and response presentation.",
+      "The changes outlined below are designed to support the new feature's functionality, ensuring that users can efficiently manage payments involving multiple parties. By automating the payment split process, these adjustments will help maintain cash flow, reduce delays, and foster trust in digital payments. Each requirement is aimed at optimizing the transaction flow, ensuring that the system is robust and capable of handling the complexities introduced by the advanced payment split rules."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Credential Capture: The PSP Bank must update the UPI App to capture additional credential information necessary for rule-based payment splits. This includes capturing user-defined rules and preferences for splitting payments during the transaction initiation phase.",
+      "CL Invocation: The PSP Bank is responsible for modifying the invocation of the Common Library to include the new parameters required for processing advanced payment splits. This ensures that the encryption and secure transmission of user credentials and payment rules are handled efficiently.",
+      "Fallback Handling: The PSP Bank must implement enhanced fallback mechanisms to manage scenarios where the rule-based split cannot be processed due to network or system issues. This includes providing clear error messages and alternative options to users, ensuring transparency and reliability.",
+      "Response Presentation: The UPI App must be updated to present transaction responses that reflect the outcome of the rule-based payment split. This includes displaying detailed breakdowns of the split amounts and confirming successful processing or highlighting any issues encountered during the transaction."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature necessitates several changes in the Issuer Bank's authentication and registration processes. These changes are essential to support the seamless execution of complex payment splits, ensuring that transactions are processed efficiently and accurately. The Issuer Bank must adapt its systems to handle new requirements for storing, validating, and responding to authentication and registration requests associated with this feature.",
+      "To accommodate the new feature, the Issuer Bank must enhance its credential management capabilities. This involves ensuring that all relevant authentication details are securely stored and can be readily accessed during transaction processing. Additionally, the bank must validate the authenticity of payment split rules and ensure compliance with regulatory standards. These changes are critical to maintaining the integrity and reliability of the payment system, fostering trust among users and stakeholders."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The Issuer Bank must store detailed authentication credentials related to the Advanced Rule-Based Payment Splits, ensuring they are encrypted and securely managed to prevent unauthorized access.",
+      "The bank is required to validate the authenticity of payment split rules during the registration process, ensuring that they conform to predefined regulatory and business standards.",
+      "The Issuer Bank must respond promptly to authentication requests by confirming the validity of credentials and payment split rules, facilitating smooth transaction processing.",
+      "The bank must implement a mechanism to log and monitor all authentication and registration activities related to the payment splits, enabling traceability and compliance with audit requirements."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Advanced Rule-Based Payment Splits feature necessitates several changes in the transaction flow for Issuer Banks. These changes are essential to support the automated distribution of payments according to predefined rules, enhancing the efficiency and accuracy of handling complex transactions. The Issuer Bank will play a critical role in validating credentials, processing debit requests, and ensuring timely responses. This will involve modifications to existing systems to accommodate the new feature's requirements, ensuring seamless integration and operation within the UPI framework.",
+      "Issuer Banks must adapt their transaction processing systems to handle the advanced capabilities of this feature. This includes managing percentage-based splits and priority handling, which require precise calculations and timely execution. Additionally, the Issuer Bank must implement robust timeout handling and fallback mechanisms to maintain transaction integrity and user trust. These changes are crucial for aligning with the broader objectives of promoting a cashless economy and supporting the RBI's vision for an efficient payment system."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The Issuer Bank must enhance its credential and authentication validation processes to support the automated payment split feature. This involves ensuring that all credential data is accurately verified before processing any debit requests.",
+      "Debit processing systems within the Issuer Bank need to be updated to accommodate rule-based payment splits. This includes implementing logic to handle percentage-based distributions and ensuring that debits are executed according to the predefined rules set by users.",
+      "Response codes must be updated to reflect the outcomes of transactions processed under this feature. The Issuer Bank should ensure that all possible scenarios, including successful transactions, partial failures, and complete failures, are appropriately coded and communicated back to the NPCI and PSP Bank.",
+      "Timeout handling and fallback procedures must be enhanced to ensure that transactions do not fail due to delays in processing. The Issuer Bank should implement mechanisms to retry transactions or provide alternative solutions in case of timeouts, thereby maintaining transaction flow and user satisfaction."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

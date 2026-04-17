@@ -1111,6 +1111,25 @@ def plan_document(state: dict) -> dict:
         audience = state.get("audience", "")
         desired_outcome = state.get("desired_outcome", "")
         format_constraints = state.get("format_constraints", "")
+        proposals = state.get("proposals") or {}
+        taxonomy = state.get("taxonomy") or {}
+        proposals_block = ""
+        if proposals:
+            import json as _json
+            proposals_block = (
+                "\n\nAUTHORITATIVE TECHNICAL SPECIFICATIONS (derived from NPCI documentation):\n"
+                f"APIs: {_json.dumps(proposals.get('apis', []), indent=2)}\n"
+                f"Auth Method: {proposals.get('auth_method', 'UPI PIN')}\n"
+                f"Transaction Limit: {proposals.get('transaction_limit', 'As per NPCI guidelines')}\n"
+                f"Flow Sequence: {_json.dumps(proposals.get('flow_sequence', []), indent=2)}\n"
+                f"Error Codes: {_json.dumps(proposals.get('error_codes', []), indent=2)}\n"
+                "Use these exact API names, field names, and error codes in the plan.\n"
+            )
+        if taxonomy:
+            proposals_block += (
+                f"\nFeature Classification: {taxonomy.get('primary_category', '')} "
+                f"({', '.join(taxonomy.get('labels', []))})\n"
+            )
 
         context_block = ""
         if rag_context:
@@ -1141,6 +1160,7 @@ def plan_document(state: dict) -> dict:
         user_msg = (
             f"Create a {doc_type} document plan for the following request:\n\n"
             f"{prompt}\n"
+            f"{proposals_block}"
             f"{context_block}"
         )
         messages = [SystemMessage(content=system_msg), HumanMessage(content=user_msg)]
@@ -1212,7 +1232,7 @@ def plan_document(state: dict) -> dict:
 # Node 3 — generate_diagrams
 # ---------------------------------------------------------------------------
 
-def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str) -> tuple[str, str]:
+def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str, llm_content=None) -> tuple[str, str]:
     """Generate one diagram. Returns (diagram_id, path_or_empty).
 
     Strategy:
@@ -1244,7 +1264,8 @@ def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str) -> tu
     plantuml_user = f"Create a {dtype} PlantUML diagram for: {description}"
 
     try:
-        resp = llm.invoke([SystemMessage(content=plantuml_system), HumanMessage(content=plantuml_user)])
+        _llm_puml = llm_content if llm_content is not None else _make_llm_content()
+        resp = _llm_puml.invoke([SystemMessage(content=plantuml_system), HumanMessage(content=plantuml_user)])
         raw_puml = resp.content if hasattr(resp, "content") else str(resp)
         # Strip any markdown fences
         raw_puml = re.sub(r"^```(?:plantuml)?\s*", "", raw_puml.strip(), flags=re.IGNORECASE)
@@ -1325,7 +1346,8 @@ def generate_diagrams(state: dict) -> dict:
 
         for spec in specs:
             try:
-                did, path = _generate_single_diagram(llm, spec, output_dir)
+                did, path = _generate_single_diagram(llm, spec, output_dir, llm_content=_make_llm_content())
+
                 if path:
                     generated[did] = path
                     logger.info("Generated diagram: %s -> %s", did, path)
@@ -1550,6 +1572,8 @@ def _write_section(
     doc_type: str,
     audience: str = "",
     desired_outcome: str = "",
+    feature_prompt: str = "",
+    proposals: dict = None,
 ) -> dict:
     section_key = section.get("section_key")
     heading = section.get("heading", "Section")
@@ -1561,10 +1585,24 @@ def _write_section(
 
     system_msg = _writer_system_prompt(doc_type)
 
+    
+    proposals_snippet = ""
+    if proposals:
+        proposals_snippet = (
+            "AUTHORITATIVE TECHNICAL SPECIFICATIONS — use these exact names, do NOT invent alternatives:\n"
+            f"APIs: {_json.dumps(proposals.get('apis', []))}\n"
+            f"Request Fields: {_json.dumps(proposals.get('request_fields', []))}\n"
+            f"Error Codes: {_json.dumps(proposals.get('error_codes', []))}\n"
+            f"Auth Method: {proposals.get('auth_method', '')}\n"
+            f"Flow: {_json.dumps(proposals.get('flow_sequence', []))}\n"
+        )
+
     context_snippet = rag_context[:2000] if rag_context else ""
     user_msg = (
         f"Write content for section: '{heading}'\n"
         f"Instructions: {instructions}\n"
+        + (f"{proposals_snippet}\n" if proposals_snippet else "")
+        + (f"Feature context (use this as the primary source of specific details):\n{feature_prompt[:3000]}\n" if feature_prompt else "")
         + (f"Required structure/style: {prompt_instruction}\n" if prompt_instruction else "")
         + (f"Audience focus: {audience}\n" if audience else "")
         + (f"Desired outcome: {desired_outcome}\n" if desired_outcome else "")
@@ -1629,7 +1667,7 @@ def write_content(state: dict) -> dict:
         desired_outcome = plan.get("document_meta", {}).get("desired_outcome", state.get("desired_outcome", ""))
 
         from concurrent.futures import ThreadPoolExecutor, as_completed
-
+        proposals = state.get("proposals") or {}
         def _write_one(idx_section: tuple[int, dict]) -> tuple[int, dict]:
             idx, section = idx_section
             content = _write_section(
@@ -1639,6 +1677,8 @@ def write_content(state: dict) -> dict:
                 doc_type=doc_type,
                 audience=audience,
                 desired_outcome=desired_outcome,
+                feature_prompt=feature_prompt, 
+                proposals=proposals
             )
             content["section_key"] = section.get("section_key")
             content["render_style"] = section.get("render_style", "body")

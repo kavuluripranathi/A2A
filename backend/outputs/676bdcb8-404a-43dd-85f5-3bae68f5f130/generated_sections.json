@@ -1,0 +1,115 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, the UPI ecosystem lacks an integrated solution for managing shared expenses, forcing users to rely on manual calculations and separate applications, which can lead to delays and errors. This gap presents a significant opportunity to enhance user convenience and increase UPI adoption by automating the expense splitting and settlement process. In response, the issuer has decided to implement the UPI AutoSplit feature, which will seamlessly integrate within existing UPI apps to provide real-time, automated expense management. This directive aims to ensure a comprehensive document suite is prepared to support the deployment and compliance of this innovative feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement the UPI AutoSplit feature to streamline the management of shared expenses within the UPI ecosystem.",
+      "The UPI AutoSplit feature will be integrated into the UPI App, leveraging the existing Common Library (CL) for secure authentication and transaction processing.",
+      "This feature will utilize the REQ_PAY and RESP_PAY message types to facilitate the automatic division and settlement of expenses among multiple users.",
+      "The implementation will require updates to the UPI App interface to support the selection of participants and the input of total expense amounts, as well as modifications to the backend systems of PSP Banks to handle the new transaction logic."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must integrate the UPI AutoSplit feature within their UPI Apps to enable automated expense splitting and settlement functionalities. They are responsible for ensuring that the feature is seamlessly incorporated into the user interface and provides a smooth user experience.",
+      "Issuer/Remitter Banks must ensure that their systems are capable of processing real-time settlements for transactions initiated through the UPI AutoSplit feature. They must also ensure compliance with security protocols to protect user data during these transactions.",
+      "Beneficiary/Payee Banks must update their systems to recognize and process incoming payments from the UPI AutoSplit feature. They must ensure that credits are applied promptly to the beneficiary accounts without delay.",
+      "UPI App providers are advised to conduct user education campaigns to inform users about the new UPI AutoSplit feature. They must also provide customer support to address any user queries or issues related to the feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "The UPI AutoSplit feature is introduced to streamline the management of shared expenses within the UPI ecosystem. This feature automates the division and settlement of expenses among users, enhancing convenience and efficiency.",
+      "Product managers must ensure the integration of UPI AutoSplit within the existing UPI app infrastructure, focusing on seamless user experience and instant payment settlements. This feature is expected to capture a significant portion of UPI P2P transaction volume.",
+      "Engineers are tasked with implementing the AutoSplit functionality, ensuring robust performance and security within the UPI framework. The integration should leverage the existing UPI infrastructure to minimize development overhead and maximize reliability.",
+      "Compliance teams must review the UPI AutoSplit feature to ensure adherence to regulatory standards and guidelines. This includes assessing data privacy measures and transaction security protocols."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]
