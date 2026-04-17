@@ -166,14 +166,14 @@ async def export_canvas(session_id: str, format: ExportFormat = ExportFormat.doc
     feature_title = session.requirement.feature_request[:60] if session.requirement.feature_request else ""
 
     if format == ExportFormat.docx:
-        file_bytes = export_docx(sections_dict, feature_title=feature_title)
+        file_bytes = await asyncio.to_thread(export_docx, sections_dict, feature_title)
         return Response(
             content=file_bytes,
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             headers={"Content-Disposition": f"attachment; filename=product_canvas_{session_id}.docx"},
         )
     else:
-        file_bytes = export_pdf(sections_dict, feature_title=feature_title)
+        file_bytes = await asyncio.to_thread(export_pdf, sections_dict, feature_title)
         return Response(
             content=file_bytes,
             media_type="application/pdf",

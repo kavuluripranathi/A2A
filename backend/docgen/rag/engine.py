@@ -8,7 +8,7 @@ import re
 import uuid
 from pathlib import Path
 from typing import Optional
-import requests
+
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -470,80 +470,3 @@ def delete_collection(name: str) -> bool:
 
 def search_collection(query: str, collection_name: str = "default", top_k: int = 5) -> list[str]:
     return retrieve(query, collection_name=collection_name, top_k=top_k)
-
-
-
-# ---------------------------------------------------------------------------
-# RAG microservice integration — calls rag_system on port 8001
-# Falls back to ChromaDB if rag_system is unavailable
-# ---------------------------------------------------------------------------
-
-RAG_SERVICE_URL = "http://localhost:8001"
-RAG_SERVICE_TIMEOUT = 10  # seconds
-
-def _call_rag_service(query: str, top_k: int = 8) -> tuple[list[str], str] | None:
-    """Call the rag_system microservice. Returns (chunks, context) or None if unavailable."""
-    try:
-        response = requests.post(
-            f"{RAG_SERVICE_URL}/retrieve",
-            json={"query": query, "top_k": top_k},
-            timeout=RAG_SERVICE_TIMEOUT
-        )
-        if response.status_code == 200:
-            data = response.json()
-            return data["chunks"], data["context"]
-    except Exception as e:
-        logger.warning("[RAG] rag_system unavailable (%s). Falling back to ChromaDB.", e)
-    return None
-
-
-def retrieve_multi_query(
-    prompt: str,
-    topic: str,
-    collection_name: str = "default",
-    top_k: Optional[int] = None,
-) -> tuple[list[str], str]:
-    """
-    Override: try rag_system microservice first (NPCI TSD knowledge base),
-    fall back to ChromaDB if unavailable.
-    """
-    k = top_k or settings.top_k_results
-
-    # Try rag_system first
-    result = _call_rag_service(prompt, top_k=k)
-    if result:
-        chunks, context = result
-        # also search with topic if different from prompt
-        if topic and topic.strip().lower() != prompt.strip().lower():
-            topic_result = _call_rag_service(topic, top_k=k)
-            if topic_result:
-                topic_chunks, _ = topic_result
-                seen = set(chunks)
-                for c in topic_chunks:
-                    if c not in seen:
-                        chunks.append(c)
-                        seen.add(c)
-                context = "\n\n---\n\n".join(chunks[:k * 2])
-        logger.info("[RAG] rag_system returned %d chunks for query.", len(chunks))
-        return chunks, context
-
-    # Fallback to existing ChromaDB implementation
-    logger.info("[RAG] Using ChromaDB fallback.")
-    queries = [prompt]
-    if topic and topic.strip().lower() != prompt.strip().lower():
-        queries.append(topic)
-
-    all_chunks: list[str] = []
-    seen: set[str] = set()
-
-    for q in queries:
-        chks = retrieve_hybrid(q, collection_name=collection_name, top_k=k)
-        for c in chks:
-            if c not in seen:
-                seen.add(c)
-                all_chunks.append(c)
-
-    context = "\n\n---\n\n".join(all_chunks[:k * 2])
-    return all_chunks, context
-
-

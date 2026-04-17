@@ -83,11 +83,11 @@ def interpret_input(state: RequirementState) -> dict:
     llm = _llm()
 
     # Pull relevant RAG context (sync)
-    # rag = query_rag_sync(state["feature_request"], top_k=5)
-    # rag_context = rag["enriched_context"]
+    rag = query_rag_sync(state["feature_request"], top_k=5)
+    rag_context = rag["enriched_context"]
 
     system = SystemMessage(content=f"""You are an expert product manager analyzing a feature request.
-Extract and pre-fill as many of the following fields as possible from the user's input.
+Extract and pre-fill as many of the following fields as possible from the user's input and the RAG context provided.
 
 Return a valid JSON object with this exact structure (use null for unknown fields):
 {{
@@ -99,6 +99,8 @@ Return a valid JSON object with this exact structure (use null for unknown field
   "compliance": {{"compliance_notes": null}}
 }}
 
+RAG Context:
+{rag_context}
 """)
     human = HumanMessage(content=f"Feature request: {state['feature_request']}")
 
@@ -112,7 +114,7 @@ Return a valid JSON object with this exact structure (use null for unknown field
 
     return {
         "gathered": gathered,
-        # "rag_context": rag_context,
+        "rag_context": rag_context,
         "messages": [{"role": "user", "content": state["feature_request"]}],
     }
 
@@ -235,19 +237,20 @@ def finalize_output(state: RequirementState) -> dict:
         for field_key in fields:
             value = gathered.get(section, {}).get(field_key)
             if value is None or str(value).strip() in ("", "null"):
-#                 rag = query_rag_sync(
-#                     f"{state['feature_request']} - {section} - {field_key}",
-#                     top_k=3,
-#                 )
-#                 if rag["results"]:
-#                     sys_msg = SystemMessage(content=f"""Based on the context below, infer a plausible value for:
-# Section: {section}, Field: {field_key}
-# Return a 1-2 sentence inference. If not determinable, return 'To be determined based on detailed analysis.'""")
-#                     h_msg = HumanMessage(content=rag["enriched_context"][:2000])
-#                     r = llm.invoke([sys_msg, h_msg])
+                rag = query_rag_sync(
+                    f"{state['feature_request']} - {section} - {field_key}",
+                    top_k=3,
+                )
+                if rag["results"]:
+                    sys_msg = SystemMessage(content=f"""Based on the context below, infer a plausible value for:
+Section: {section}, Field: {field_key}
+Return a 1-2 sentence inference. If not determinable, return 'To be determined based on detailed analysis.'""")
+                    h_msg = HumanMessage(content=rag["enriched_context"][:2000])
+                    r = llm.invoke([sys_msg, h_msg])
                     if section not in gathered:
                         gathered[section] = {}
-                    gathered[section][field_key] = "To be determined based on detailed analysis."
+                    gathered[section][field_key] = r.content.strip()
+
     farewell = ("Thank you! I have gathered all the information needed. "
                 "Proceeding to generate the deep research report...")
 

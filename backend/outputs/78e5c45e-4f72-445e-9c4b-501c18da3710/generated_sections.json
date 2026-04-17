@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All Product Managers, Engineers, and Compliance Teams at PSP Banks, Issuer/Remitter Banks, Beneficiary/Payee Banks, and UPI App Providers**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI ecosystem facilitates seamless digital transactions through a well-established network of PSP Banks, Issuer Banks, and Beneficiary Banks, all coordinated by the NPCI Switch. However, the increasing demand for enhanced security and user convenience has highlighted a gap in the biometric authentication support across UPI applications. This gap presents an opportunity to strengthen transaction security by integrating biometric authentication, which is currently underutilized despite its potential to significantly reduce fraud. In response, the issuer has decided to mandate the implementation of biometric authentication capabilities in UPI Apps, ensuring compliance with the latest security standards and enhancing user trust in digital payment systems."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI system by introducing biometric authentication for transaction authorization.",
+      "The technical artifacts affected by this decision include the REQ_PAY and RESP_PAY message types, which will now support biometric authentication data.",
+      "The Common Library (CL) will be updated to version 2.36 to incorporate biometric support, and the clVersion field will reflect this change in the ListAccPvd schema.",
+      "The CRED Block will be modified to include a new field for biometric data, specifically for transactions with refCategory='05'."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) as specified by NPCI. This update is mandatory to support the enhanced security features and biometric authentication capabilities.",
+      "Issuer/Remitter Banks must implement the necessary backend changes to support the processing of REQ_PAY messages that include biometric authentication data. These banks are also required to update their systems to handle transactions with refCategory='05' and ensure compliance with NPCI's security standards.",
+      "Beneficiary/Payee Banks must verify and process credit transactions originating from biometric-authenticated REQ_PAY messages. They must also ensure that their systems can handle DEEMED status transactions and provide timely updates to the NPCI Switch.",
+      "UPI App developers are advised to conduct thorough testing of the biometric authentication flow within their applications. This includes ensuring that the TEE or Secure Enclave is correctly utilized for storing sensitive authentication data."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must review the updated feature specifications and ensure alignment with the current product roadmap.",
+      "Engineers are advised to integrate the new API changes into the development pipeline and conduct thorough testing to ensure compliance with the UPI standards.",
+      "Compliance teams must verify that all regulatory requirements are met and document any deviations for audit purposes."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

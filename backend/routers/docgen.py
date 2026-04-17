@@ -84,6 +84,50 @@ STATUS_STEP = {
 }
 
 
+def _try_reconstruct_bundle(bundle_id: str) -> bool:
+    """
+    After a server restart BUNDLES and JOBS are empty.
+    Scan the session store for the persisted bundle_jobs, then rebuild
+    in-memory stubs so all existing endpoints keep working.
+    """
+    try:
+        from memory.session_store import store as _store
+        for session_id in _store.list_sessions():
+            session = _store.get(session_id)
+            if session.bundle_id != bundle_id or not session.bundle_jobs:
+                continue
+
+            # Rebuild BUNDLES entry
+            BUNDLES[bundle_id] = {"job_ids": dict(session.bundle_jobs)}
+
+            # Rebuild stub JOBS entries pointing at on-disk artefacts
+            session_dir = Path(docgen_settings.output_dir) / "sessions" / session_id
+            for doc_type, job_id in session.bundle_jobs.items():
+                if job_id in JOBS:
+                    continue  # already live
+                doc_slug = doc_type.replace(" ", "_").lower()
+                candidate = session_dir / f"{doc_slug}_{job_id[:8]}.docx"
+                if candidate.exists():
+                    status, output_path = "completed", str(candidate)
+                else:
+                    status, output_path = "failed", None
+                JOBS[job_id] = {
+                    "status": status,
+                    "progress": 100 if status == "completed" else 0,
+                    "current_step": STATUS_STEP.get(status, status),
+                    "error": None,
+                    "output_path": output_path,
+                    "doc_type": doc_type,
+                    "bundle_id": bundle_id,
+                    "prompt": "",
+                }
+            logger.info("Reconstructed bundle %s from session %s", bundle_id, session_id)
+            return True
+    except Exception as exc:
+        logger.warning("Bundle reconstruction failed: %s", exc)
+    return False
+
+
 def _update_job(job_id: str, state: dict):
     status = state.get("status", "pending")
     JOBS[job_id]["status"] = status
@@ -346,6 +390,17 @@ async def generate_bundle(request: BundleGenerateRequest, background_tasks: Back
 
     BUNDLES[bundle_id] = {"job_ids": job_ids}
 
+    # Persist bundle_id + job_ids in the session so history load can restore them
+    try:
+        from memory.session_store import store as _store
+        if request.session_id and _store.exists(request.session_id):
+            _sess = _store.get(request.session_id)
+            _sess.bundle_id = bundle_id
+            _sess.bundle_jobs = dict(job_ids)  # {doc_type: job_id}
+            _store.save(request.session_id)
+    except Exception:
+        pass  # non-critical
+
     jobs_detail = [
         BundleJobDetail(
             doc_type=dt,
@@ -367,7 +422,8 @@ async def generate_bundle(request: BundleGenerateRequest, background_tasks: Back
 @router.get("/bundles/{bundle_id}", response_model=BundleStatusResponse)
 async def get_bundle_status(bundle_id: str):
     if bundle_id not in BUNDLES:
-        raise HTTPException(status_code=404, detail=f"Bundle {bundle_id} not found.")
+        if not _try_reconstruct_bundle(bundle_id):
+            raise HTTPException(status_code=404, detail=f"Bundle {bundle_id} not found.")
 
     job_ids = BUNDLES[bundle_id]["job_ids"]
     jobs_detail = []
@@ -498,7 +554,11 @@ async def get_job_content(job_id: str):
     output_path = job.get("output_path")
     if not output_path:
         raise HTTPException(status_code=404, detail="No output path recorded for this job.")
-    job_dir = Path(output_path).parent
+
+    # Artifacts (generated_sections.json, document_plan.json) are always stored
+    # under output_dir/<job_id>/ regardless of whether a session_id was used.
+    from docgen.plan_store import artifact_dir
+    job_dir = artifact_dir(job_id)
     sections_file = job_dir / "generated_sections.json"
     plan_file = job_dir / "document_plan.json"
 

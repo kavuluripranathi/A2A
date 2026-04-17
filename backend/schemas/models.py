@@ -129,3 +129,22 @@ class CanvasStateResponse(BaseModel):
 class ExportFormat(str, Enum):
     docx = "docx"
     pdf = "pdf"
+
+
+# ---------------------------------------------------------------------------
+# Agent 5 — Prototype Generation
+# ---------------------------------------------------------------------------
+
+class PrototypeGenerateRequest(BaseModel):
+    session_id: str
+    brd_content: str = Field(..., description="Full BRD markdown content to build prototype from")
+    feature_name: Optional[str] = ""
+
+
+class PrototypeStateResponse(BaseModel):
+    session_id: str
+    status: str                         # "idle" | "generating" | "ready" | "failed"
+    prototype_html: Optional[str] = None
+    feature_name: Optional[str] = None
+    screen_count: Optional[int] = None
+    error: Optional[str] = None

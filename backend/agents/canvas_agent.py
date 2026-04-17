@@ -656,115 +656,136 @@ def export_docx(sections: dict, feature_title: str = "") -> bytes:
 
 
 def export_pdf(sections: dict, feature_title: str = "") -> bytes:
-    """Generate PDF matching the V1.2 template grid layout using HTML→PDF."""
-    import markdown as md_lib
-    from weasyprint import HTML
+    """Generate PDF matching the V1.2 template grid layout using ReportLab (pure-Python)."""
+    import io
+    import re as _re
+    from reportlab.lib.pagesizes import A3, landscape
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    )
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT
 
-    NPCI_BLUE = "#1B3F8F"
-    NPCI_LIGHT = "#f4f7fb"
+    NPCI_BLUE = colors.HexColor("#1B3F8F")
+    BORDER = colors.HexColor("#cccccc")
+    BG_LIGHT = colors.HexColor("#f4f7fb")
+    BG_WHITE = colors.white
 
-    def _render_section(key: str) -> str:
-        meta = next((s for s in CANVAS_SECTIONS if s["key"] == key), {})
+    title_style = ParagraphStyle(
+        "CellTitle", fontName="Helvetica-Bold", fontSize=7,
+        textColor=NPCI_BLUE, leading=9, spaceAfter=2,
+    )
+    subtitle_style = ParagraphStyle(
+        "CellSub", fontName="Helvetica-Oblique", fontSize=6,
+        textColor=colors.HexColor("#888888"), leading=8, spaceAfter=2,
+    )
+    body_style = ParagraphStyle(
+        "CellBody", fontName="Helvetica", fontSize=6.5,
+        textColor=colors.HexColor("#333333"), leading=9,
+        spaceAfter=1,
+    )
+    bold_body_style = ParagraphStyle(
+        "CellBold", fontName="Helvetica-Bold", fontSize=6.5,
+        textColor=colors.HexColor("#1a3c6e"), leading=9, spaceAfter=1,
+    )
+
+    def _md_to_paras(content: str) -> list:
+        """Lightweight markdown → list of Paragraph objects."""
+        paras = []
+        for line in content.split("\n"):
+            s = line.strip()
+            if not s:
+                paras.append(Spacer(1, 3))
+                continue
+            # heading — treat as bold body
+            if s.startswith("#"):
+                s = _re.sub(r"^#+\s*", "", s)
+                s = _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s)
+                paras.append(Paragraph(s, bold_body_style))
+            # bullet
+            elif s.startswith("- ") or s.startswith("* "):
+                text = _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s[2:])
+                paras.append(Paragraph(f"• {text}", body_style))
+            # bold-only line
+            elif s.startswith("**") and s.endswith("**"):
+                paras.append(Paragraph(s[2:-2], bold_body_style))
+            else:
+                text = _re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", s)
+                paras.append(Paragraph(text, body_style))
+        return paras
+
+    def _cell_content(key: str) -> list:
+        meta = next((sec for sec in CANVAS_SECTIONS if sec["key"] == key), {})
         title = meta.get("title", key)
         subtitle = meta.get("subtitle", "")
         content = sections.get(key, "")
-        html_content = md_lib.markdown(content, extensions=["tables"])
-        subtitle_html = f'<div class="subtitle">{subtitle}</div>' if subtitle else ""
-        return f"""
-          <div class="section-cell">
-            <div class="section-title">{title}</div>
-            {subtitle_html}
-            <div class="section-content">{html_content}</div>
-          </div>"""
+        items = [Paragraph(title, title_style)]
+        if subtitle:
+            items.append(Paragraph(subtitle, subtitle_style))
+        items.append(Spacer(1, 3))
+        items.extend(_md_to_paras(content))
+        return items
 
-    def _row(keys: list, full_width: bool = False) -> str:
-        cols = "".join(_render_section(k) for k in keys)
-        cls = "row-full" if full_width else "row-grid"
-        return f'<div class="{cls}">{cols}</div>'
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf,
+        pagesize=landscape(A3),
+        leftMargin=15 * mm, rightMargin=15 * mm,
+        topMargin=15 * mm, bottomMargin=15 * mm,
+    )
 
-    rows_html = _row(["feature"], full_width=True)
+    page_w = landscape(A3)[0] - 30 * mm  # usable width
+
+    cell_style_base = [
+        ("BOX", (0, 0), (-1, -1), 0.5, BORDER),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 5),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]
+
+    story = []
+
+    # Page header
+    hdr_style = ParagraphStyle(
+        "Hdr", fontName="Helvetica-Bold", fontSize=12,
+        textColor=NPCI_BLUE, spaceAfter=6,
+    )
+    story.append(Paragraph(
+        f"Build framework for &nbsp; {feature_title or '_______________'}",
+        hdr_style,
+    ))
+
+    # Row 1 — feature (full width)
+    row1 = Table(
+        [[_cell_content("feature")]],
+        colWidths=[page_w],
+        repeatRows=0,
+    )
+    row1.setStyle(TableStyle(cell_style_base + [
+        ("BACKGROUND", (0, 0), (0, 0), BG_LIGHT),
+    ]))
+    story.append(row1)
+    story.append(Spacer(1, 3))
+
+    # Rows 2–4 — three columns each
+    col_w = page_w / 3
+    bg_cycle = [BG_WHITE, colors.HexColor("#fafafa"), colors.HexColor("#f0f4fa")]
     for row_keys in _GRID_LAYOUT[1:]:
-        rows_html += _row(row_keys)
+        data = [[_cell_content(k) for k in row_keys]]
+        tbl = Table(data, colWidths=[col_w] * 3)
+        row_style = cell_style_base + [
+            ("INNERGRID", (0, 0), (-1, -1), 0.5, BORDER),
+        ]
+        for i, bg in enumerate(bg_cycle):
+            row_style.append(("BACKGROUND", (i, 0), (i, 0), bg))
+        tbl.setStyle(TableStyle(row_style))
+        story.append(tbl)
+        story.append(Spacer(1, 3))
 
-    html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  @page {{ size: A3 landscape; margin: 15mm; }}
-  body {{
-    font-family: 'Arial', sans-serif;
-    font-size: 8.5pt;
-    color: #222;
-    margin: 0;
-    padding: 0;
-  }}
-  .header {{
-    font-size: 13pt;
-    font-weight: bold;
-    color: {NPCI_BLUE};
-    margin-bottom: 8px;
-    border-bottom: 2px solid {NPCI_BLUE};
-    padding-bottom: 4px;
-  }}
-  .row-full {{
-    display: grid;
-    grid-template-columns: 1fr;
-    border: 1px solid #ccc;
-    margin-bottom: 4px;
-  }}
-  .row-grid {{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    border: 1px solid #ccc;
-    margin-bottom: 4px;
-  }}
-  .section-cell {{
-    padding: 8px 10px;
-    border-right: 1px solid #ddd;
-    min-height: 80px;
-    vertical-align: top;
-  }}
-  .section-cell:last-child {{ border-right: none; }}
-  .section-title {{
-    font-weight: bold;
-    font-size: 8.5pt;
-    color: {NPCI_BLUE};
-    margin-bottom: 3px;
-    border-bottom: 1px solid #e0e8f5;
-    padding-bottom: 2px;
-  }}
-  .subtitle {{
-    font-size: 7.5pt;
-    color: #888;
-    font-style: italic;
-    margin-bottom: 5px;
-  }}
-  .section-content {{
-    font-size: 7.5pt;
-    line-height: 1.5;
-    color: #333;
-  }}
-  .section-content h1, .section-content h2 {{ display: none; }}
-  .section-content h3 {{
-    font-size: 8pt;
-    font-weight: bold;
-    color: #444;
-    margin: 4px 0 2px 0;
-  }}
-  .section-content strong {{
-    color: #1a3c6e;
-    font-size: 7.5pt;
-  }}
-  .section-content p {{ margin: 2px 0; }}
-  .section-content ul {{ margin: 2px 0 2px 12px; padding: 0; }}
-  .section-content li {{ margin: 1px 0; }}
-</style>
-</head>
-<body>
-  <div class="header">Build framework for &nbsp; {feature_title or '_______________'}</div>
-  {rows_html}
-</body>
-</html>"""
-
-    return HTML(string=html).write_pdf()
+    doc.build(story)
+    buf.seek(0)
+    return buf.read()

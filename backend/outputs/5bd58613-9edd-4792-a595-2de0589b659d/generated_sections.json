@@ -1,0 +1,397 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The Unified Payments Interface (UPI) ecosystem is a robust and widely adopted real-time payment system in India, enabling seamless transactions across various banks and financial institutions. Currently, UPI supports a range of functionalities such as instant fund transfers, balance inquiries, and mandate creations, all facilitated through a network of PSP Banks, Issuer Banks, and Beneficiary Banks. The system is designed to provide a secure and efficient payment experience, leveraging technologies like the Common Library (CL) for secure authentication and the NPCI Switch for message routing.",
+      "Despite its success, the UPI ecosystem faces certain limitations, particularly in the area of transaction authentication and security. Current methods primarily rely on PIN-based authentication, which, while secure, may not fully leverage advancements in biometric technology. This gap presents a challenge in enhancing user convenience and security, especially in scenarios where biometric authentication could offer a more seamless and secure user experience. Additionally, the existing system does not fully utilize the potential of hardware-backed secure storage, such as TEE or Secure Enclave, which could further bolster transaction security.",
+      "The proposed technical approach aims to address these limitations by integrating biometric authentication into the UPI framework. This approach seeks to enhance security by utilizing biometric data, which is inherently more difficult to replicate than traditional PINs. By incorporating features like nonce-based challenges and leveraging the TEE for secure storage, the system can provide a more robust defense against replay attacks and unauthorized access. The rationale behind this enhancement is to improve user trust and convenience, thereby encouraging wider adoption and usage of UPI services."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The new UPI feature facilitates seamless biometric authentication for transactions, enhancing security and user convenience. This feature integrates biometric data capture into the UPI payment flow, allowing users to authenticate transactions using their biometric credentials, such as fingerprints or facial recognition. By leveraging the TEE or Secure Enclave on the user's device, the feature ensures that sensitive authentication data is securely stored and processed. This enhancement aims to streamline the user experience by reducing the reliance on traditional PIN-based authentication, thereby increasing transaction speed and user satisfaction.",
+      "The feature involves multiple participants within the UPI ecosystem, including the UPI App, PSP Bank, NPCI, and the Issuer/Remitter Bank. During a transaction, the UPI App captures the user's biometric data, which is then securely encrypted and transmitted to the PSP Bank. The PSP Bank forwards this data to NPCI, which coordinates with the Issuer/Remitter Bank for authentication and transaction processing. This process ensures that the biometric data is verified before the transaction is authorized, providing a robust layer of security. The business outcome of this feature is to enhance transaction security while maintaining a seamless user experience, ultimately driving higher adoption rates of UPI transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI system is an intricate network of participants working collaboratively to facilitate seamless digital payments. At the core of this ecosystem is the NPCI, which operates the UPI switch and the Common Library (CL). The NPCI is responsible for routing all UPI messages, ensuring secure and efficient transaction processing. Payment Service Provider (PSP) Banks host UPI Apps, which are customer-facing applications like PhonePe, GPay, and BHIM. These apps initiate payment requests and interact with the NPCI to process transactions. The Issuer or Remitter Bank is the payer's bank, tasked with authenticating the customer and debiting their account. Conversely, the Beneficiary or Payee Bank is responsible for crediting the recipient's account.",
+      "The interaction topology of the UPI system is designed to ensure robust security and efficiency. The UPI App captures the customer's authentication data, which is encrypted using the Common Library before being sent to the PSP Bank. The PSP Bank then forwards the payment request to the NPCI, which orchestrates the transaction by communicating with both the Issuer Bank and the Beneficiary Bank. Key design decisions include the use of a CRED Block for secure credential transmission and the implementation of a nonce-based challenge to prevent replay attacks. The system's architecture also incorporates a TEE or Secure Enclave on devices for secure storage of sensitive information, enhancing the overall security of the UPI ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The setting and enrollment process for UPI involves multiple entities working in tandem to ensure a secure and seamless user experience. This process begins with the user initiating the enrollment through a UPI App, which communicates with the PSP Bank to verify and register the user's credentials. The NPCI plays a central role in routing messages between the PSP Bank and the Issuer Bank, ensuring all necessary validations are completed. Once the user's credentials are verified and registered, the Issuer Bank confirms the enrollment, allowing the user to perform UPI transactions. This structured flow ensures that all security and compliance requirements are met, providing a reliable service to the end-user."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify device compatibility and app version",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "User initiates enrollment request",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Send enrollment request to PSP Bank",
+          "UPI App"
+        ],
+        [
+          "Step 3",
+          "Validate user credentials and forward request",
+          "PSP Bank"
+        ],
+        [
+          "Step 4",
+          "Route enrollment request to Issuer Bank",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Authenticate user and confirm credentials",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "Send enrollment confirmation to NPCI",
+          "Issuer Bank"
+        ],
+        [
+          "Step 7",
+          "Forward confirmation to PSP Bank",
+          "NPCI"
+        ],
+        [
+          "Step 8",
+          "Notify UPI App of successful enrollment",
+          "PSP Bank"
+        ],
+        [
+          "Post Response",
+          "Display enrollment success message to user",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The transaction process in the UPI ecosystem is a multi-step flow that ensures secure and efficient payment execution. It involves several key participants, including the UPI App, PSP Bank, NPCI, Remitter Bank, and Beneficiary Bank. The process begins with authentication and ends with confirmation, ensuring funds are securely transferred from the payer to the payee. Each participant plays a crucial role in the transaction, from initiating the payment request to confirming the transaction completion."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "UPI App captures user credentials and encrypts them using CL.",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "PSP Bank sends the REQ_PAY message to NPCI.",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "NPCI sends REQ_AUTH_DETAILS to the Acquirer Bank for authentication.",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Acquirer Bank responds with RESP_AUTH_DETAILS to NPCI.",
+          "Acquirer Bank"
+        ],
+        [
+          "Step 4",
+          "NPCI sends a debit request to the Remitter Bank.",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Remitter Bank processes the debit and sends RESP_PAY to NPCI.",
+          "Remitter Bank"
+        ],
+        [
+          "Step 6",
+          "NPCI routes the credit request to the Beneficiary Bank.",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Beneficiary Bank credits the account and sends RESP_PAY to NPCI.",
+          "Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "NPCI sends confirmation to both Payer PSP and Payee PSP.",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section outlines the technical specifications for the integration and enhancement of UPI services, focusing on the REQ_PAY, REQ_CHK_TXN, and REQ_AUTH_DETAILS APIs. The scope of changes includes the introduction of biometric authentication support, improvements in transaction status checking, and enhanced security measures for payment processing. These updates aim to streamline operations for PSP Banks, Issuer Banks, and Beneficiary Banks, ensuring compliance with the latest NPCI guidelines while enhancing user experience and security."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The ReqPay API is central to the UPI payment process, facilitating the initiation of payment requests from the PSP Bank to NPCI. This API is responsible for capturing payment details, encrypting credentials, and ensuring the secure transmission of payment requests. The flow involves multiple stages, including authentication, debit, credit, and confirmation, ensuring a comprehensive transaction lifecycle.",
+      "The ReqAuthDetails API complements the ReqPay API by handling the authentication details exchange between the PSP and Acquirer Bank. This API ensures that the necessary authentication data is securely transmitted and verified, allowing the transaction to proceed to the debit stage. Together, these APIs form the backbone of the UPI payment process, ensuring secure and efficient transaction processing."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "CredBlock",
+          "String",
+          "Variable",
+          "Encrypted credential block containing auth data",
+          "Y"
+        ],
+        [
+          "Amount",
+          "Decimal",
+          "Variable",
+          "Transaction amount",
+          "Y"
+        ],
+        [
+          "VPA",
+          "String",
+          "Variable",
+          "Virtual Payment Address of the user",
+          "Y"
+        ],
+        [
+          "AuthType",
+          "String",
+          "Variable",
+          "Type of authentication used",
+          "Y"
+        ],
+        [
+          "Nonce",
+          "String",
+          "Variable",
+          "Cryptographic nonce for replay-attack prevention",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:CredBlock>EncryptedData</upi:CredBlock>\n    <upi:Amount>1000</upi:Amount>\n    <upi:VPA>user@bank</upi:VPA>\n</upi:ReqPay>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:Status>Success</upi:Status>\n    <upi:TransactionID>123456789</upi:TransactionID>\n</upi:RespPay>",
+      "<!-- Request: NPCI to Acquirer Bank -->\n<upi:ReqAuthDetails xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:AuthType>Biometric</upi:AuthType>\n    <upi:Nonce>RandomString</upi:Nonce>\n</upi:ReqAuthDetails>",
+      "<!-- Response: Acquirer Bank to NPCI -->\n<upi:RespAuthDetails xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:AuthStatus>Verified</upi:AuthStatus>\n</upi:RespAuthDetails>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers ii. Secondary API Specifications.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field / Element",
+        "Type",
+        "Length",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "schemaVersion",
+          "string",
+          "var",
+          "Replace with normative version field for your API.",
+          "Yes"
+        ],
+        [
+          "requestId",
+          "string",
+          "var",
+          "Correlation id for tracing; replace with your idempotency key if used.",
+          "Yes"
+        ],
+        [
+          "payload",
+          "object",
+          "n/a",
+          "Replace with message-specific body per your specification.",
+          "Yes"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "This section covers iii. Error Handling.",
+      "Details to be elaborated further."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "Operation",
+        "Component",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "E1",
+          "E1",
+          "Eligibility or precondition failed",
+          "Pre-check",
+          "Originating service",
+          "BD"
+        ],
+        [
+          "E2",
+          "E2",
+          "Activation or registration failed",
+          "Setup",
+          "Credential service",
+          "TD"
+        ],
+        [
+          "E3",
+          "E3",
+          "Authentication or validation failed",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "E4",
+          "E4",
+          "Credential mismatch or replay detected",
+          "Transaction",
+          "Issuer / verifier",
+          "TD"
+        ],
+        [
+          "TO",
+          "TO",
+          "Timeout waiting for downstream response",
+          "Any",
+          "Switch / broker",
+          "TD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. All UPI Apps must integrate the NPCI-provided Common Library (CL) to securely handle authentication data, ensuring compliance with the latest clVersion specifications.",
+      "2. During the REQ_PAY flow, the PSP Bank must ensure that the CRED Block is correctly encrypted and transmitted to NPCI to prevent unauthorized access to sensitive authentication data.",
+      "3. In the event of a transaction timeout, the PSP Bank should initiate a REQ_CHK_TXN message to NPCI to verify the transaction status and resolve any discrepancies.",
+      "4. For biometric-authenticated transactions, ensure that the refCategory is set to '05' and the transaction is processed using the appropriate clVersion that supports biometric data handling.",
+      "5. The UPI App must implement a nonce-based challenge mechanism to prevent replay attacks during the authentication process, ensuring that each transaction request is unique.",
+      "6. All participants must adhere to the standard UPI dispute management process unless explicitly modified by the Business Requirement Document (BRD)."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

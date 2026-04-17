@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All Product Managers, Engineers, and Compliance Teams**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI ecosystem facilitates seamless digital transactions through various message types, including REQ_PAY and RESP_PAY, which enable secure payment processing. However, there exists a gap in the efficient handling of biometric-authenticated transactions, which are becoming increasingly prevalent due to enhanced security requirements. This gap is primarily due to the lack of standardized support for biometric authentication across all UPI participants, leading to inconsistent transaction experiences. In response, the issuer has decided to implement a directive mandating the adoption of a standardized clVersion that supports biometric authentication, ensuring uniformity and security across the UPI network."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI transaction flow to incorporate biometric authentication for increased security and user convenience.",
+      "The affected technical artifacts include the REQ_PAY and RESP_PAY message types, which will now support biometric data encapsulation.",
+      "The Common Library (CL) will be updated to version 2.36 to enable biometric authentication capabilities, including the handling of refCategory='05'.",
+      "The UPI App's integration with the TEE/Secure Enclave will be modified to securely store and process biometric credentials."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) as specified by NPCI. This update is mandatory to support new authentication features and security protocols.",
+      "Issuer/Remitter Banks must implement the necessary backend changes to process REQ_PAY and RESP_PAY messages in compliance with the updated specifications. This includes handling new transaction statuses and ensuring accurate transaction logging.",
+      "Beneficiary/Payee Banks must upgrade their systems to accommodate the revised credit processing flow. This includes managing DEEMED status transactions and ensuring timely credit confirmations to NPCI.",
+      "UPI App developers are advised to conduct thorough testing of the updated CL integration to ensure seamless user experience and compliance with security standards. This includes validating the encryption of the CRED Block and the handling of nonce-based challenges."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must ensure that all relevant product documentation is updated to reflect the changes outlined in this circular.",
+      "Engineers are advised to review the technical specifications and implementation guidelines to ensure compliance with the new directives.",
+      "Compliance teams must verify that all regulatory requirements are met and that the necessary compliance checks are integrated into the operational processes."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

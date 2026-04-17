@@ -43,14 +43,26 @@ class CanvasState:
 
 
 @dataclass
+class PrototypeState:
+    status: str = "idle"                             # idle | generating | ready | failed
+    prototype_html: Optional[str] = None
+    feature_name: str = ""
+    screen_count: int = 0
+    error: Optional[str] = None
+
+
+@dataclass
 class Session:
     session_id: str
     created_at: datetime
     title: str = ""
     updated_at: Optional[datetime] = None
+    bundle_id: Optional[str] = None          # last generated doc bundle
+    bundle_jobs: dict = field(default_factory=dict)  # {doc_type: job_id}
     requirement: RequirementState = field(default_factory=RequirementState)
     research: ResearchState = field(default_factory=ResearchState)
     canvas: CanvasState = field(default_factory=CanvasState)
+    prototype: PrototypeState = field(default_factory=PrototypeState)
 
 
 # ── Store ──────────────────────────────────────────────────────────────────── #
@@ -103,14 +115,25 @@ class SessionStore:
             if len(words) > 10:
                 session.title += "..."
 
+        # Prototype HTML can be large — persist only metadata, not the HTML itself
+        proto_data = {
+            "status": session.prototype.status,
+            "feature_name": session.prototype.feature_name,
+            "screen_count": session.prototype.screen_count,
+            "error": session.prototype.error,
+        }
+
         data = {
             "session_id": session.session_id,
             "created_at": session.created_at.isoformat(),
             "updated_at": session.updated_at.isoformat(),
             "title": session.title,
+            "bundle_id": session.bundle_id,
+            "bundle_jobs": session.bundle_jobs,
             "requirement": asdict(session.requirement),
             "research": asdict(session.research),
             "canvas": asdict(session.canvas),
+            "prototype": proto_data,
         }
 
         path = os.path.join(SESSIONS_DIR, f"{session_id}.json")
@@ -132,7 +155,11 @@ class SessionStore:
             return {}
 
         # Determine furthest completed step
-        if session.canvas.canvases:
+        if session.prototype.status == "ready":
+            progress = "prototype"
+        elif session.bundle_id:
+            progress = "documents"
+        elif session.canvas.canvases:
             progress = "canvas"
         elif session.research.reports:
             progress = "research"
@@ -191,6 +218,7 @@ class SessionStore:
         return {
             "session_id": session.session_id,
             "title": title,
+            "bundle_id": session.bundle_id,
             "created_at": session.created_at.isoformat(),
             "updated_at": (session.updated_at or session.created_at).isoformat(),
             "requirement": {
@@ -210,6 +238,11 @@ class SessionStore:
                 "status": session.canvas.status,
                 "current_canvas": canvas,
                 "version_count": len(session.canvas.canvases),
+            },
+            "prototype": {
+                "status": session.prototype.status,
+                "feature_name": session.prototype.feature_name,
+                "screen_count": session.prototype.screen_count,
             },
         }
 
@@ -251,10 +284,18 @@ class SessionStore:
                         current_version=res_data.get("current_version", 0),
                         feedback_history=res_data.get("feedback_history", []),
                     ),
+                    bundle_id=data.get("bundle_id"),
+                    bundle_jobs=data.get("bundle_jobs", {}),
                     canvas=CanvasState(
                         status=can_data.get("status", "idle"),
                         canvases=can_data.get("canvases", []),
                         current_version=can_data.get("current_version", 0),
+                    ),
+                    prototype=PrototypeState(
+                        status=data.get("prototype", {}).get("status", "idle"),
+                        feature_name=data.get("prototype", {}).get("feature_name", ""),
+                        screen_count=data.get("prototype", {}).get("screen_count", 0),
+                        error=data.get("prototype", {}).get("error"),
                     ),
                 )
                 self._sessions[session.session_id] = session

@@ -9,6 +9,8 @@ import {
   getRequirementState,
   getResearchState,
   getCanvasState,
+  getBundleStatus,
+  getPrototypeState,
 } from '../api/client'
 import useSessionStore from '../store/sessionStore'
 
@@ -34,9 +36,9 @@ function timeAgo(iso) {
   return `${Math.floor(h / 24)}d ago`
 }
 
-const PROGRESS_STEPS = ['requirement', 'research', 'canvas']
-const STEP_LABELS = { requirement: 'Requirements', research: 'Research', canvas: 'Canvas' }
-const PROGRESS_ORDER = { new: -1, requirement: 0, research: 1, canvas: 2 }
+const PROGRESS_STEPS = ['requirement', 'research', 'canvas', 'documents', 'prototype']
+const STEP_LABELS = { requirement: 'Requirements', research: 'Research', canvas: 'Canvas', documents: 'Documents', prototype: 'Prototype' }
+const PROGRESS_ORDER = { new: -1, requirement: 0, research: 1, canvas: 2, documents: 3, prototype: 4 }
 
 function ProgressBadge({ progress }) {
   const colors = {
@@ -44,10 +46,13 @@ function ProgressBadge({ progress }) {
     requirement: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     research:    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     canvas:      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    documents:   'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+    prototype:   'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   }
   const labels = {
     new: 'New', requirement: 'Requirements Done',
     research: 'Research Done', canvas: 'Canvas Done',
+    documents: 'Documents Done', prototype: 'Prototype Done',
   }
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${colors[progress] || colors.new}`}>
@@ -207,6 +212,70 @@ function CanvasTab({ data }) {
   )
 }
 
+function DocumentsTab({ bundleId }) {
+  if (!bundleId) {
+    return <p className="text-sm text-slate-400 py-6 text-center">No documents generated.</p>
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
+        <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <div>
+          <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">Document bundle generated</p>
+          <p className="text-xs text-slate-400 mt-0.5">Bundle ID: {bundleId.slice(0, 8)}…</p>
+        </div>
+      </div>
+      <p className="text-xs text-slate-400 dark:text-slate-500">
+        BRD · TSD · Product Note · Circular were generated for this session.
+        Load the session to view, download, or regenerate them.
+      </p>
+    </div>
+  )
+}
+
+function PrototypeTab({ prototypeStatus, featureName, screenCount }) {
+  if (!prototypeStatus || prototypeStatus === 'idle') {
+    return <p className="text-sm text-slate-400 py-6 text-center">No prototype generated.</p>
+  }
+  const isReady = prototypeStatus === 'ready'
+  return (
+    <div className="space-y-3">
+      <div className={`flex items-center gap-2 p-3 rounded-xl border
+        ${isReady
+          ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800'
+          : 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800'}`}>
+        <svg className={`w-4 h-4 shrink-0 ${isReady ? 'text-purple-500' : 'text-red-400'}`}
+             fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          {isReady
+            ? <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            : <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />}
+        </svg>
+        <div>
+          <p className={`text-xs font-semibold ${isReady ? 'text-purple-700 dark:text-purple-300' : 'text-red-600 dark:text-red-400'}`}>
+            {isReady ? 'UI Prototype generated' : 'Prototype generation failed'}
+          </p>
+          {featureName && <p className="text-xs text-slate-400 mt-0.5">{featureName}</p>}
+        </div>
+      </div>
+      {isReady && (
+        <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+          {screenCount > 0 && (
+            <span className="flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3" />
+              </svg>
+              {screenCount} screen{screenCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          <span>HTML prototype · load session to view & interact</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Session Detail Modal ───────────────────────────────────────────────────── //
 
 function SessionDetailModal({ sessionId, onClose, onLoad }) {
@@ -224,6 +293,8 @@ function SessionDetailModal({ sessionId, onClose, onLoad }) {
     { id: 'requirement', label: 'Requirements', available: !!detail?.requirement?.messages?.length },
     { id: 'research',    label: 'Research',      available: !!detail?.research?.current_report },
     { id: 'canvas',      label: 'Canvas',         available: !!detail?.canvas?.current_canvas },
+    { id: 'documents',   label: 'Documents',      available: !!detail?.bundle_id },
+    { id: 'prototype',   label: 'Prototype',      available: !!detail?.prototype?.status && detail?.prototype?.status !== 'idle' },
   ]
 
   return (
@@ -246,6 +317,21 @@ function SessionDetailModal({ sessionId, onClose, onLoad }) {
             )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {/* Jump directly to prototype if session has canvas data */}
+            {!loading && detail?.canvas?.current_canvas && (
+              <button
+                onClick={() => onLoad(sessionId, { ...detail, _forceStep: 'prototype' })}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
+                           bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700
+                           text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40
+                           transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 4.5h3" />
+                </svg>
+                Prototype
+              </button>
+            )}
             <button
               onClick={() => onLoad(sessionId, detail)}
               className="btn-primary py-1.5 px-3 text-xs"
@@ -267,21 +353,23 @@ function SessionDetailModal({ sessionId, onClose, onLoad }) {
 
         {/* Tabs */}
         {!loading && (
-          <div className="flex gap-1 px-6 pt-3 shrink-0">
+          <div className="flex gap-1 px-6 pt-3 shrink-0 overflow-x-auto scrollbar-none">
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
+                onClick={() => tab.available && setActiveTab(tab.id)}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap
                   ${activeTab === tab.id
                     ? 'bg-brand-600 text-white'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-navy-800'
-                  }
-                  ${!tab.available ? 'opacity-40 cursor-not-allowed' : ''}`}
-                disabled={!tab.available}
+                    : tab.available
+                      ? 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800'
+                      : 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                  }`}
               >
                 {tab.label}
-                {!tab.available && <span className="ml-1 text-xs opacity-60">—</span>}
+                {!tab.available && (
+                  <span className="ml-1 text-[10px] opacity-50">–</span>
+                )}
               </button>
             ))}
           </div>
@@ -300,6 +388,14 @@ function SessionDetailModal({ sessionId, onClose, onLoad }) {
               {activeTab === 'requirement' && <RequirementTab data={detail?.requirement} />}
               {activeTab === 'research'    && <ResearchTab    data={detail?.research} />}
               {activeTab === 'canvas'      && <CanvasTab      data={detail?.canvas} />}
+              {activeTab === 'documents'   && <DocumentsTab   bundleId={detail?.bundle_id} />}
+              {activeTab === 'prototype'   && (
+                <PrototypeTab
+                  prototypeStatus={detail?.prototype?.status}
+                  featureName={detail?.prototype?.feature_name}
+                  screenCount={detail?.prototype?.screen_count}
+                />
+              )}
             </>
           )}
         </div>
@@ -310,7 +406,7 @@ function SessionDetailModal({ sessionId, onClose, onLoad }) {
 
 // ── Session Card ───────────────────────────────────────────────────────────── //
 
-function SessionCard({ session, onView, onDelete, onRename }) {
+function SessionCard({ session, onView, onDelete, onRename, onLoadStep }) {
   const [renaming, setRenaming] = useState(false)
   const [titleInput, setTitleInput] = useState(session.title)
   const [deleting, setDeleting] = useState(false)
@@ -415,6 +511,20 @@ function SessionCard({ session, onView, onDelete, onRename }) {
           </svg>
           View & Load
         </button>
+        {/* Show Prototype shortcut for sessions that have at least canvas data */}
+        {PROGRESS_ORDER[session.progress] >= PROGRESS_ORDER['canvas'] && (
+          <button
+            onClick={() => onLoadStep(session.session_id, 'prototype')}
+            className="w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0
+                       bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400
+                       hover:bg-purple-100 dark:hover:bg-purple-900/40 border border-purple-200 dark:border-purple-800"
+            title="Load session and open UI Prototype"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 4.5h3" />
+            </svg>
+          </button>
+        )}
         <button
           onClick={handleDelete}
           className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all
@@ -459,6 +569,7 @@ export default function HistoryPortal() {
   const {
     setView, setSessionId, setStep,
     setRequirementState, setResearchState, setCanvasState,
+    setDocBundle, setPrototypeState,
     setLoading: setGlobalLoading,
   } = useSessionStore()
 
@@ -487,12 +598,25 @@ export default function HistoryPortal() {
     setSessions(prev => prev.map(s => s.session_id === sessionId ? { ...s, title } : s))
   }
 
+  // Called from session cards for direct step navigation (no detail modal needed)
+  const handleLoadStep = async (sessionId, step) => {
+    setDetailId(null)
+    // Fetch detail so bundle_id is available, then force-navigate to requested step
+    try {
+      const res = await getHistoryDetail(sessionId)
+      await handleLoad(sessionId, { ...res.data, _forceStep: step })
+    } catch (e) {
+      await handleLoad(sessionId, { _forceStep: step })
+    }
+  }
+
   const handleLoad = async (sessionId, detail) => {
-    // Restore session into the main workflow
     setDetailId(null)
     setGlobalLoading(true)
     try {
       setSessionId(sessionId)
+
+      // Restore core agent states in parallel
       const [reqRes, resRes, canRes] = await Promise.all([
         getRequirementState(sessionId),
         getResearchState(sessionId),
@@ -502,8 +626,37 @@ export default function HistoryPortal() {
       setResearchState(resRes.data)
       setCanvasState(canRes.data)
 
-      // Navigate to the furthest completed step
-      if (canRes.data.canvas) {
+      // Restore prototype state (non-fatal if missing)
+      let protoStatus = 'idle'
+      try {
+        const protoRes = await getPrototypeState(sessionId)
+        setPrototypeState(protoRes.data)
+        protoStatus = protoRes.data?.status ?? 'idle'
+      } catch (_) {}
+
+      // Restore docBundle from persisted bundle_id (non-fatal if server restarted)
+      const bundleId = detail?.bundle_id
+      let bundleRestored = false
+      if (bundleId) {
+        try {
+          const bundleRes = await getBundleStatus(bundleId)
+          setDocBundle(bundleRes.data)
+          bundleRestored = true
+        } catch (_) {
+          // JOBS lost on server restart — user will need to regenerate docs
+          // but we still know they reached the documents step
+        }
+      }
+
+      // Navigate to the requested or furthest completed step
+      const forceStep = detail?._forceStep
+      if (forceStep) {
+        setStep(forceStep)
+      } else if (protoStatus === 'ready') {
+        setStep('prototype')
+      } else if (bundleId) {
+        setStep('documents')
+      } else if (canRes.data.canvas) {
         setStep('canvas')
       } else if (resRes.data.current_report) {
         setStep('research')
@@ -513,7 +666,6 @@ export default function HistoryPortal() {
 
       setView('app')
     } catch (e) {
-      // Even if some steps fail, navigate back
       setView('app')
     } finally {
       setGlobalLoading(false)
@@ -636,6 +788,7 @@ export default function HistoryPortal() {
                 onView={setDetailId}
                 onDelete={handleDelete}
                 onRename={handleRename}
+                onLoadStep={handleLoadStep}
               />
             ))}
           </div>

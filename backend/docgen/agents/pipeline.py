@@ -1550,7 +1550,6 @@ def _write_section(
     doc_type: str,
     audience: str = "",
     desired_outcome: str = "",
-    feature_prompt: str = "",
 ) -> dict:
     section_key = section.get("section_key")
     heading = section.get("heading", "Section")
@@ -1566,7 +1565,6 @@ def _write_section(
     user_msg = (
         f"Write content for section: '{heading}'\n"
         f"Instructions: {instructions}\n"
-        + (f"Feature context (use this as the primary source of specific details):\n{feature_prompt[:3000]}\n" if feature_prompt else "")
         + (f"Required structure/style: {prompt_instruction}\n" if prompt_instruction else "")
         + (f"Audience focus: {audience}\n" if audience else "")
         + (f"Desired outcome: {desired_outcome}\n" if desired_outcome else "")
@@ -1622,7 +1620,7 @@ def write_content(state: dict) -> dict:
     try:
         plan = state.get("document_plan", DEFAULT_PLAN)
         rag_context = state.get("rag_context", "")
-        feature_prompt = state.get("prompt", "")
+
         llm = _make_llm_json()
         sections_data = plan.get("sections", [])
         generated_sections = []
@@ -1641,7 +1639,6 @@ def write_content(state: dict) -> dict:
                 doc_type=doc_type,
                 audience=audience,
                 desired_outcome=desired_outcome,
-                feature_prompt=feature_prompt, 
             )
             content["section_key"] = section.get("section_key")
             content["render_style"] = section.get("render_style", "body")
@@ -1957,4 +1954,3 @@ def run_pipeline(initial_state: dict) -> dict:
     pipeline = get_pipeline()
     final_state = pipeline.invoke(initial_state)
     return final_state
-

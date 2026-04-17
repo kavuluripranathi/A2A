@@ -13,6 +13,7 @@ from rag.retriever import HybridRetriever
 from agents.rag_client import init_rag_client
 from routers import session, requirement, research, canvas, rag, history
 from routers import docgen as docgen_router
+from routers import prototype as prototype_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,6 +78,7 @@ app.include_router(canvas.router)
 app.include_router(rag.router)
 app.include_router(history.router)
 app.include_router(docgen_router.router)
+app.include_router(prototype_router.router)
 
 
 @app.get("/health")

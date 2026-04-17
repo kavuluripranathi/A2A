@@ -26,5 +26,9 @@ FINAL_TOP_K = int(os.getenv("FINAL_TOP_K", "6"))
 # Embeddings
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 
+# Prototype generation model
+# Set PROTOTYPE_MODEL_NAME=gpt-4.1 (or gpt-5.3 when available) in .env to override
+PROTOTYPE_MODEL_NAME = os.getenv("PROTOTYPE_MODEL_NAME", "gpt-4.1")
+
 # CORS origins
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",")

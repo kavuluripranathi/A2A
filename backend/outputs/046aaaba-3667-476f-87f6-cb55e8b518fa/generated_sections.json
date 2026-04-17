@@ -1,0 +1,117 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All Product Managers, Engineers, and Compliance Teams**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The current UPI ecosystem effectively supports a wide range of transaction types, including payments, mandates, and balance enquiries, through a standardized set of message types and secure authentication mechanisms. However, there is a growing need to enhance the security and efficiency of biometric-authenticated transactions, as indicated by the increasing adoption of biometric devices and the associated clVersion updates. To address this gap, the issuer has decided to implement a directive that mandates the use of refCategory='05' for all biometric-authenticated transactions, ensuring consistent processing and dispute management across the ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enhance the UPI transaction flow by integrating biometric authentication for payment authorization.",
+      "The technical artifacts affected by this decision include the REQ_PAY and RESP_PAY message types, which will now support biometric data encapsulation.",
+      "The Common Library (CL) will be updated to a new version, clVersion 2.36, to incorporate biometric authentication capabilities.",
+      "Additionally, the CRED Block will be modified to securely transmit biometric credentials, ensuring compliance with security standards."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must ensure that their UPI Apps are updated to integrate the latest version of the Common Library (CL) provided by NPCI. This integration is mandatory to support the new biometric authentication features.",
+      "Issuer/Remitter Banks must implement necessary backend changes to process REQ_PAY messages with the new refCategory='05' for biometric-authenticated transactions. Compliance with this requirement is critical to ensure seamless transaction processing.",
+      "Beneficiary/Payee Banks are advised to monitor transaction statuses closely for any DEEMED status transactions. They must ensure timely credit confirmation to avoid disputes and maintain transaction integrity.",
+      "UPI App developers must incorporate secure storage mechanisms such as TEE or Secure Enclave to handle sensitive authentication data. This is essential to comply with NPCI's security guidelines and protect user information."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must review the document suite to ensure alignment with the new product feature requirements and update any related project plans accordingly.",
+      "Engineers are advised to assess the technical specifications and integrate the necessary changes into the development cycle to maintain compliance with the updated UPI standards.",
+      "Compliance teams must verify that all regulatory and security protocols are adhered to in the implementation of the new product feature, ensuring that all legal obligations are met."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]
