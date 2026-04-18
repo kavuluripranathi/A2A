@@ -1,0 +1,128 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India (NPCI) – UPI Division issues this circular. Reference: NPCI/UPI/OC No. 012/2025-2026, dated 17 April 2026 (flush‑right)."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular is addressed to **All PSP Banks, Issuer Banks, and NPCI**. All entities must acknowledge receipt and comply with the directives herein.",
+      "All PSP Banks are required to implement the mandatory UPI APIs as specified. They must also validate request signatures and timestamps for every transaction.",
+      "All Issuer Banks must support VPA resolution and provide accurate nickname metadata where applicable. They must respond to mandate and validation requests within the stipulated SLA.",
+      "NPCI, as the central switch operator, must route API messages between PSPs and banks and enforce version compatibility. It must validate message integrity for all exchanged messages."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Implementation of Payee Nickname feature across the UPI network – mandatory for all PSP and issuer banks."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem presently supports VPA-based payments without a network‑wide mechanism for user‑defined payee labels, relying on disparate app‑specific contact lists. This absence contributes to approximately 1.2% of monthly UPI transactions failing due to mistyped VPAs, incurring an estimated ₹150 million in reversal and support costs. Recognising this operational inefficiency and the RBI’s consumer‑protection directive urging UI enhancements, the Issuer Bank has resolved to introduce a standardized Payee Nickname feature across all participating PSPs. The directive mandates the adoption of a centralized nickname mapping to reduce transaction errors and improve user experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce the Payee Nickname feature across the UPI network. The decision mandates the addition of a nickname attribute to the Beneficiary schema, the enhancement of the ReqValAdd API to return the nickname, and the update of the ListAccount response to include the nickname field. Implementation shall be coordinated with all PSPs and banks to ensure uniform presentation on all UPI‑enabled applications.",
+      "The scope of this directive covers the VPA‑to‑nickname mapping module within the Central Mapper service, the CL version field clVersion indicating biometric support, and the JSON schema definitions for ReqValAdd, ListAccount, and PayeeDetail. All affected modules must be version‑compatible with CL version 2.36 or higher. No changes are made to settlement or fee calculation components.",
+      "PSP Banks must implement the enhanced ReqValAdd, ListAccount, and PayeeDetail APIs, validate request signatures and timestamps, and expose the nickname attribute in API responses. Issuer Banks must support VPA resolution that includes nickname metadata and must supply accurate nickname values in response payloads within the stipulated SLA. NPCI must route the new API messages, enforce message integrity, and verify version compatibility across participants.",
+      "This circular does not supersede any existing directive and the standard UPI dispute management process remains unchanged. All participants are advised to align the feature rollout with the RBI consumer‑protection directive para 4.2. Compliance monitoring will be performed by NPCI’s regulatory audit team."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must implement all mandatory UPI APIs, including REQ_PAY, RESP_PAY, REQ_AUTH_DETAILS, and RESP_AUTH_DETAILS, for the Payee Nickname feature. PSP Banks must validate request signatures and timestamps for every inbound and outbound message. PSP Banks must incorporate the VPA‑to‑nickname mapping field as defined in the latest CL version when invoking LIST_ACCOUNT or related APIs.",
+      "PSP Banks are advised to cache nickname metadata locally to minimise latency in UI rendering. PSP Banks are advised to obtain explicit user consent before storing or displaying a nickname on any device. PSP Banks are advised to align UI labels with the nickname field to ensure consistent user experience across all UPI‑enabled applications.",
+      "Issuer Banks must support VPA resolution and must supply accurate nickname metadata in response to PSP queries as per the CL specification. Issuer Banks must respond to mandate creation, validation, and REQ_VAL_ADD requests within the SLA stipulated in the UPI operational handbook. Issuer Banks must ensure that nickname data is cryptographically protected in transit and at rest in compliance with RSA‑SHA256 2048‑bit key requirements.",
+      "Issuer Banks are advised to monitor nickname‑related error rates and to report any resolution failures to NPCI within twenty‑four hours of detection. Issuer Banks are advised to maintain audit logs for all nickname mapping requests to facilitate dispute resolution.",
+      "NPCI must route all API messages between PSPs and banks and must validate message integrity, including the presence and correctness of the nickname field. NPCI must enforce version compatibility and must reject any message that does not conform to the required CL version supporting the nickname feature. NPCI must publish the updated schema and compliance checklist within thirty days of feature activation.",
+      "NPCI are advised to provide a dedicated sandbox environment for testing the Payee Nickname APIs. NPCI are advised to issue periodic guidance notes to all participants to clarify interpretation of the nickname mapping requirements."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "The current internal communication framework does not explicitly reference the Payee Nickname feature rollout. The gap requires a formal dissemination directive to ensure all relevant stakeholders are informed. Please disseminate the information contained herein to the officials concerned.",
+      "Product managers must incorporate the feature specifications into their release plans without delay. Engineers are required to integrate the mandatory UPI APIs, including ReqPay and RespPay, as stipulated. Compliance teams are advised to verify that validation of request signatures and timestamps is enforced.",
+      "Issuer banks must support VPA resolution and provide accurate nickname metadata in accordance with the new feature. They must respond to mandate and validation requests within the prescribed SLA. This ensures consistent cross‑app nickname visibility.",
+      "NPCI must continue routing API messages between PSPs and banks while validating message integrity and enforcing version compatibility. All participants must adhere to the RSA (SHA‑256)/2048 key strength requirement for PKI certificates. Failure to comply will be treated as a breach of circular directives."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "Yours Sincerely,\nSD/-\nAnil Kumar\nChief Executive Officer\nNational Payments Corporation of India"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

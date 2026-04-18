@@ -1,0 +1,345 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The purpose of this Product Note is to provide a comprehensive, end‑to‑end description of the Advanced Rule‑Based Payment Splits feature. It captures the business rationale, functional behavior, operational responsibilities and compliance considerations required for implementation across banks and PSPs. By consolidating this information, the document enables consistent interpretation and reduces ambiguity during design, development and rollout. It also serves as the authoritative reference for downstream testing and certification activities.",
+      "The primary audience for this note includes product managers who define the feature roadmap, engineering teams responsible for integration with the UPI switch and common library, and compliance officers who must verify adherence to RBI and NPCI guidelines. Secondary readers comprise operations personnel, risk and fraud teams, and partner banks that will consume the split engine via their PSP interfaces. Each stakeholder can locate the sections most relevant to their responsibilities while maintaining a shared understanding of the overall solution.",
+      "The scope of this document covers the functional specifications of percentage‑based, priority and cap‑limit splits, the user‑experience flow within UPI apps, and the backend processing logic required on both payer and payee PSPs. It delineates the impact on existing settlement and reconciliation processes, outlines any changes to transaction status handling, and clarifies that dispute management follows the standard UPI framework. The note does not address unrelated UPI features such as QR‑based intent payments or bulk mandate processing."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "India's digital payments ecosystem has matured rapidly, with UPI handling billions of transactions daily and supporting a wide range of consumer and merchant use cases. While basic split functionalities exist in many UPI apps, they are limited to equal or simple fixed‑amount divisions and require manual input for each participant. This creates friction for groups, events, and B2B settlements where the allocation logic is more complex. Consequently, banks and PSPs encounter higher support volumes and operational strain.",
+      "Current workflows rely on users manually calculating shares, entering multiple payment requests, or using external tools that are not integrated with the UPI switch. Such manual processes increase the likelihood of calculation errors, delayed settlements, and reconciliation mismatches across issuer and beneficiary banks. The lack of rule‑based automation also hampers real‑time cash‑flow visibility for merchants and corporate clients. These pain points conflict with the RBI's mandate for efficient, transparent, and low‑cost payment services.",
+      "The Advanced Rule‑Based Payment Splits feature introduces a configurable engine that applies percentage, priority, and cap rules directly within the UPI transaction flow. By embedding the split logic in the payment request, the solution eliminates manual steps, accelerates settlement, and provides an auditable trail for compliance teams. This aligns with the national push toward a cashless economy, supports banks' operational efficiency goals, and differentiates the offering from existing market players."
+    ],
+    "bullet_points": [
+      "Manual calculation of each participant's share leads to frequent errors.",
+      "Existing split tools support only equal or fixed‑amount divisions, lacking flexibility.",
+      "Multiple payment requests increase network traffic and processing time.",
+      "Reconciliation effort rises due to fragmented transaction records.",
+      "Delayed settlements affect cash‑flow management for merchants and corporates.",
+      "Limited auditability creates compliance and fraud‑risk concerns."
+    ],
+    "numbered_items": [
+      "Automated execution of percentage, priority, and cap rules reduces manual effort.",
+      "Flexible rule configuration accommodates diverse business scenarios.",
+      "Instant settlement of all shares improves cash‑flow visibility for all parties.",
+      "Reduced error rates enhance user trust and satisfaction.",
+      "Streamlined reconciliation lowers operational costs for banks and PSPs.",
+      "Built‑in audit trails support compliance and fraud‑risk monitoring."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule‑Based Payment Splits feature lets a payer define flexible rules that automatically allocate a transaction amount among multiple recipients. Users can specify percentages, fixed caps, priority order, or a combination, so the system calculates each share without manual math. The rule set is stored with the payment request and applied at the moment of settlement. This automation reduces calculation errors and speeds up multi‑party payments.",
+      "For customers, the experience is streamlined through an intuitive UI that guides them to create, edit, and reuse split rules for recurring events such as group dinners, travel expenses, or business invoices. Once a rule is saved, the payer simply selects it when initiating a UPI payment, and the split engine distributes the funds instantly to the designated VPAs. PSPs benefit from lower reconciliation effort because the split amounts are reflected in the transaction ledger as separate, traceable legs. The feature also supports priority handling, ensuring that any capped amount is settled first before the remainder is divided.",
+      "Security and privacy are built into the design by leveraging the existing UPI Common Library encryption for all rule data transmitted between the PSP and NPCI. The rule configuration is encrypted at rest on the PSP’s servers and never exposed in clear text on the device, preserving user confidentiality. Access to create or modify split rules is gated by the same biometric or PIN authentication required for any UPI transaction, preventing unauthorized changes. Compliance with RBI and NPCI fraud‑risk guidelines is maintained, and no additional personal data is collected beyond what is already required for a standard UPI payment."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits UI is embedded under the Payments menu of the UPI app and also reachable from the user’s profile settings. A dedicated Split Rules tile appears on the home screen for quick access, and the full configuration screen is launched as a modal overlay to keep the navigation context intact. The layout follows the standard material design guidelines, with input fields for participant VPAs, percentage sliders, and cap limits placed in a scrollable form. All controls are labelled with clear help icons to aid first-time users.",
+      "When a user selects Create New Rule, the app presents a step-wise wizard that guides the payer through adding participants, assigning percentages or fixed amounts, and optionally setting priority or maximum caps. After the rule is assembled, a consent screen summarises the distribution and asks the user to confirm via a biometric prompt or OTP, depending on the device’s CL version. Upon confirmation, the wizard shows a processing indicator while the payload is encrypted and sent to the PSP backend. A success toast followed by a Use this rule button completes the enrollment journey.",
+      "Technically, the app packages the rule definition into a JSON payload, encrypts it with the Common Library (CL) using the device’s TEE, and forwards it to the PSP’s API endpoint over TLS. The PSP backend validates the rule against business constraints, stores it in the user’s profile, and returns an acknowledgment that includes a rule identifier. NPCI is not directly involved in rule storage, but the acknowledgment is logged in the transaction audit trail for compliance. Liability for consent capture rests with the PSP, while the issuing bank’s authentication services are leveraged only for the biometric/OTP verification step."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify user authentication and app version compatibility",
+          "User, PSP App"
+        ],
+        [
+          "Step 1",
+          "Open Advanced Split Settings screen from main menu",
+          "User"
+        ],
+        [
+          "Step 2",
+          "Add participants and define percentages or caps using the wizard",
+          "User"
+        ],
+        [
+          "Step 3",
+          "Backend validates rule logic (total 100%, caps, priorities)",
+          "PSP Backend"
+        ],
+        [
+          "Step 4",
+          "Present consent dialog and capture biometric/OTP verification",
+          "User, PSP App"
+        ],
+        [
+          "Step 5",
+          "Encrypt rule payload with CL and transmit to PSP backend (via TLS)",
+          "PSP App"
+        ],
+        [
+          "Step 6",
+          "Persist rule in user profile and generate rule identifier",
+          "PSP Backend"
+        ],
+        [
+          "Post Response",
+          "Display success banner and enable rule for future payments",
+          "User, PSP App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature applies to any UPI transaction where the payer elects to distribute the amount among multiple participants. It is available across all participating PSPs, banks, and UPI applications, ensuring a uniform experience for both consumers and merchants. The scope includes percentage‑based splits, priority ordering, and maximum cap limits that can be defined per participant. All split calculations are performed by the centralized Split Engine before the debit request is sent to the issuer bank.",
+      "Implementing the split capability introduces a new Split Engine service hosted within the PSP’s backend. The engine receives split metadata from the UPI app, validates rule compliance, and augments the standard REQ_PAY payload with a structured split block. NPCI’s switch is updated to recognize the split block and to generate separate credit instructions for each beneficiary. Existing authentication flows, fraud checks, and settlement processes remain unchanged, but they now operate on a composite transaction rather than a single credit.",
+      "The feature supports all primary UPI initiation modes, including in‑app payments, Intent/QR code scans, and deep‑link URLs. Users can invoke the split logic via the app UI, an intent QR presented by a merchant, or a shared payment link that encodes the split rules. Each mode carries the same split metadata, allowing the downstream processing to be mode‑agnostic while preserving the user experience of a single tap or scan.",
+      "When a payer initiates a split payment, the UPI app first captures the rule set and encrypts the credential block using the Common Library. The app sends a REQ_PAY request containing the split block to the payer’s PSP, which forwards it to the NPCI switch. NPCI debits the payer’s account and simultaneously creates individual credit instructions for each beneficiary, routing them to the respective beneficiary banks. Each beneficiary bank credits the designated amount and returns a confirmation, after which the PSP aggregates the responses and notifies the app of the overall settlement status.",
+      "Responsibility for each step is clearly delineated: the UPI app handles rule capture, user authentication, and request formation; the PSP validates split logic, forwards messages, and aggregates responses; the issuer bank performs the debit and confirms receipt; beneficiary banks execute the credit and send acknowledgments; NPCI orchestrates routing, split block interpretation, and ensures atomicity across all legs of the transaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate split rules, VPA list, and user authentication",
+          "UPI App & PSP"
+        ],
+        [
+          "Step 1",
+          "Capture split configuration and generate split metadata",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Encrypt credentials and send REQ_PAY with split payload to PSP",
+          "PSP"
+        ],
+        [
+          "Step 3",
+          "Forward request to NPCI Switch",
+          "PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI routes debit request to Issuer Bank and creates individual credit instructions",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Issuer Bank debits payer account and acknowledges",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "Beneficiary Banks receive credit instructions and credit respective accounts",
+          "Beneficiary Banks"
+        ],
+        [
+          "Post Response",
+          "Consolidate acknowledgments and present settlement status to user",
+          "PSP & UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature introduces new data elements that must be governed by clear policies. These policies ensure that banks, PSPs, and users retain control over how split rules are created, stored, and modified. They also align with RBI and NPCI compliance expectations around consent and security. The following sections outline the mandatory considerations.",
+      "Optionality governs whether a split rule can be applied automatically or requires explicit user activation. Consent scope defines the granularity of permission a payer grants to a PSP for using stored split configurations across transactions. Secure storage and periodic key rotation protect the integrity of rule definitions and any associated cryptographic material. Disablement scenarios describe how a rule can be retired without affecting pending settlements.",
+      "All participants must implement these policies within their onboarding, transaction processing, and reconciliation pipelines. Failure to adhere could result in regulatory penalties, increased fraud risk, or degraded user trust. The policies are designed to be technology‑agnostic, allowing implementation via existing UPI CL versions or future extensions. Operational teams should embed the checks early to avoid downstream exceptions."
+    ],
+    "bullet_points": [
+      "Optionality: Split rules are optional; users must opt‑in before any rule is persisted or applied.",
+      "Consent Scope: Consent is limited to the specific VPA and transaction type for which the rule was created; broader reuse requires a fresh consent capture.",
+      "Storage: Rule definitions and related cryptographic keys must be stored in encrypted form within a FIPS‑validated hardware security module.",
+      "Key Rotation: Encryption keys protecting split rule data must be rotated at least every 90 days, with active rules re‑encrypted transparently.",
+      "Disablement Scenarios: A rule is automatically disabled if the user revokes consent, the PSP loses certification, or the rule exceeds its defined validity period."
+    ],
+    "numbered_items": [
+      "1. Require explicit user opt‑in before creating any percentage‑based or priority split rule.",
+      "2. Capture consent with a timestamp and associate it with the VPA, rule ID, and allowed transaction categories.",
+      "3. Store rule metadata and encrypted keys in a tamper‑evident repository that supports audit logging for at least 12 months.",
+      "4. Enforce automatic key rotation every 90 days and re‑encrypt active rules without user interruption.",
+      "5. Invalidate and flag a rule for removal if the user withdraws consent via the app or a support channel.",
+      "6. Disable rules automatically when the issuing bank revokes PSP certification or when regulatory limits (e.g., cap amount) are breached.",
+      "7. Ensure that disabled or expired rules are excluded from the split engine during transaction routing and that any pending settlements are settled using the last valid rule version."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The split engine validates all rule definitions at the point of creation, ensuring that percentage allocations do not exceed 100 % and that any cap limits are respected. Validation also checks for duplicate participant identifiers and enforces a minimum of one payable participant. Errors are surfaced to the user instantly, preventing malformed split configurations from entering the transaction flow. This pre‑flight check reduces downstream settlement failures and simplifies reconciliation for PSPs.",
+      "During the payment initiation flow, the UPI app presents a concise summary of the computed shares, and the payer must explicitly acknowledge the distribution before authorisation. The acknowledgement step is logged with a timestamp and the payer’s device identifier to satisfy audit requirements. If the payer declines, the transaction is aborted and no funds are reserved, preserving the user’s intent and avoiding unnecessary hold on balances. The UI design mandates a single‑tap confirmation to keep the experience frictionless.",
+      "All split transactions are subject to existing UPI compliance rules, including maximum transaction value, participant KYC status, and fraud‑risk scoring. The system records the rule set applied to each transaction, enabling regulators and banks to trace the logic used for settlement. In case of a dispute, liability follows the standard UPI dispute process, with the split rule metadata provided as supporting evidence. These safeguards align the feature with RBI guidelines and the NPCI Common Library expectations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Percentage‑based splits must total exactly 100 % unless a ‘remainder‑to‑payer’ flag is set, in which case any leftover amount is automatically retained by the initiator.",
+      "2. A maximum of 20 participants can be defined per split to keep processing latency within the UPI 3‑second target.",
+      "3. Caps on individual shares cannot exceed the payer’s available balance after accounting for any pending holds.",
+      "4. Priority rules are evaluated first; if a higher‑priority participant’s cap is reached, the remaining amount is redistributed to lower‑priority participants.",
+      "5. All rule configurations are immutable after transaction submission; any change requires a new split request.",
+      "6. The split engine logs every rule evaluation event and makes the log available to the PSP via a secure API for post‑settlement audit."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature does not alter the existing UPI dispute management framework. All dispute handling processes continue to follow the standard UPI guidelines issued by NPCI, and no new dispute categories are introduced.",
+      "Because the split logic is applied only at the orchestration layer before the transaction is submitted to the UPI switch, the underlying payment flow—authorization, debit, credit, and confirmation—remains unchanged. Consequently, the liability for disputed transactions stays with the same parties as defined in the current model: the payer's PSP and issuer bank for debit‑related issues, and the payee's PSP and beneficiary bank for credit‑related issues.",
+      "Compliance teams should continue to monitor dispute tickets using existing workflows, ensuring that any claim related to split calculations is resolved through the merchant or payer’s internal reconciliation. Banks and PSPs must retain their obligations to provide timely transaction status, refunds, and reversal support as per the prevailing UPI dispute resolution SLA."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "Testing will be be conducted across three dedicated environments: a sandbox that mirrors the UPI switch behavior, an integration tier that connects to live NPCI APIs with test credentials, and a production‑like staging environment that enforces end‑to‑end security controls. Each environment must be provisioned with the same version of the Common Library and the Advanced Split Engine configuration to guarantee consistent results. The sandbox enables rapid functional verification, while the integration tier validates message formats, encryption, and routing through the NPCI switch. The staging environment is used for performance, security, and compliance validation before production release.",
+      "Mandatory test scenarios cover the full lifecycle of a split payment. Enrollment tests verify that a payer can register a rule‑based split profile, that the profile is stored securely, and that the PSP returns the correct acknowledgment. Transaction tests confirm that the split percentages, priority handling, and cap limits are applied correctly, and that each participant receives the appropriate credit or debit notification. Fallback tests simulate network timeouts, REQ_CHK_TXN invocations, and ensure the system can recover or gracefully abort without financial loss. Disablement tests validate that a split rule can be revoked, that pending transactions are settled according to the last active rule, and that audit logs capture the change.",
+      "Certification follows a staged sign‑off process. First, the development team completes unit and integration tests and submits a test report to the QA Lead. The QA Lead conducts end‑to‑end runs in the integration tier and signs off on functional compliance. Next, the Compliance Officer reviews the fallback and disablement logs, verifies adherence to RBI and NPCI guidelines, and provides a compliance certification. Finally, the Product Owner authorizes production deployment after confirming that all mandatory scenarios have passed and that the risk assessment is approved.",
+      "Post‑deployment audits are required quarterly and after any major rule change. Auditors will examine transaction logs, split rule versioning, and dispute handling records to ensure no deviation from the certified behavior. Any discrepancy triggers a remediation workflow that must be closed before the next audit cycle. Ongoing monitoring dashboards must be maintained to provide real‑time visibility into split engine performance and error rates."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "All test cases must be documented in the centralized test repository with clear pre‑conditions, inputs, and expected outcomes.",
+      "Encryption of the credential block (CRED) must be validated in every environment using the same CL version as production.",
+      "Performance benchmarks require processing at least 1,000 concurrent split transactions with a 95th‑percentile latency under 2 seconds.",
+      "Fallback mechanisms must be triggered in at least three distinct failure modes: network timeout, NPCI service unavailability, and malformed split rule.",
+      "Disablement of a split rule must generate immutable audit entries that include user ID, timestamp, and reason code.",
+      "Certification sign‑off cannot be granted until the Compliance Officer confirms that all RBI‑mandated fraud‑risk checks are integrated and passed."
+    ],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Enrollment Success",
+          "Validate that a new split rule can be created, stored, and retrieved correctly",
+          "PSP Engineering"
+        ],
+        [
+          "Transaction Split Execution",
+          "Confirm correct allocation of amounts according to percentages, caps, and priorities across all participants",
+          "QA Lead"
+        ],
+        [
+          "Fallback Handling",
+          "Simulate NPCI downtime and verify REQ_CHK_TXN recovery path functions without data loss",
+          "Compliance Officer"
+        ],
+        [
+          "Disablement Revocation",
+          "Ensure a disabled rule no longer affects new transactions and that audit logs capture the action",
+          "Product Owner"
+        ],
+        [
+          "Performance Load",
+          "Process 1,000 concurrent split payments and maintain latency <2 seconds",
+          "Performance Engineer"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature introduces several new data elements and processing steps that must be verified before the service can be offered to customers. Pre‑checks safeguard the ecosystem by confirming that participating banks, PSPs, and the UPI switch have the required configurations and compliance controls in place. They also help prevent downstream failures that could lead to settlement mismatches or fraud exposure. By enforcing these checks early, product managers and compliance teams can ensure a smooth rollout and consistent user experience.",
+      "Before enrollment or enabling of the split engine, the PSP must validate the Virtual Payment Address (VPA) format, retrieve the live issuer list via the List PSP/List Accpvd API, and confirm that the device supports the biometric reference category required for rule‑based splits. The issuer bank must verify that the rule configuration file complies with the clVersion that supports advanced split logic, and the compliance team must run the mandatory fraud‑risk assessment. Failure at any of these steps results in the enrollment request being rejected, and the PSP is required to notify the merchant or developer with a clear error code for remediation.",
+      "At transaction time, the UPI app, PSP, and issuer bank perform a series of real‑time checks before the split is executed. These include VPA validation, split‑rule consistency (ensuring percentages total 100% and caps are respected), balance availability, and a fraud‑risk score evaluation. If any check fails, the transaction is aborted, the user receives an immediate failure response, and the event is logged for audit and dispute handling. The NPCI switch also performs a status‑check fallback (REQ_CHK_TXN) to handle time‑outs, marking the transaction as Deemed only after all pre‑checks have been satisfied."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Check: VPA Validation – Performed by: PSP – Failure consequence: Transaction is rejected with an invalid VPA error and enrollment is halted.",
+      "Check: Rule Engine Configuration Verification – Performed by: PSP – Failure consequence: Enrollment is blocked until the split rules pass schema and clVersion validation.",
+      "Check: Device Biometric Capability Confirmation (refCategory='05') – Performed by: PSP/Issuer – Failure consequence: Enrollment denied; user must re‑register a compliant device before proceeding.",
+      "Check: Live Issuer List Retrieval via List PSP/List Accpvd – Performed by: PSP – Failure consequence: Enrollment cannot proceed; non‑eligible issuers are flagged and the request is rejected.",
+      "Check: Fraud Risk Score Check – Performed by: Compliance/Fraud Team – Failure consequence: Transaction is aborted and flagged for manual review; user receives a fraud‑risk error.",
+      "Check: Split Rule Consistency Check – Performed by: PSP – Failure consequence: Transaction is aborted with a rule‑validation error if percentages do not sum to 100% or exceed defined caps.",
+      "Check: Balance Availability Check – Performed by: Issuer Bank – Failure consequence: Transaction fails with an insufficient‑funds response and no split is attempted.",
+      "Check: Transaction Status Confirmation (REQ_CHK_TXN) – Performed by: PSP – Failure consequence: If no confirmation is received, the transaction is marked as Deemed and settlement is delayed pending reconciliation."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

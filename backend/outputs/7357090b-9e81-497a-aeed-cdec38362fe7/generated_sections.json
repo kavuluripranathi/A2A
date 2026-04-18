@@ -1,0 +1,443 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem today processes roughly 186 billion transactions per year using a deterministic REQ_PAY/RESP_PAY flow. Once the payer’s PSP receives a successful RESP_PAY from the issuer bank, the funds are irrevocably transferred to the beneficiary bank. The specification does not provide a mechanism to cancel a payment after the debit has been confirmed, even if the payer immediately recognises an error. Consequently, erroneous payments are resolved only through post‑settlement dispute channels.",
+      "This immutable behavior creates a measurable pain point: an estimated 0.05 % typo rate translates to about 93 million incorrect payments annually, generating roughly ₹11 billion in grievance handling costs. Users who experience “regret‑pay” are more likely to abandon the platform, and regulators are urging stronger consumer safeguards. The existing UPI spec therefore lacks a real‑time safety net that can stop a transaction before the debit request reaches the issuer bank.",
+      "The proposed ultra‑short undo window introduces a 10‑15 second grace period between the payer’s tap on “Pay” and the issuance of the debit request. By adding a lightweight flag to the REQ_PAY payload and extending the UI timer, the PSP can abort the transaction before the NPCI switch forwards the debit instruction, keeping the end‑to‑end latency increase under 0.5 seconds. This approach leverages the existing Common Library encryption and does not require changes to settlement logic, satisfying both the technical latency SLA and the RBI’s enhanced consumer‑safeguard directive."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short \"undo\" window introduces a 10‑15 second safety net that allows a payer to cancel a payment immediately after tapping \"Pay\". The flow involves the UPI App presenting the Undo UI, the PSP forwarding a cancellation request to the NPCI Switch, and the Switch notifying the issuer and beneficiary banks to abort the debit and credit actions. By intercepting the transaction before funds move, the feature eliminates a large share of typographical and duplicate‑payment errors that currently generate millions of grievance tickets each year. The resulting reduction in dispute handling cost and the observed 5 % lift in transaction volume directly support the business objective of higher net revenue and stronger consumer trust.",
+      "From a user perspective the checkout experience is unchanged except for a brief on‑screen timer and a clearly labelled \"Undo\" button; the additional latency is less than 0.5 seconds, well within the UPI SLA of one second end‑to‑end. The participants—payer’s PSP, NPCI, issuer bank, and beneficiary bank—retain their existing message set, with only an optional cancellation flag added to the standard REQ_PAY flow. This aligns with RBI’s 2024 directive for enhanced consumer safeguards without requiring changes to the core UPI specification. Consequently, banks and PSPs gain a compliance‑ready, low‑cost mechanism that protects consumers and improves overall ecosystem reliability."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The undo window is orchestrated across the standard UPI participants: the UPI App presents the countdown UI, the payer PSP receives the user’s intent and forwards a REQ_PAY request to the NPCI Switch, the Issuer/Remitter Bank holds the debit request in a pending state, and the Payee PSP/Beneficiary Bank remains uninvolved until settlement. The NPCI Switch acts as the central arbiter, retaining the transaction in a “pre‑settlement” bucket for the configured 10‑15 second interval. This design leverages existing roles without introducing new entities, preserving the established trust boundaries between app, PSP, banks, and the switch.",
+      "When the user taps “Pay”, the app includes an optional <undoFlag>Y</undoFlag> and <undoWindow>15</undoWindow> in the REQ_PAY payload; NPCI acknowledges the flag and does not dispatch the debit request to the Issuer Bank until the timer expires. If the user selects “Undo” within the window, the app sends an UNDO request to the payer PSP, which relays a cancellation message to NPCI, causing the pending transaction to be purged and a RESP_PAY with status=“Cancelled” to be returned to the app. Should the timer lapse without an undo, NPCI proceeds with the normal debit‑credit flow, ensuring end‑to‑end latency remains ≤ 0.5 s and stays within the 1 s UPI SLA. The key design decision is to reuse the existing REQ_PAY message with a lightweight flag, avoiding schema changes and keeping OTA updates simple for all PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window is activated during payment initiation by propagating an undo flag from the UPI App through the PSP and NPCI to the issuing bank, enabling a reversible transaction within a 10‑15 second window. This flow ensures that the flag is validated, transmitted, and, if needed, a cancellation request can be processed before settlement.",
+      "The sequence adds a deterministic pre‑authorization check and a reversal path without altering the core REQ_PAY lifecycle, keeping end‑to‑end latency under the 1 second SLA and satisfying RBI consumer‑safeguard requirements for real‑time payment reversals."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "App validates that undo feature is enabled for the merchant and that device supports timer; retrieves user preference",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Capture payment details and start 10‑15 s countdown timer",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Encrypt credential block (CRED) using CL, attach undoFlag=Y, and send REQ_PAY to PSP",
+          "UPI App"
+        ],
+        [
+          "Step 3",
+          "PSP receives REQ_PAY, preserves undoFlag, and forwards request to NPCI Switch",
+          "PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI routes REQ_PAY (with undoFlag) to Issuer/Remitter Bank for authentication and debit",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Issuer Bank authenticates, debits payer account, and returns RESP_PAY",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "NPCI forwards RESP_PAY to PSP and subsequently to Payee Bank for credit",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "User taps Undo; App sends REQ_CANCEL (cancellation request) to PSP",
+          "UPI App"
+        ],
+        [
+          "Step 8",
+          "PSP forwards REQ_CANCEL to NPCI; NPCI initiates reversal with Issuer Bank and notifies Payee Bank",
+          "PSP / NPCI / Issuer Bank"
+        ],
+        [
+          "Post Response",
+          "PSP relays cancellation outcome to App; UI updates to show transaction cancelled",
+          "PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window adds a 10‑15 second safety net after the user taps “Pay”. It allows the payer to cancel the transaction before any funds are moved, reducing erroneous payments by >30 % while adding <0.5 s latency. This aligns with RBI’s consumer‑safeguard directive and protects PSPs from dispute costs. The flow remains compliant with the standard UPI REQ_PAY/RESP_PAY sequence, with the undo logic inserted between UI capture and the first network request.",
+      "When the “Pay” button is pressed, the UPI App displays the Undo button and starts a countdown. If the user selects Undo, the app aborts locally and no REQ_PAY is generated. If the timer expires, the app encrypts the credential block (CRED) using the Common Library, sends REQ_PAY to the payer PSP, and the standard multi‑hop processing proceeds through NPCI, the issuer bank, and the beneficiary bank before a confirmation is returned. After successful confirmation, the app presents a success screen and records the transaction for analytics."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate VPA, amount limits, and UI readiness for undo timer",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Capture user intent and render Undo UI with 10‑15 s countdown",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Monitor for Undo tap; if tapped, abort transaction locally",
+          "UPI App"
+        ],
+        [
+          "Step 3",
+          "On timeout, generate CRED block via CL and construct REQ_PAY message",
+          "UPI App"
+        ],
+        [
+          "Step 4",
+          "Transmit REQ_PAY to Payer PSP over secure channel",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "Forward REQ_PAY to NPCI Switch for routing",
+          "Payer PSP"
+        ],
+        [
+          "Step 6",
+          "NPCI initiates authentication request (REQ_AUTH_DETAILS) to Issuer Bank",
+          "NPCI Switch"
+        ],
+        [
+          "Step 7",
+          "Issuer Bank validates PIN/biometric and returns RESP_AUTH_DETAILS",
+          "Issuer Bank"
+        ],
+        [
+          "Step 8",
+          "NPCI sends debit request to Issuer Bank and receives debit RESP_PAY",
+          "NPCI Switch"
+        ],
+        [
+          "Step 9",
+          "NPCI routes credit request to Beneficiary Bank and receives credit RESP_PAY",
+          "NPCI Switch"
+        ],
+        [
+          "Step 10",
+          "NPCI sends transaction confirmation to both PSPs; PSPs forward to respective Apps",
+          "NPCI Switch / PSPs"
+        ],
+        [
+          "Post Response",
+          "Log transaction, update UI, trigger analytics and settlement feeds",
+          "Payer PSP & Payee PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "This section defines the technical specifications for the ultra‑short “undo” window feature. It details the required changes to the REQ_PAY and RESP_PAY messages exchanged between the UPI App, PSP, and NPCI, as well as the optional use of REQ_CHK_TXN for post‑undo status verification. The modifications are limited to the introduction of an optional undo flag and countdown timer, with an added round‑trip latency of no more than 0.5 seconds and no impact on existing dispute‑management flows."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The feature introduces an ultra‑short undo window to the standard REQ_PAY flow. After the payer taps “Pay”, the UPI App holds the transaction for 10‑15 seconds, displaying an Undo button; if the user selects Undo, the PSP aborts the payment before the debit request is sent to the Issuer Bank, otherwise the transaction proceeds normally.",
+      "Implementation requires a single flag addition to the REQ_PAY XML payload that conveys the allowed undo interval to the NPCI switch. The change is backward compatible, adds ≤ 0.4 s of latency, and does not alter existing authentication or settlement steps, ensuring compliance with the <1 s UPI SLA."
+    ],
+    "bullet_points": [
+      "New optional field <UndoWindowSec> indicates the undo interval in seconds (10‑15).",
+      "If the user triggers Undo, PSP sends a cancellation notice to NPCI before the debit stage.",
+      "No impact on CL encryption or credential block; existing security flow remains unchanged."
+    ],
+    "numbered_items": [
+      "Pre‑Check: UPI App validates that the merchant supports undo and displays the timer.",
+      "Step 1 – Auth: App captures PIN/biometric, encrypts credentials, and sends REQ_PAY with <UndoWindowSec>.",
+      "Step 2 – Debit Request: NPCI forwards debit to Issuer Bank only if no Undo is received within the window.",
+      "Step 3 – Credit & Confirmation: Standard credit routing and confirmation to both PSPs.",
+      "Post Response: PSP informs the App of final status; if cancelled, a RESP_CANCEL is returned."
+    ],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "UndoWindowSec",
+          "Integer",
+          "2",
+          "Number of seconds the transaction remains cancellable after user taps Pay; typical value 10‑15",
+          "N"
+        ],
+        [
+          "TxnId",
+          "String",
+          "20",
+          "Unique transaction identifier generated by the payer PSP",
+          "Y"
+        ],
+        [
+          "Amt",
+          "Decimal",
+          "12",
+          "Transaction amount in INR, up to two decimal places",
+          "Y"
+        ],
+        [
+          "VPA",
+          "String",
+          "30",
+          "Virtual Payment Address of the payee",
+          "Y"
+        ],
+        [
+          "CRED",
+          "String",
+          "Variable",
+          "Encrypted credential block containing authentication data",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:REQ_PAY xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>TXN1234567890</upi:TxnId>\n    <upi:Amt>250.00</upi:Amt>\n    <upi:VPA>user@bank</upi:VPA>\n    <upi:UndoWindowSec>12</upi:UndoWindowSec>\n    <upi:CRED>...encrypted credential block...</upi:CRED>\n</upi:REQ_PAY>",
+      "<!-- Response: NPCI to PSP (Success) -->\n<upi:RESP_PAY xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>TXN1234567890</upi:TxnId>\n    <upi:Status>SUCCESS</upi:Status>\n    <upi:Message>Payment completed</upi:Message>\n</upi:RESP_PAY>",
+      "<!-- Response: NPCI to PSP (Cancelled) -->\n<upi:RESP_CANCEL xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>TXN1234567890</upi:TxnId>\n    <upi:Status>CANCELLED</upi:Status>\n    <upi:Message>User invoked Undo within window</upi:Message>\n</upi:RESP_CANCEL>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The undo capability is realized through a secondary API called REQ_CANCEL. When a payer taps the Undo button within the 10‑15 second window, the UPI App forwards a cancel request to the payer PSP, which then invokes REQ_CANCEL to NPCI. NPCI validates the request against the pending transaction state and, if eligible, propagates a cancellation to the issuer bank to halt debit processing before settlement.",
+      "If the cancel request arrives after the debit request has been dispatched, NPCI returns an error response indicating that the undo window has closed. This error variant of REQ_PAY ensures the payer app can surface a clear message to the user, preserving a consistent experience while respecting the immutable nature of already‑settled payments."
+    ],
+    "bullet_points": [
+      "Enables real‑time reversal of a payment still in pre‑settlement.",
+      "Provides explicit error feedback when undo is no longer possible."
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "originalTxnId",
+          "String",
+          "20",
+          "Unique identifier of the original REQ_PAY transaction",
+          "Y"
+        ],
+        [
+          "undoFlag",
+          "String",
+          "1",
+          "Flag indicating a cancel request; value must be 'Y'",
+          "Y"
+        ],
+        [
+          "requestTimestamp",
+          "DateTime",
+          "20",
+          "ISO‑8601 timestamp when the cancel request is generated",
+          "Y"
+        ],
+        [
+          "status",
+          "String",
+          "10",
+          "Result of the cancel operation (Cancelled / Error)",
+          "Y"
+        ],
+        [
+          "errorCode",
+          "String",
+          "4",
+          "Application‑specific error identifier when cancel fails",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:REQ_CANCEL xmlns:upi=\"http://npci.org/upi/schema/\" version=\"2.0\">\n    <upi:originalTxnId>TXN1234567890</upi:originalTxnId>\n    <upi:undoFlag>Y</upi:undoFlag>\n    <upi:requestTimestamp>2026-04-17T10:15:30Z</upi:requestTimestamp>\n</upi:REQ_CANCEL>",
+      "<!-- Response: NPCI to PSP (Success) -->\n<upi:RESP_CANCEL xmlns:upi=\"http://npci.org/upi/schema/\" version=\"2.0\">\n    <upi:originalTxnId>TXN1234567890</upi:originalTxnId>\n    <upi:status>Cancelled</upi:status>\n    <upi:responseTimestamp>2026-04-17T10:15:31Z</upi:responseTimestamp>\n</upi:RESP_CANCEL>",
+      "<!-- Response: NPCI to PSP (Error – Window Expired) -->\n<upi:RESP_CANCEL xmlns:upi=\"http://npci.org/upi/schema/\" version=\"2.0\">\n    <upi:originalTxnId>TXN1234567890</upi:originalTxnId>\n    <upi:status>Error</upi:status>\n    <upi:errorCode>U001</upi:errorCode>\n    <upi:errorMessage>Undo window expired; transaction already processed.</upi:errorMessage>\n    <upi:responseTimestamp>2026-04-17T10:15:31Z</upi:responseTimestamp>\n</upi:RESP_CANCEL>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The undo window introduces new failure points that must be surfaced to the consuming application. Errors are categorized by the stage at which they occur – eligibility validation, activation of the undo flag, authentication of the payer, timeout during the grace period, and feature-specific constraints such as attempting undo after the countdown expires.",
+      "Each error response follows the UPI standard HTTP status mapping and includes a platform-specific error code. Integration engineers should map the Response Code and Error Code to appropriate UI messages and fallback logic as described in the table."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "400",
+          "ERR_ELIGIBILITY",
+          "User or merchant not eligible for undo feature (e.g., merchant not opted-in)",
+          "REQ_PAY",
+          "PSP",
+          "BD"
+        ],
+        [
+          "403",
+          "ERR_ACTIVATION",
+          "Undo flag not activated for the transaction (activation API failed or missing)",
+          "REQ_ACTIVATION",
+          "PSP",
+          "TD"
+        ],
+        [
+          "401",
+          "ERR_AUTH",
+          "Authentication failure during credential block verification",
+          "REQ_AUTH_DETAILS",
+          "Issuer Bank",
+          "TD"
+        ],
+        [
+          "408",
+          "ERR_TIMEOUT",
+          "Undo window elapsed before user action; transaction proceeds to settlement",
+          "REQ_CHK_TXN",
+          "NPCI",
+          "BD"
+        ],
+        [
+          "422",
+          "ERR_UNDO_NOT_ALLOWED",
+          "Attempt to undo a transaction that is already in DEEMED or settled state",
+          "REQ_PAY",
+          "Payee Bank",
+          "BD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "PSP must include the mandatory XML element <UndoFlag>Y</UndoFlag> in every REQ_PAY payload for transactions that support the ultra‑short undo window.",
+      "PSP backend must expose a CancelPayment API that accepts the original TxnId and can be invoked by the app within the 10‑15 second window; receipt of this request before NPCI issues the debit request must cause NPCI to abort the debit flow.",
+      "If the CancelPayment request reaches NPCI after the debit request has been dispatched, the PSP must treat the transaction as settled and trigger the standard dispute workflow, while the app must display a ‘Unable to undo – payment already processed’ message.",
+      "The UI countdown timer must be synchronized to the server‑side timestamp returned in the REQ_PAY response to eliminate client‑clock drift; the timer should start exactly when the PSP acknowledges the request.",
+      "Every undo attempt, whether successful or failed, must be logged with timestamp, TxnId, and outcome, and reported daily to compliance teams to satisfy RBI consumer‑safeguard reporting requirements."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

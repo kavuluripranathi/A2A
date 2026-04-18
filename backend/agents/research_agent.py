@@ -102,11 +102,13 @@ class ResearchState(TypedDict):
 # --------------------------------------------------------------------------
 
 def _llm():
-    return ChatOpenAI(
-        model=config.MODEL_NAME,
-        api_key=config.OPENAI_API_KEY,
-        temperature=0.4,
-    )
+    kwargs = dict(model=config.MODEL_NAME, temperature=0.4)
+    if config.MODEL_PROVIDER == "ollama":
+        kwargs["base_url"] = config.OLLAMA_BASE_URL.rstrip("/") + "/v1"
+        kwargs["api_key"] = "ollama"
+    else:
+        kwargs["api_key"] = config.OPENAI_API_KEY
+    return ChatOpenAI(**kwargs)
 
 
 def _tavily():

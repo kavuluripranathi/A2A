@@ -80,12 +80,13 @@ def generate_prototype(session_id: str, brd_content: str, feature_name: str = ""
     Generate a self-contained HTML UI prototype from BRD content.
     Returns a dict compatible with PrototypeState fields.
     """
-    llm = ChatOpenAI(
-        model=config.PROTOTYPE_MODEL_NAME,
-        api_key=config.OPENAI_API_KEY,
-        temperature=0.6,
-        max_tokens=16000,
-    )
+    kwargs = dict(model=config.PROTOTYPE_MODEL_NAME, temperature=0.6, max_tokens=16000)
+    if config.MODEL_PROVIDER == "ollama":
+        kwargs["base_url"] = config.OLLAMA_BASE_URL.rstrip("/") + "/v1"
+        kwargs["api_key"] = "ollama"
+    else:
+        kwargs["api_key"] = config.OPENAI_API_KEY
+    llm = ChatOpenAI(**kwargs)
 
     # Truncate BRD to avoid token overflow while keeping the most useful sections
     brd_trimmed = brd_content[:14000]

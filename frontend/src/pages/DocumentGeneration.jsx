@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
+  preClarify,
   generateDocBundle,
   getBundleStatus,
   downloadDoc,
@@ -201,6 +202,204 @@ function PreviewModal({ jobId, docType, onClose }) {
   )
 }
 
+// ── Clarify Chat (full-screen, no modal) ──────────────────────────────────── //
+
+function ClarifyChat({ questions, onSkip, onSubmit, submitting }) {
+  const total = questions.length
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [answers, setAnswers] = useState(() => questions.map(() => ''))
+  const [input, setInput] = useState('')
+  const [bubbles, setBubbles] = useState(() => [{ role: 'ai', content: questions[0] }])
+  const bottomRef = useRef(null)
+  const inputRef = useRef(null)
+  const isDone = currentIdx >= total
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [bubbles, submitting])
+
+  useEffect(() => {
+    if (!isDone && !submitting) inputRef.current?.focus()
+  }, [currentIdx, isDone, submitting])
+
+  const advance = useCallback((answerText, skipped = false) => {
+    const newAnswers = answers.map((a, i) => (i === currentIdx ? answerText : a))
+    setAnswers(newAnswers)
+
+    const userBubble = { role: 'user', content: skipped ? 'Skipped' : answerText, skipped }
+    const nextIdx = currentIdx + 1
+
+    if (nextIdx < total) {
+      setBubbles((prev) => [...prev, userBubble, { role: 'ai', content: questions[nextIdx] }])
+      setCurrentIdx(nextIdx)
+      setInput('')
+    } else {
+      setBubbles((prev) => [...prev, userBubble])
+      setCurrentIdx(total)
+      setAnswers(newAnswers)
+    }
+  }, [answers, currentIdx, total, questions])
+
+  const handleGenerate = useCallback(() => {
+    const combined = questions
+      .map((q, i) => `Q: ${q}\nA: ${answers[i] || '(skipped)'}`)
+      .join('\n\n')
+    onSubmit(combined)
+  }, [questions, answers, onSubmit])
+
+  const handleSend = () => { const v = input.trim(); if (v) advance(v) }
+  const handleSkipOne = () => advance('', true)
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 w-full">
+
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-1 py-3 shrink-0">
+        <div>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+            A few quick questions
+          </p>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {isDone ? 'All done — ready to generate' : `${currentIdx} of ${total} answered`}
+          </p>
+        </div>
+        <button
+          onClick={onSkip}
+          disabled={submitting}
+          className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300
+                     disabled:opacity-40 transition-colors"
+        >
+          Skip all & generate
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="shrink-0 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-1 bg-slate-200 dark:bg-navy-700 rounded-full overflow-hidden">
+            <div className="h-full bg-brand-600 rounded-full transition-all duration-500"
+                 style={{ width: `${(currentIdx / total) * 100}%` }} />
+          </div>
+          <span className="text-xs text-slate-400 shrink-0">{currentIdx} / {total}</span>
+        </div>
+      </div>
+
+      {/* Chat bubbles */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-1 pb-2">
+        {bubbles.map((b, i) => (
+          <div key={i} className={`flex items-end gap-2.5 mb-3
+                                   ${b.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {b.role === 'ai' && (
+              <div className="w-8 h-8 rounded-full bg-accent-500 flex items-center justify-center
+                              text-white text-[10px] font-bold shrink-0 mb-0.5">
+                AI
+              </div>
+            )}
+            <div className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm
+              ${b.role === 'ai'
+                ? 'bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 text-slate-800 dark:text-slate-200 rounded-bl-sm'
+                : b.skipped
+                  ? 'bg-slate-100 dark:bg-navy-700 text-slate-400 dark:text-slate-500 italic rounded-br-sm'
+                  : 'bg-brand-600 text-white rounded-br-sm'
+              }`}>
+              {b.content}
+            </div>
+            {b.role === 'user' && (
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-navy-700
+                              flex items-center justify-center shrink-0 mb-0.5">
+                <svg className="w-4 h-4 text-slate-500 dark:text-slate-400" fill="none"
+                     viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {submitting && (
+          <div className="flex items-end gap-2.5 mb-3">
+            <div className="w-8 h-8 rounded-full bg-accent-500 flex items-center justify-center
+                            text-white text-[10px] font-bold shrink-0">AI</div>
+            <div className="bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600
+                            rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+              <div className="flex gap-1 items-center h-4">
+                {[0, 150, 300].map((d) => (
+                  <span key={d} className="w-2 h-2 bg-brand-400 rounded-full animate-bounce"
+                        style={{ animationDelay: `${d}ms` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input bar */}
+      {!isDone && (
+        <div className="shrink-0 pt-2">
+          <div className="flex gap-2 items-end bg-white dark:bg-navy-800
+                          border border-slate-200 dark:border-navy-600
+                          rounded-2xl p-2 shadow-sm
+                          focus-within:ring-2 focus-within:ring-brand-600/20
+                          focus-within:border-brand-500 transition-all">
+            <textarea
+              ref={inputRef}
+              rows={2}
+              placeholder="Type your answer…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={submitting}
+              className="flex-1 bg-transparent text-sm text-slate-900 dark:text-slate-100
+                         placeholder-slate-400 dark:placeholder-slate-500
+                         resize-none focus:outline-none px-2 py-1.5 min-h-[40px] max-h-28"
+            />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleSkipOne}
+                disabled={submitting}
+                className="h-9 px-3 rounded-xl text-xs font-medium text-slate-500 dark:text-slate-400
+                           hover:bg-slate-100 dark:hover:bg-navy-700 disabled:opacity-40 transition-all"
+              >
+                Skip
+              </button>
+              <button
+                onClick={handleSend}
+                disabled={submitting || !input.trim()}
+                className="w-9 h-9 rounded-xl bg-brand-600 hover:bg-brand-700
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           flex items-center justify-center text-white transition-all active:scale-95"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generate button after all questions done */}
+      {isDone && !submitting && (
+        <div className="shrink-0 pt-3">
+          <button
+            onClick={handleGenerate}
+            className="w-full btn-primary gap-2 text-sm py-2.5 justify-center"
+          >
+            Generate Documents
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Document Card ──────────────────────────────────────────────────────────── //
 
 function DocCard({ job, onDownload, onPreview }) {
@@ -294,6 +493,8 @@ export default function DocumentGeneration() {
   } = useSessionStore()
 
   const [generating, setGenerating] = useState(false)
+  const [clarifying, setClarifying] = useState(false)
+  const [clarifyModal, setClarifyModal] = useState(null) // { questions, blockingGaps, blocked, ragSessionId, basePayload }
   const [error, setError] = useState(null)
   const [preview, setPreview] = useState(null) // { jobId, docType }
   const [downloading, setDownloading] = useState(false)
@@ -329,17 +530,10 @@ export default function DocumentGeneration() {
     }, 2500)
   }
 
-  const handleGenerate = async () => {
-    if (!canvas) return
-    setError(null)
-    setGenerating(true)
-    clearDocBundle()
-    if (pollRef.current) clearInterval(pollRef.current)
-
+  const buildPayload = () => {
     const prompt = buildPromptFromCanvas(canvas, structuredOutput)
     const featureName = structuredOutput?.feature_name || 'Product Feature'
-
-    const payload = {
+    return {
       prompt,
       session_id: sessionId,
       organization_name: 'NPCI',
@@ -355,17 +549,64 @@ export default function DocumentGeneration() {
       signatory_title: 'Chief Product Officer',
       signatory_department: 'Product Management',
     }
+  }
 
+  const runBundle = async (payload) => {
+    setGenerating(true)
+    clearDocBundle()
+    if (pollRef.current) clearInterval(pollRef.current)
     try {
       const res = await generateDocBundle(payload)
-      const data = res.data
-      setDocBundle(data)
-      startPolling(data.bundle_id)
+      setDocBundle(res.data)
+      startPolling(res.data.bundle_id)
     } catch (e) {
       setError(e.response?.data?.detail || e.message || 'Failed to reach the DocGen service. Is it running on port 8001?')
     } finally {
       setGenerating(false)
     }
+  }
+
+  const handleGenerate = async () => {
+    if (!canvas) return
+    setError(null)
+    const payload = buildPayload()
+
+    // Pre-clarify step: get questions from RAG before generating
+    setClarifying(true)
+    try {
+      const res = await preClarify(payload)
+      const { questions = [], blocking_gaps = [], blocked = false, rag_session_id, has_clarifications } = res.data
+      if (has_clarifications && questions.length > 0) {
+        setClarifyModal({ questions, blockingGaps: blocking_gaps, blocked, ragSessionId: rag_session_id, basePayload: payload })
+        return
+      }
+      // No questions — go straight to bundle (still pass rag_session_id if present)
+      await runBundle(rag_session_id ? { ...payload, rag_session_id } : payload)
+    } catch (e) {
+      // Pre-clarify failed — fall back to direct generation
+      console.warn('Pre-clarify failed, generating directly:', e.message)
+      await runBundle(payload)
+    } finally {
+      setClarifying(false)
+    }
+  }
+
+  const handleClarifySubmit = async (clarificationAnswers) => {
+    if (!clarifyModal) return
+    const { ragSessionId, basePayload } = clarifyModal
+    setClarifyModal(null)
+    await runBundle({
+      ...basePayload,
+      clarification_answers: clarificationAnswers,
+      ...(ragSessionId ? { rag_session_id: ragSessionId } : {}),
+    })
+  }
+
+  const handleClarifySkip = async () => {
+    if (!clarifyModal) return
+    const { ragSessionId, basePayload } = clarifyModal
+    setClarifyModal(null)
+    await runBundle(ragSessionId ? { ...basePayload, rag_session_id: ragSessionId } : basePayload)
   }
 
   const handleDownloadDoc = async (jobId, docType) => {
@@ -399,6 +640,20 @@ export default function DocumentGeneration() {
   const totalCount = DOC_TYPES.length
   const allDone = docBundle?.overall_status === 'completed' || docBundle?.overall_status === 'partial'
   const isRunning = docStatus === 'generating' || (docBundle && !allDone && docStatus !== 'idle' && docStatus !== 'failed')
+
+  // Show chat UI in-place when clarification is active
+  if (clarifyModal) {
+    return (
+      <div className="flex flex-col flex-1 min-h-0 w-full animate-fade-in">
+        <ClarifyChat
+          questions={clarifyModal.questions}
+          submitting={generating}
+          onSubmit={handleClarifySubmit}
+          onSkip={handleClarifySkip}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col flex-1 min-h-0 w-full animate-fade-in">
@@ -442,10 +697,18 @@ export default function DocumentGeneration() {
 
           <button
             onClick={handleGenerate}
-            disabled={generating || isRunning || !canvas}
+            disabled={generating || clarifying || isRunning || !canvas}
             className="btn-primary gap-2 text-sm py-1.5"
           >
-            {generating || isRunning ? (
+            {clarifying ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Analysing…
+              </>
+            ) : generating || isRunning ? (
               <>
                 <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -625,6 +888,7 @@ export default function DocumentGeneration() {
           onClose={() => setPreview(null)}
         />
       )}
+
     </div>
   )
 }

@@ -1,0 +1,426 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem today supports basic payment initiation through REQ_PAY/RESP_PAY messages and offers simple equal‑split utilities within consumer apps. These utilities rely on manual entry of each participant's share or on static equal division, and they are not part of the core UPI switch. Consequently, PSPs and merchants must perform post‑transaction reconciliation to allocate amounts according to business‑specific rules.",
+      "This approach creates a gap for transactions that require percentage‑based, priority, or capped allocations, leading to manual calculations, delayed settlements, and higher reconciliation overhead. PSPs lack a standardized mechanism to convey split logic to the NPCI switch, forcing them to implement proprietary off‑chain processes that increase error risk and compliance complexity. The limitation hampers the ability of businesses to meet RBI’s vision for efficient, automated payment flows.",
+      "The proposed technical approach introduces an Advanced Rule‑Based Split Engine that embeds split metadata within the existing REQ_PAY payload, leveraging the CRED block and CL encryption for secure transmission. By extending the message schema with rule descriptors, the engine enables the NPCI switch to execute percentage, priority, and cap rules during the debit‑credit cycle, eliminating the need for separate reconciliation steps. This solution aligns with the cashless economy mandate, reduces operational latency, and provides a uniform, auditable method for complex multi‑party settlements."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature enables a payer to define configurable distribution rules—such as percentage allocations, priority ordering, and caps—when a transaction involves multiple beneficiaries. The rule set is created within the UPI App and transmitted via the PSP to the NPCI switch, which orchestrates the split across the issuer (payer) bank and each beneficiary bank before confirming settlement to all parties. This flow touches the UPI App, the payer PSP, the NPCI Common Library, the issuer bank, and each beneficiary PSP and bank, ensuring a single coordinated transaction rather than multiple independent payments.",
+      "By automating complex split calculations, the feature reduces manual reconciliation effort, eliminates allocation errors, and accelerates settlement, thereby improving cash flow for both individuals and businesses. The streamlined experience drives higher user satisfaction, supports the RBI’s vision of a frictionless cash‑less economy, and strengthens trust in digital payments across the Indian ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature introduces a dedicated Split Engine service that operates alongside the existing UPI ecosystem. Primary participants include the Payer PSP (which hosts the UPI app), the NPCI Switch, the Issuer/Remitter Bank, the Beneficiary PSPs, and the Settlement Hub that finalises fund distribution. Each component retains its standard UPI role while the Split Engine enriches the transaction payload with rule metadata for automated allocation.",
+      "When a user creates a split request, the UPI app captures the rule set (percentage, priority, caps) and the Common Library encrypts it into the CRED block. The Payer PSP forwards a REQ_PAY message containing the encrypted split metadata to the NPCI Switch, which validates the rules and forwards the debit request to the Issuer Bank. Upon successful debit, the Switch routes credit instructions to each Beneficiary PSP according to the rule engine output, and the Settlement Hub records the split distribution for reconciliation.",
+      "Key design decisions include representing split rules in a structured JSON fragment called splitMeta within the existing REQ_PAY payload, avoiding any new message types and preserving backward compatibility. The Split Engine is implemented as a stateless microservice, enabling horizontal scaling and rapid rule evaluation, while DEEMED status handling ensures that partial failures are reconciled asynchronously. Compliance checks such as fraud risk screening and rule validation are performed both at the PSP level and by NPCI before any fund movement, guaranteeing adherence to regulatory guidelines."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The enrollment flow establishes a rule definition that the UPI App can later reference during payment execution. The user creates a rule through the app, the rule payload is encrypted by the Common Library, and the PSP forwards it to NPCI for validation and storage. This process ensures that rule parameters such as percentage splits, caps, and priority are securely captured and centrally managed before any transaction uses them.",
+      "All participants perform mandatory compliance checks; the PSP validates rule limits against regulatory guidelines, while NPCI confirms the payload integrity and assigns a unique rule identifier. The identifier is returned to the app, enabling seamless inclusion of the rule in subsequent REQ_PAY messages without additional user interaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate user session, fetch latest CL version, ensure device TEE is operational",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Collect rule parameters (percentages, caps, priority) and encrypt payload using CL",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Perform compliance and fraud checks, forward encrypted rule payload to NPCI",
+          "PSP"
+        ],
+        [
+          "Step 3",
+          "Validate payload integrity, store rule metadata, generate unique Rule ID, acknowledge receipt",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Persist Rule ID, send confirmation response with Rule ID to UPI App",
+          "PSP"
+        ],
+        [
+          "Step 5",
+          "Display Rule ID and enrollment status to user for future reference",
+          "UPI App"
+        ],
+        [
+          "Post Response",
+          "Rule ID is now available for inclusion in REQ_PAY messages to apply the split logic",
+          "UPI App / PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule‑Based Payment Splits feature extends the standard UPI REQ_PAY flow by embedding split‑rule metadata that drives automatic distribution of the transaction amount among multiple beneficiaries. Upon initiation, the payer’s UPI app collects the split configuration, the PSP’s Split Engine validates the rules, and the enriched request traverses the NPCI switch, which orchestrates debit from the payer’s issuing bank and parallel credits to each beneficiary’s bank as dictated by the rule set. The process concludes with confirmations to all parties and downstream settlement, ensuring accurate, rule‑compliant allocation without manual calculations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate payer’s VPA, available balance, and compliance of split rules (percentage totals, caps, priority).",
+          "Payer PSP (Split Engine)"
+        ],
+        [
+          "Step 1",
+          "Capture payment intent and split configuration from UPI App; encrypt credentials via CL.",
+          "UPI App / Payer PSP"
+        ],
+        [
+          "Step 2",
+          "Authenticate payer using CL; generate CRED block.",
+          "Payer PSP (CL)"
+        ],
+        [
+          "Step 3",
+          "Send REQ_PAY containing split metadata (list of beneficiary VPAs, percentages, caps) to NPCI Switch.",
+          "Payer PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI routes debit request to Remitter Bank; upon approval, issues parallel credit requests to each Beneficiary Bank per split rules.",
+          "NPCI Switch / Remitter Bank / Beneficiary Banks"
+        ],
+        [
+          "Step 5",
+          "Receive RESP_PAY from all banks; NPCI aggregates responses and sends confirmation to both payer and payee PSPs.",
+          "NPCI Switch / Payee PSPs"
+        ],
+        [
+          "Post Response",
+          "Reconcile split allocations, update transaction status, and trigger settlement reports to all PSPs.",
+          "All PSPs (Payer & Payee) and NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section defines the API contracts impacted by the Advanced Rule‑Based Payment Splits feature. It specifies extensions to the REQ_PAY and RESP_PAY messages to carry rule‑based split parameters such as percentage allocations, priority ordering, and cap limits. The scope of change is limited to additional request fields, validation logic, and corresponding response elements while preserving the existing UPI transaction flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The REQ_PAY API is extended to support Advanced Rule-Based Payment Splits, enabling a payer to define distribution rules such as percentage allocation, priority ordering, and maximum caps for each participant. The flow begins with the UPI App capturing the payer's authentication, after which the PSP packages the split rules into the REQ_PAY payload and forwards it to the NPCI switch.",
+      "NPCI validates the split configuration, forwards authentication requests to the Issuer Bank, and orchestrates debit and credit operations across all participant banks. Upon successful settlement, NPCI returns a consolidated RESP_PAY to the originating PSP, which then notifies the UPI App of the final transaction status."
+    ],
+    "bullet_points": [
+      "Supports percentage‑based splits, e.g., 30% for participant A, 20% for B, remainder shared.",
+      "Allows priority handling where higher‑priority participants are settled first.",
+      "Enforces optional cap limits to prevent any participant from receiving more than a specified amount."
+    ],
+    "numbered_items": [
+      "Step 1 – UPI App captures payer authentication and assembles split rules.",
+      "Step 2 – PSP encrypts credentials, embeds split rules, and sends REQ_PAY to NPCI.",
+      "Step 3 – NPCI validates split rules, initiates REQ_AUTH_DETAILS with Issuer Bank.",
+      "Step 4 – Debit request is processed; credit requests are routed to each participant bank.",
+      "Step 5 – Consolidated RESP_PAY is returned to PSP and propagated to the UPI App."
+    ],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "SplitInfo",
+          "Complex",
+          "Variable",
+          "Container for all split rule participants",
+          "N"
+        ],
+        [
+          "Participant",
+          "Complex",
+          "Variable",
+          "Defines a single participant's split parameters",
+          "N"
+        ],
+        [
+          "VPA",
+          "String",
+          "50",
+          "Virtual Payment Address of the participant",
+          "Y"
+        ],
+        [
+          "Percentage",
+          "Decimal",
+          "5",
+          "Percentage of total amount allocated to the participant",
+          "Y"
+        ],
+        [
+          "Priority",
+          "Integer",
+          "2",
+          "Order in which participants are settled; lower value = higher priority",
+          "N"
+        ],
+        [
+          "CapAmount",
+          "Decimal",
+          "12",
+          "Maximum amount that can be credited to the participant irrespective of percentage",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:REQ_PAY xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>TXN123456789</upi:TxnId>\n    <upi:Amount>5000.00</upi:Amount>\n    <upi:Currency>INR</upi:Currency>\n    <upi:PayerVPA>alice@bank</upi:PayerVPA>\n    <upi:PayeeVPA>group@bank</upi:PayeeVPA>\n    <upi:SplitInfo>\n        <upi:Participant>\n            <upi:VPA>bob@bank</upi:VPA>\n            <upi:Percentage>30</upi:Percentage>\n            <upi:Priority>1</upi:Priority>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>carol@bank</upi:VPA>\n            <upi:Percentage>20</upi:Percentage>\n            <upi:Priority>2</upi:Priority>\n            <upi:CapAmount>1200.00</upi:CapAmount>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>group@bank</upi:VPA>\n            <upi:Percentage>50</upi:Percentage>\n            <upi:Priority>3</upi:Priority>\n        </upi:Participant>\n    </upi:SplitInfo>\n    <upi:CRED>...encrypted credential block...</upi:CRED>\n</upi:REQ_PAY>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RESP_PAY xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:TxnId>TXN123456789</upi:TxnId>\n    <upi:Status>SUCCESS</upi:Status>\n    <upi:AuthCode>AUTH987654</upi:AuthCode>\n    <upi:SplitResult>\n        <upi:Participant>\n            <upi:VPA>bob@bank</upi:VPA>\n            <upi:CreditedAmount>1500.00</upi:CreditedAmount>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>carol@bank</upi:VPA>\n            <upi:CreditedAmount>1000.00</upi:CreditedAmount>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>group@bank</upi:VPA>\n            <upi:CreditedAmount>2500.00</upi:CreditedAmount>\n        </upi:Participant>\n    </upi:SplitResult>\n</upi:RESP_PAY>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The LIST_PSP API enables a PSP to obtain the current list of live issuer banks that can participate in an advanced rule‑based payment split. The PSP calls this API before constructing a split transaction to ensure that each participant's VPA belongs to an active issuing bank, thereby preventing routing failures and compliance violations.",
+      "The flow begins with the PSP sending a LIST_PSP request to the NPCI switch, which queries the master issuer registry and returns a LIST_PSP response containing bank identifiers and status flags. Upon receipt, the PSP validates the VPA‑to‑bank mapping for each split rule and proceeds with the primary REQ_PAY flow only if all participants are confirmed as live issuers."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "RequestID",
+          "String",
+          "36",
+          "Globally unique identifier for the request",
+          "Y"
+        ],
+        [
+          "MerchantID",
+          "String",
+          "20",
+          "PSP identifier assigned by NPCI",
+          "Y"
+        ],
+        [
+          "Timestamp",
+          "DateTime",
+          "20",
+          "ISO‑8601 timestamp of request generation",
+          "Y"
+        ],
+        [
+          "ResponseID",
+          "String",
+          "36",
+          "Globally unique identifier for the response",
+          "Y"
+        ],
+        [
+          "IssuerList",
+          "Composite",
+          "Variable",
+          "Container for one or more Issuer entries",
+          "Y"
+        ],
+        [
+          "BankID",
+          "String",
+          "4",
+          "Unique code of the issuing bank",
+          "Y"
+        ],
+        [
+          "BankName",
+          "String",
+          "50",
+          "Descriptive name of the issuing bank",
+          "Y"
+        ],
+        [
+          "Status",
+          "String",
+          "6",
+          "Current operational status (e.g., ACTIVE, INACTIVE)",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:LIST_PSP_REQ xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RequestID>REQ123456789</upi:RequestID>\n    <upi:MerchantID>MERCHANT001</upi:MerchantID>\n    <upi:Timestamp>2024-04-17T10:15:30Z</upi:Timestamp>\n</upi:LIST_PSP_REQ>",
+      "<!-- Response: NPCI to PSP -->\n<upi:LIST_PSP_RESP xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:ResponseID>RESP987654321</upi:ResponseID>\n    <upi:RequestID>REQ123456789</upi:RequestID>\n    <upi:IssuerList>\n        <upi:Issuer>\n            <upi:BankID>001</upi:BankID>\n            <upi:BankName>Bank A</upi:BankName>\n            <upi:Status>ACTIVE</upi:Status>\n        </upi:Issuer>\n        <upi:Issuer>\n            <upi:BankID>002</upi:BankID>\n            <upi:BankName>Bank B</upi:BankName>\n            <upi:Status>ACTIVE</upi:Status>\n        </upi:Issuer>\n        <!-- Additional Issuer entries as needed -->\n    </upi:IssuerList>\n    <upi:Timestamp>2024-04-17T10:15:31Z</upi:Timestamp>\n</upi:LIST_PSP_RESP>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature must handle a range of error conditions to ensure reliable transaction processing. This table enumerates the response codes, error identifiers, and contextual details that integration engineers should anticipate across eligibility checks, activation steps, authentication, timeout events, and rule validation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "400",
+          "ERR_ELIGIBILITY_FAIL",
+          "Payer not eligible for split rule (e.g., exceeds allowed split limit)",
+          "REQ_PAY",
+          "PSP",
+          "TD"
+        ],
+        [
+          "401",
+          "ERR_AUTH_INVALID",
+          "Biometric or PIN authentication failed during REQ_AUTH_DETAILS exchange",
+          "REQ_AUTH_DETAILS",
+          "Issuer Bank",
+          "TD"
+        ],
+        [
+          "408",
+          "ERR_TIMEOUT",
+          "No response from NPCI within the defined SLA causing transaction abort",
+          "REQ_PAY",
+          "NPCI",
+          "BD"
+        ],
+        [
+          "422",
+          "ERR_ACTIVATION_INVALID",
+          "Device activation token invalid or mismatched for rule engine activation",
+          "REQ_ACTIVATION",
+          "PSP",
+          "TD"
+        ],
+        [
+          "409",
+          "ERR_RULE_CONFLICT",
+          "Configured split percentages do not sum to 100% or violate defined caps",
+          "REQ_PAY",
+          "PSP",
+          "BD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "The PSP must invoke List PSP / List Accpvd API at transaction start to obtain live issuer banks for each split participant and enforce allow/deny based on the returned status.",
+      "The split engine must validate that the sum of percentage rules equals 100% (or 100% minus any fixed amount caps); any deviation must cause immediate REQ_PAY rejection with error code 400 and descriptive message.",
+      "Each participant’s share is processed as an independent REQ_PAY message but must carry a common parentTxnId field; the NPCI switch will correlate responses to produce a single composite transaction status.",
+      "If any sub‑transaction does not receive a RESP_PAY within the UPI standard 30‑second timeout, the PSP must trigger REQ_CHK_TXN for that participant and, after three retries, mark the overall split as DEEMED and notify the payer via the app.",
+      "All split‑related REQ_PAY messages that involve biometric authentication must set refCategory='05' and include the current clVersion (e.g., 2.36) in the CRED block to satisfy biometric compliance.",
+      "The PSP’s fraud‑risk engine must apply standard UPI validation (e.g., purpose code, MCC checks) to each split leg and must reject any leg that matches disallowed initiation mode 18 with purpose code 84/85 and MCC 6013."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

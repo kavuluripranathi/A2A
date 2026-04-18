@@ -1,0 +1,330 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "Purpose: This document provides a complete product note for the ultra‑short “undo” window feature, outlining its business rationale, user experience, operational flow, and expected impact on error reduction and transaction volume. It captures the problem statement, regulatory context, and the measurable benefits demonstrated in pilot testing. The note serves as the authoritative reference for all downstream design, development, testing, and compliance activities.",
+      "Audience: The primary readers are product managers, engineering leads, and compliance teams responsible for delivering the feature across PSPs and banks. Secondary stakeholders include risk, fraud, and customer‑support functions that will be impacted by the new safety net. The language is tailored to enable cross‑functional alignment without requiring deep technical schema knowledge.",
+      "Scope: The note covers the functional description of the undo window, the end‑to‑end user journey, latency considerations, and the quantitative business case. It also defines the compliance expectations under RBI consumer‑safeguard guidelines and outlines the operational responsibilities of each ecosystem participant. Technical implementation details such as API flag changes and OTA update processes are referenced at a high level but not enumerated in this section."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "UPI continues to be the backbone of digital payments in India, processing roughly 186 billion transactions per financial year. Despite its scale, the ecosystem experiences a typo‑error rate of about 0.05 %, which translates to more than 90 million erroneous payments annually. These mistakes often arise from incorrect amounts, wrong merchant selection, or accidental double‑taps at checkout. The current UPI specification does not provide a built‑in mechanism for users to reverse a payment before settlement.",
+      "The volume of mistaken payments generates a heavy operational burden for banks and PSPs, with an average grievance handling cost of ₹120 per ticket and an estimated ₹11 billion annual expense. Consumer trust is further eroded, as surveys show that up to 2 % of users have experienced “regret‑pay” in the past six months and 68 % would switch platforms that offer a safety net. RBI’s 2024 Payment System Oversight guidelines now mandate enhanced consumer safeguards for high‑frequency digital payments, putting pressure on participants to innovate. Existing latency constraints and the need to stay within the sub‑second UPI SLA limit the scope of any new feature.",
+      "Introducing an ultra‑short “undo” window of 10‑15 seconds gives users a simple, on‑device safety net that can cancel a transaction before funds move. Pilot results with 3 million users demonstrated a 30 % reduction in grievance tickets and a 5 % lift in transaction volume, directly addressing cost and trust concerns while remaining technically incremental. The feature requires only a modest API flag and an OTA UI update, adding less than 0.5 seconds of latency, well within the 1‑second end‑to‑end target. Consequently, the solution aligns with regulatory expectations, protects consumers, and unlocks measurable revenue upside for all ecosystem participants."
+    ],
+    "bullet_points": [
+      "No native reversal capability before settlement leads to irreversible erroneous payments.",
+      "High grievance handling cost (~₹120 per ticket) creates significant operational expense.",
+      "Regulatory expectations now require proactive consumer safeguards, risking compliance gaps.",
+      "Undo window reduces error‑related disputes by up to 30 %.",
+      "Adds less than 0.5 seconds of latency, preserving the sub‑second UPI SLA.",
+      "Generates approximately 5 % incremental transaction volume, boosting revenue."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short “undo” window introduces a 10‑15 second safety net that appears immediately after a user taps “Pay”. A clear “Undo” button and a countdown timer remain on the screen, allowing the payer to cancel the transaction before any funds are moved. This extra UI step adds less than half a second to the checkout flow, keeping the experience essentially instantaneous.",
+      "By giving users a brief chance to reverse a mistake, the feature prevents accidental over‑payments, wrong merchant selections, and duplicate taps. Pilot data shows a 30 % reduction in grievance tickets and a 5 % lift in overall transaction volume, directly addressing the high error volume seen across billions of UPI payments. It also satisfies RBI’s mandate for stronger consumer safeguards, reinforcing trust in the digital payments ecosystem.",
+      "The undo capability operates within the existing authentication framework and does not require collection of new personal data. The cancellation request is processed before settlement, using the same encrypted credential block that protects the original payment, ensuring no additional exposure of sensitive information. Consequently, privacy is maintained and the solution aligns with both security best practices and regulatory expectations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The undo safety‑net toggle is placed within the Settings menu under a dedicated \"Payment Safety\" section. The UI presents a brief description of the 10‑15 second undo window, followed by a clearly labelled ON/OFF switch. A help icon links to a FAQ page that explains the feature’s scope and any limits. The placement follows platform conventions to ensure discoverability without cluttering the primary checkout flow.",
+      "When a user launches the Settings screen, they tap the \"Payment Safety\" option and view the undo feature card. Selecting the switch opens a consent dialog that outlines the automatic activation of the undo timer for every payment and the data retained for audit purposes. The user must explicitly confirm by tapping \"Enable\" or can decline with \"Cancel\". Upon confirmation, the app immediately reflects the enabled state and stores the consent timestamp locally.",
+      "Technically, the app issues an enrollment API call to the PSP backend containing the user identifier, device token, and a flag \"enableUndo=true\". The PSP validates the request, records the consent in its user profile store, and updates the feature flag in the central configuration service. A success response is returned to the app, which then caches the flag for offline use. No direct interaction with the NPCI switch is required, but the PSP must ensure the flag is honored in subsequent payment request payloads.",
+      "Responsibility for the enrollment experience rests with the PSP’s product and engineering teams to design the UI, capture consent, and maintain the feature flag. Compliance teams must verify that the consent dialog meets regulatory standards and that audit logs are retained for the required period. The issuer and beneficiary banks are not involved in the enrollment flow, while NPCI provides the specification that the undo flag be respected during payment processing. Ongoing monitoring of activation rates and any related disputes is a joint effort between the PSP and its fraud‑risk unit."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "App verifies that the device supports the latest Common Library version required for undo functionality",
+          "App"
+        ],
+        [
+          "Step 1",
+          "User navigates to Settings > Payment Safety",
+          "User"
+        ],
+        [
+          "Step 2",
+          "User reads feature description and taps the ON/OFF switch",
+          "User"
+        ],
+        [
+          "Step 3",
+          "Consent dialog is displayed with terms and a confirm button",
+          "App"
+        ],
+        [
+          "Step 4",
+          "User confirms consent to enable undo window",
+          "User"
+        ],
+        [
+          "Step 5",
+          "App sends enrollment request (enableUndo=true) to PSP backend",
+          "App"
+        ],
+        [
+          "Step 6",
+          "PSP records consent, updates user profile flag, and returns success response",
+          "PSP Backend"
+        ],
+        [
+          "Post Response",
+          "Undo window becomes active for all subsequent payments; UI shows enabled state",
+          "App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window applies to any real‑time UPI payment initiated through a PSP’s mobile app, covering amount entry errors, merchant selection mistakes, and duplicate taps. Once the user taps the Pay button, the transaction is placed in a provisional state for a configurable 10‑15 second interval. During this interval the funds have not been debited from the payer’s account, allowing a safe cancellation path. The scope excludes scheduled or mandate‑based payments, which follow a separate lifecycle.",
+      "To support the undo capability, the PSP adds an “undoFlag” to the REQ_PAY message sent to NPCI and retains the transaction in a hold queue until the countdown expires. NPCI acknowledges the request and signals the Issuer Bank to prepare a provisional debit that can be revoked without affecting the account balance. If the user activates Undo, the PSP issues a CANCEL_PAY request, prompting NPCI to abort the pending debit and send a cancellation confirmation. These changes introduce only a sub‑second latency increase, well within the 1 second UPI SLA.",
+      "The feature is available across all supported UPI modes, including standard UPI, UPI Lite, and biometric‑authenticated flows (refCategory='05'). Both push‑payment and QR‑code payment journeys honor the undo window, ensuring a consistent experience regardless of entry method. However, the undo option is not offered for recurring mandates, bill‑pay, or other non‑real‑time constructs, which remain governed by their existing specifications.",
+      "The end‑to‑end journey begins when the user taps Pay, triggering the app to display an Undo button with a countdown timer. The PSP immediately forwards the payment intent with the undo flag to NPCI, which places the transaction in a hold state. If the user selects Undo within the window, the app notifies the PSP, which sends a cancellation request to NPCI; NPCI then aborts the provisional debit and informs both payer and payee PSPs of the cancellation. If no Undo action occurs, NPCI proceeds with the standard debit‑credit flow, culminating in a confirmation to the app and receipt generation for both parties."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate eligibility for undo and capture UI timer parameters",
+          "UPI App / PSP Frontend"
+        ],
+        [
+          "Step 1",
+          "Capture payment intent and display Undo countdown",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Send REQ_PAY with undoFlag to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 3",
+          "NPCI holds transaction and forwards provisional request to Issuer Bank",
+          "NPCI Switch"
+        ],
+        [
+          "Step 4a",
+          "User taps Undo within window",
+          "Customer via UPI App"
+        ],
+        [
+          "Step 4b",
+          "PSP sends CANCEL_PAY to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "NPCI aborts debit and sends cancellation confirmation to both PSPs",
+          "NPCI Switch"
+        ],
+        [
+          "Step 6",
+          "If no Undo, NPCI proceeds with standard debit/credit flow",
+          "NPCI Switch / Issuer Bank / Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "Final settlement, receipt generation and UI update",
+          "Payee PSP & UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window introduces a reversible step into the otherwise final UPI payment flow. Because the reversal occurs before the debit request is sent to the issuer bank, the PSP must define clear product policies to protect both the consumer and the ecosystem. These policies govern when the feature can be presented, how consent is recorded, and how the temporary state is managed. They also ensure compliance with RBI’s consumer‑safeguard expectations.",
+      "Undo is offered as an optional capability that each user can enable or disable in the app’s settings. When enabled, the app must obtain explicit, per‑transaction consent by showing the countdown timer and requiring the user to tap “Agree” before the payment proceeds. This consent scope limits liability to the moment of user action and aligns with the principle of informed participation. The PSP must log the consent flag alongside the transaction identifier for audit purposes.",
+      "All data related to the undo window—such as the transaction reference, timer state, and consent flag—must be retained only in encrypted volatile storage and erased no later than 30 seconds after the window expires. Cryptographic keys that sign the undo token are required to rotate every 90 days, with any key older than 180 days removed from service. The feature must be automatically disabled if latency thresholds are breached or if fraud monitoring signals a risk, reverting to the standard irrevocable payment flow."
+    ],
+    "bullet_points": [
+      "Undo functionality is optional per user; the PSP must expose a toggle in the app settings, defaulting to OFF for new customers.",
+      "When a user enables Undo, the app must capture explicit consent at the moment of payment initiation, displaying the 10‑15 s window and obtaining an affirmative “Agree” action before proceeding.",
+      "All Undo request metadata (transaction ID, timestamp, user consent flag) must be stored encrypted in volatile memory and purged no later than 30 seconds after the window closes.",
+      "Cryptographic keys used to sign the Undo token must be rotated at least every 90 days, and any key older than 180 days must be retired from production.",
+      "If the PSP detects latency exceeding 0.5 s for the Undo round‑trip, the feature must be automatically disabled for that session and a fallback to standard payment flow invoked.",
+      "In case of fraud alerts from NPCI eFRM or the bank’s risk engine, the Undo option must be suppressed for the affected merchant or transaction category until the risk is cleared."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window is introduced as an optional capability that can be activated per‑transaction via a dedicated flag. When enabled, the payment request is held in a pending state until the countdown expires or the user cancels. This approach ensures backward compatibility with existing UPI flows while meeting RBI’s enhanced consumer‑safeguard expectations.",
+      "The user interface must present a clearly visible “Undo” button together with a 10‑15 second countdown timer immediately after the payer taps “Pay”. The timer should be rendered in a minimum font size of 12sp and include a voice‑over label to satisfy accessibility guidelines. The extra screen time adds less than half a second to the overall checkout latency, keeping the experience effectively instantaneous.",
+      "Operationally, a cancelled payment triggers a reversal request to the NPCI switch, flagged with the biometric‑auth category to differentiate it from standard refunds. Both payer and payee PSPs receive a confirmation of the cancellation within two seconds, and the transaction is never settled on the ledger. All undo actions are recorded with full audit metadata and retained for the regulatory minimum retention period."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The undo feature must be toggled via a binary flag in the payment request payload; default is disabled for legacy transactions.",
+      "2. The pending state cannot exceed 15 seconds, and if network latency pushes beyond this limit the transaction must auto‑proceed to avoid SLA breach.",
+      "3. Any user‑initiated undo must generate a reversal request to NPCI with refCategory='05' to indicate a biometric‑authenticated cancellation.",
+      "4. The UI must display the countdown timer in a minimum font size of 12sp and provide a voice‑over label for accessibility compliance.",
+      "5. If the user taps Undo after the debit request has been sent, the system must invoke a refund flow and notify both payer and payee PSPs within 2 seconds.",
+      "6. All undo actions must be logged with transaction ID, timestamp, and user identifier and retained for a minimum of 180 days for audit purposes."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window operates before the debit request is sent to the issuer bank. Because the payment is cancelled locally in the PSP’s front‑end and the request never reaches the NPCI switch, there is no financial movement to dispute. Consequently, the feature does not generate any new dispute cases.",
+      "From an operational perspective, the PSP simply returns a “cancelled” status to the app and does not forward a REQ_PAY message to NPCI. The issuer and beneficiary banks receive no transaction record, so their reconciliation and charge‑back engines remain untouched. Any audit trail records the cancellation as a user‑initiated abort. This aligns with existing settlement workflows and requires no changes to downstream processing.",
+      "The standard UPI dispute lifecycle therefore remains unchanged for all payments that proceed beyond the undo window. Banks, PSPs, and NPCI continue to follow the established grievance handling timelines and liability rules. Only payments that have been fully authorized and settled are subject to the usual dispute resolution process."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "Testing will be executed across three dedicated environments: a sandbox that mimics the NPCI switch behavior, a staging environment that integrates with live bank APIs under controlled load, and a production‑like pre‑release cluster that validates end‑to‑end latency. Each environment is provisioned with the same Common Library version and identical configuration flags for the undo window. Test data sets include both successful and error‑condition transactions to verify that the 10‑15 second window behaves consistently. Performance metrics are captured to confirm the added round‑trip does not exceed 0.5 seconds.",
+      "Four mandatory scenario groups are required for certification. The enrollment scenario validates that the UI flag for the undo window is correctly set during app onboarding and that the countdown appears after the Pay action. The transaction scenario confirms that tapping Undo within the window aborts the payment before the debit request reaches the issuer bank, while a missed Undo allows the normal REQ_PAY flow to complete. The fallback scenario tests network loss or NPCI timeout during the undo window, ensuring the transaction either proceeds or is safely rolled back without orphaned states. The disablement scenario verifies that an admin can deactivate the undo feature in real time and that existing payments continue unaffected.",
+      "Certification follows a three‑step process. First, the product team submits a test report and a signed compliance checklist to the RBI‑designated certification authority. Second, an independent audit team runs the mandatory scenarios in the staging environment and records pass/fail outcomes. Finally, the certification authority reviews the evidence, signs off the feature release, and updates the UPI specification annex to include the undo flag. The approving authority for the final sign‑off is the RBI’s Payments and Settlement Systems Division.",
+      "Post‑release audits are conducted quarterly to ensure ongoing compliance. Auditors review transaction logs for any instances where the undo window was bypassed, verify that latency remains within the SLA, and confirm that disablement controls are exercised only by authorized personnel. Any deviation triggers a remediation plan and may result in temporary suspension of the feature until corrective actions are completed."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Enrollment",
+          "Validate undo flag activation and UI countdown display during app onboarding",
+          "Product Manager"
+        ],
+        [
+          "Transaction",
+          "Confirm payment cancellation when Undo is tapped within 10‑15 seconds and normal flow when not",
+          "QA Lead"
+        ],
+        [
+          "Fallback",
+          "Ensure correct behavior under network loss or NPCI timeout during the undo window",
+          "Engineering Operations"
+        ],
+        [
+          "Disablement",
+          "Verify admin can turn off undo feature without impacting in‑flight transactions",
+          "Compliance Officer"
+        ],
+        [
+          "Security",
+          "Test replay‑attack protection and secure handling of undo requests",
+          "Security Team"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window introduces a reversible payment state that must be guarded by a set of pre‑checks. These checks verify that the device, the PSP, and the UPI network are capable of honouring a cancellation within the 10‑15 second window. Failure to meet any check prevents the feature from being activated for that user or transaction, protecting banks from unintended reversals. The approach aligns with RBI’s consumer‑safeguard expectations while keeping latency within the 1‑second SLA.",
+      "Before a PSP can enrol a customer for the undo capability, the following validations are performed: (a) the mobile device must expose a hardware‑backed Secure Enclave and pass a nonce‑challenge test; (b) the PSP’s backend must confirm that the CL version integrated in the app supports the ‘refCategory = 05’ flag; (c) the customer’s VPA must be active and not under any dispute; and (d) the bank’s fraud‑risk engine must certify that the account’s risk score is below the configured threshold. Each validation is executed by the indicated participant and any failure results in the enrolment request being rejected with a clear error code. The user is then directed to resolve the specific issue, such as updating the app or clearing pending disputes. This pre‑enrolment gate ensures that only eligible accounts can access the undo window.",
+      "At transaction time, the PSP and NPCI perform a rapid series of checks before exposing the Undo UI: (1) the REQ_PAY message must carry the biometric flag (refCategory = 05) and the CL version flag indicating undo support; (2) the issuer bank must return a provisional ‘DEEMED’ status within 200 ms, confirming that the debit can be rolled back; (3) the network latency monitor must verify that the round‑trip time will stay below 0.5 s; and (4) the fraud‑risk engine must not flag the transaction as high‑risk for reversal. If any of these checks fail, the Undo button is hidden and the payment proceeds without a cancellation option. The payer is shown a fallback message explaining that the safety net is unavailable for this transaction. This real‑time gating protects the ecosystem from partial reversals that could lead to settlement mismatches.",
+      "When a pre‑check fails, the immediate consequence is a hard stop for the undo feature – either at enrolment or during the payment flow – and the transaction follows the standard UPI path. No additional liability is transferred to the PSP; the issuing bank retains responsibility for the original payment. The failure is logged in the audit trail and reported to NPCI’s eFRM for monitoring. This transparent handling preserves compliance and limits dispute exposure."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Secure Enclave Validation – performed by the PSP mobile SDK; if the device does not present a hardware‑backed Secure Enclave, enrolment is denied and the user is asked to use a supported device.",
+      "2. CL Version Compatibility – performed by the PSP backend; if the app’s Common Library version does not support the undo flag (refCategory = 05), enrolment is rejected and the PSP must push an OTA update.",
+      "3. VPA Status Check – performed by the Issuer Bank; if the customer’s VPA is inactive or under dispute, enrolment is blocked and the user must resolve the VPA issue.",
+      "4. Account Risk Score Assessment – performed by the Bank’s fraud‑risk engine; if the risk score exceeds the configured threshold, enrolment is refused and the user is notified of a high‑risk status.",
+      "5. Biometric Flag Presence in REQ_PAY – performed by NPCI switch at transaction time; if the flag is missing, the Undo UI is not shown and the payment proceeds normally.",
+      "6. Provisional DEEMED Status Confirmation – performed by the Issuer Bank; if the bank cannot return a provisional DEEMED status within 200 ms, the undo window is disabled to avoid unrecoverable reversals.",
+      "7. Latency SLA Verification – performed by the PSP’s transaction monitor; if end‑to‑end latency is projected to exceed 0.5 s, the Undo option is suppressed to maintain overall SLA compliance.",
+      "8. Real‑time Fraud Risk Flag – performed by NPCI’s eFRM; if the transaction is flagged as high‑risk for reversal, the undo capability is turned off and the payment follows the standard flow."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

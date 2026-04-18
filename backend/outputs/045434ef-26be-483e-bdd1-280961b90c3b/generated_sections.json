@@ -1,0 +1,128 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India (NPCI) – UPI Product Management Division – issues this circular. Reference No.: NPCI/UPI/OC No. 012/2025-2026. Issue Date: 17‑Apr‑2026 (positioned flush‑right)."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular is issued to all stakeholders responsible for the design, implementation, and oversight of the unified rewards system for UPI transactions. The directive applies uniformly across the ecosystem to ensure consistent compliance and coordinated execution.",
+      "The intended recipients are **Product Managers, Application Engineers, Compliance Teams, PSP Operations Units, and NPCI Technical Governance Bodies** involved in the UPI framework. Each group must align its processes with the specifications detailed herein.",
+      "Product Managers must incorporate the unified rewards specifications into their product roadmaps and release schedules. Application Engineers are required to integrate the reward aggregation APIs as prescribed, while Compliance Teams must verify adherence to regulatory and security standards.",
+      "PSP Operations Units shall coordinate with NPCI to facilitate data exchange and reconciliation, and NPCI Technical Governance Bodies must monitor the overall system health and issue any necessary updates. All recipients are advised to acknowledge receipt of this circular within five working days."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Implement Unified Rewards Dashboard for UPI Transactions. Scope: All PSPs and UPI Apps."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem presently supports multiple independent reward programs that are confined within individual PSP applications. This fragmentation prevents users from aggregating or transferring earned points, resulting in reduced perceived value and inconsistent user experience. The lack of a standardized mechanism also limits the ability of regulators to monitor reward-driven transaction patterns that could influence financial inclusion objectives. To address this gap, the Issuer Bank has resolved to mandate a unified rewards framework that aggregates reward accruals across all participating UPI applications into a single interoperable dashboard. The directive aims to enhance user engagement, promote portability of rewards, and align with national digital financial inclusion initiatives."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to implement a unified rewards system for all UPI transactions. The decision mandates the creation of the Rewards Aggregation Service (RAS), the Rewards Dashboard API, and the RewardLedger schema. It also requires extensions to the REQ_PAY/RESP_PAY message formats to include a reward-segment field. The Common Library (CL) shall incorporate a Reward Module version 1.0.",
+      "The existing fragmented rewards architecture lacks a common data model, resulting in non-transferable points across PSPs. Engineering teams must integrate the RewardLedger schema into the NPCI Switch and update the transaction processing pipeline to persist reward entries. The Rewards Dashboard API must expose endpoints /v1/rewards/summary and /v1/rewards/redeem for PSP consumption.",
+      "All PSP Banks are required to adopt the Rewards Dashboard API for real-time reward accrual and redemption reporting. Issuer and Beneficiary Banks must support the reward-segment field in the debit and credit messages and must validate reward eligibility per the RewardLedger rules. UPI Apps must update their CL integration to invoke the Reward Module for PIN/biometric authentication and reward calculation.",
+      "Compliance teams must verify that the unified rewards implementation adheres to the existing dispute management framework and does not alter transaction settlement semantics. The complete rollout of the Rewards Aggregation Service, schema, and API shall be achieved by the end of Q4 2026. Post-deployment monitoring shall be performed using the Reward Notification schema to capture audit trails."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "Current UPI PSPs deliver rewards only within their own applications, resulting in fragmented user balances. The unified rewards feature requires a common reward accrual interface. PSPs must integrate the NPCI-defined UnifiedRewards API, must transmit transaction identifiers and reward points in every REQ_PAY response, and must store reward ledger entries in a tamper-evident database.",
+      "Issuer and Remitter Banks presently do not expose reward eligibility metadata in transaction messages, creating a visibility gap for downstream participants. The new schema mandates inclusion of reward flags in the payment payload. Issuer/Remitter Banks must append the rewardEligibility flag and rewardAmount field to the CL message, must synchronize these fields with the central rewards ledger in real time, and are advised to maintain audit logs for each reward-related transaction.",
+      "Beneficiary and Payee Banks receive credit confirmations without any reward credit information, limiting the ability to credit earned points to the recipient. The unified system introduces reward credit notifications. Beneficiary/Payee Banks must accept rewardCredit notifications from NPCI, must update the beneficiary’s reward balance atomically with the credit transaction, and are advised to generate daily reconciliation reports for reward balances.",
+      "UPI Apps currently present isolated reward screens per app, causing user confusion. The feature introduces a single rewards dashboard accessible across all participating apps. UPI Apps must render the unified rewards dashboard by invoking the StandardRewards endpoint, must display real-time reward balances and redemption options, and are advised to obtain explicit user consent before sharing transaction data with the rewards repository.",
+      "NPCI presently provides only the core payment switch specifications, lacking a formal rewards data model. The feature mandates a standardized reward schema. NPCI must publish the UnifiedRewards data model in the CL version 2.40, must enforce schema validation on all inbound messages, and are advised to operate a compliance sandbox for participant testing.",
+      "Compliance teams currently focus on AML/KYC aspects, with limited oversight of reward data handling. The introduction of cross-app reward aggregation creates new privacy and consumer protection considerations. Compliance teams must verify that all reward data processing adheres to the Data Protection Rules, must conduct quarterly compliance audits of reward flows, and are advised to maintain detailed documentation of reward-related interfaces."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned. The dissemination must reach all product managers, engineering leads, and compliance officers associated with the Unified Rewards System feature.",
+      "Recipients are required to acknowledge receipt within one business day and confirm that the directives have been communicated to their respective teams. Failure to acknowledge shall be escalated to the NPCI Governance Board.",
+      "All parties must retain a copy of this circular in their official records for audit and reference purposes. The retained copy shall be made available upon request by the NPCI Compliance Unit.",
+      "Any queries or clarifications regarding the unified rewards feature must be directed to the Product Management Office within two working days. Responses shall be documented and circulated to maintain a clear audit trail."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "The undersigned authorizes the implementation of the unified rewards system as described in the feature specification. Yours Sincerely,\nSD/-\nDr. Arvind Kumar\nChief Executive Officer\nNational Payments Corporation of India."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

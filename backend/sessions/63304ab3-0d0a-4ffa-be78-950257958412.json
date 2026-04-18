@@ -1,14 +1,14 @@
 {
   "session_id": "63304ab3-0d0a-4ffa-be78-950257958412",
   "created_at": "2026-04-16T09:15:13.355548",
-  "updated_at": "2026-04-17T05:27:13.591050",
+  "updated_at": "2026-04-18T10:48:31.397806",
   "title": "UPI AutoSplit with Smart Settlements:A built-in feature where UPI automatically...",
-  "bundle_id": "0d73ef81-704a-4aad-b225-116e7dfec64c",
+  "bundle_id": "f87be822-204d-463f-8428-e181c9d9008b",
   "bundle_jobs": {
-    "BRD": "e71d0d62-b622-4e2d-9a63-77ea18e1e033",
-    "TSD": "dc649108-df36-4b98-92b8-320508fce213",
-    "Product Note": "35a0e9a3-23bd-450a-974b-c48d28245ca2",
-    "Circular": "6dea2c80-5f8e-44f2-b55c-7c13c3db14ae"
+    "BRD": "bbe6a42e-c329-4bd7-8b78-35fd68379e4e",
+    "TSD": "db310559-902f-474f-9da5-12bac4318570",
+    "Product Note": "34c4cfcf-14bc-499f-b20e-263b1ef2542b",
+    "Circular": "af563d36-2eef-4c5c-92ae-882b5d62178b"
   },
   "requirement": {
     "feature_request": "UPI AutoSplit with Smart Settlements:A built-in feature where UPI automatically splits shared expenses (rent, trips, group dining, subscriptions) and settles them instantly or on a scheduled basis.",
@@ -255,7 +255,7 @@
   "prototype": {
     "status": "ready",
     "feature_name": "UPI AutoSplit with Smart Settlements:A built-in feature where UPI automatically ",
-    "screen_count": 7,
+    "screen_count": 5,
     "error": null
   }
 }

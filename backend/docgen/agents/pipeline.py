@@ -8,7 +8,7 @@ import re
 import uuid
 from pathlib import Path
 from typing import Any
-
+from langchain_core.language_models.chat_models import BaseChatModel
 import requests
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -32,7 +32,7 @@ from docgen.document_validator import repair_sections_for_validation, validate_g
 from docgen.document_guides import build_blueprint_plan, get_document_blueprint
 from docgen.models import DocumentPlan, GeneratedContent
 from docgen.plan_store import save_json_artifact
-from docgen.rag.engine import retrieve_multi_query
+from docgen.rag.engine import retrieve_multi_query, retrieve_hybrid
 from docgen.tools.diagram_generator import generate_diagram
 from docgen.tools.docx_builder import assemble_document
 
@@ -92,6 +92,163 @@ class _OpenAICompatChat:
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         return _CompatLLMResponse(content=content)
+
+def _format_proposals_for_doc_type(proposals: dict, doc_type: str) -> str:
+    import json as _json
+    if not proposals:
+        return ""
+
+    base = "\n\nAUTHORITATIVE TECHNICAL SPECIFICATIONS (derived from NPCI corpus — do NOT invent alternatives):\n"
+
+    if doc_type == "TSD":
+        return base + (
+            f"APIs: {_json.dumps(proposals.get('apis', []), indent=2)}\n"
+            f"Request Fields: {_json.dumps(proposals.get('request_fields', []), indent=2)}\n"
+            f"Response Fields: {_json.dumps(proposals.get('response_fields', []), indent=2)}\n"
+            f"Error Codes (UPI format): {_json.dumps(proposals.get('error_codes', []), indent=2)}\n"
+            f"Auth Method: {proposals.get('auth_method') or 'UPI PIN'}\n"
+            f"Transaction Limit: {proposals.get('transaction_limit') or 'As per NPCI guidelines'}\n"
+            f"Flow Sequence: {_json.dumps(proposals.get('flow_sequence', []), indent=2)}\n"
+            "RULE: Use ONLY these API names, field names, error codes. Never invent HTTP codes.\n"
+        )
+
+    if doc_type == "BRD":
+        frs = "\n".join(f"  {fr}" for fr in (proposals.get('functional_requirements') or []))
+        obligs = proposals.get('participant_obligations') or {}
+        obligs_text = ""
+        for p, duties in obligs.items():
+            obligs_text += f"  {p}: {'; '.join(duties)}\n"
+        return base + (
+            f"Current State (use in Background section):\n  {proposals.get('current_state') or 'Not derived'}\n"
+            f"Limitations (use in Background section):\n  {proposals.get('limitations') or 'Not derived'}\n"
+            f"Functional Requirements:\n{frs or '  None derived'}\n"
+            f"Dispute Framework:\n  {proposals.get('dispute_framework') or 'Standard UDIR applies'}\n"
+            f"Participant Obligations:\n{obligs_text or '  None derived'}\n"
+            f"Flow Sequence (business language):\n  {_json.dumps(proposals.get('flow_sequence', []))}\n"
+            "RULE: Business language only. No XML, no XSD field names.\n"
+        )
+
+    if doc_type == "Product Note":
+        journey = "\n".join(f"  {s}" for s in (proposals.get('user_journey_plain') or []))
+        tests = "\n".join(
+            f"  - {t['scenario']} | {t['objective']} | {t['owner']}"
+            for t in (proposals.get('test_scenarios') or [])
+        )
+        rules = "\n".join(f"  {r}" for r in (proposals.get('policy_rules') or []))
+        fails = "\n".join(f"  {f}" for f in (proposals.get('failure_scenarios') or []))
+        return base + (
+            f"User Journey (plain language — use in Product Construct):\n{journey or '  Not derived'}\n"
+            f"Policy Rules (use in Key Considerations):\n{rules or '  None derived'}\n"
+            f"Failure Scenarios (use in fallback sections):\n{fails or '  None derived'}\n"
+            f"Testing Scenarios (use in Testing & Certification table):\n{tests or '  None derived'}\n"
+            f"Dispute Framework:\n  {proposals.get('dispute_framework') or 'Standard UDIR applies'}\n"
+            "RULE: Stakeholder-friendly language only. No XML, no XSD field names, no internal class names.\n"
+        )
+
+    if doc_type == "Circular":
+        obligs = proposals.get('participant_obligations') or {}
+        obligs_text = ""
+        for p, duties in obligs.items():
+            duty_lines = "; ".join(duties)
+            obligs_text += f"  {p}: {duty_lines}\n"
+        return base + (
+            f"Participant Obligations:\n{obligs_text or '  None derived'}\n"
+            f"Go-Live Timeline: {proposals.get('go_live_timeline') or 'Not specified — omit dates'}\n"
+            f"Supersedes: {proposals.get('supersedes_circular') or 'None'}\n"
+            "RULE: Terse, formal directive language. Use 'must' for mandatory, 'are advised to' for recommended.\n"
+        )
+
+    # Fallback — return TSD-style
+    return base + (
+        f"APIs: {_json.dumps(proposals.get('apis', []))}\n"
+        f"Flow: {_json.dumps(proposals.get('flow_sequence', []))}\n"
+    )
+
+
+def _build_diagram_prompt(dtype: str, description: str, proposals: dict = None) -> str:
+    if not proposals:
+        return f"Create a {dtype} PlantUML diagram for: {description}"
+
+    flow = proposals.get("flow_sequence") or []
+    apis = proposals.get("apis") or []
+    user_journey = proposals.get("user_journey_plain") or []
+
+    # Build participant list from APIs
+    participants = set()
+    for api in apis:
+        initiator = api.get("initiator", "")
+        for p in ["PSP", "NPCI", "Issuer Bank", "Beneficiary Bank", "UPI App", "User"]:
+            if p.lower() in initiator.lower():
+                participants.add(p)
+    if not participants:
+        participants = {"User", "UPI App", "PSP Bank", "NPCI Switch", "Issuer Bank"}
+
+    # Use flow_sequence for sequence diagrams, user_journey_plain for activity/flowchart
+    steps = flow if "sequence" in dtype.lower() else (user_journey or flow)
+
+    steps_text = "\n".join(f"  {i+1}. {s}" for i, s in enumerate(steps[:12])) if steps else "  (no steps derived — infer from description)"
+    apis_text = ", ".join(f"{a.get('name', '?')}/{a.get('response', 'resp')}" for a in apis[:6]) if apis else "standard UPI APIs"
+    participants_text = " → ".join(sorted(participants))
+
+    return (
+        f"Create a {dtype} PlantUML diagram for: {description}\n\n"
+        f"Participants in order: {participants_text}\n"
+        f"API messages to show: {apis_text}\n"
+        f"Flow steps to represent:\n{steps_text}\n\n"
+        "RULES:\n"
+        "- Use the exact participant names and API message names listed above\n"
+        "- Show arrows between correct participants per each step\n"
+        "- Include activation bars for synchronous calls\n"
+        "- Show return/response messages for each request\n"
+        "- This diagram must be SPECIFIC to this feature — not a generic UPI flow"
+    )
+
+
+def _enrich_diagram_specs(specs: list, proposals: dict, prompt: str) -> None:
+    """Replace generic blueprint diagram descriptions with feature-specific ones using RAG proposals."""
+    # Extract feature name from prompt
+    feature_name = ""
+    for line in prompt.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("Product:"):
+            feature_name = stripped.replace("Product:", "").strip()
+            break
+    if not feature_name:
+        feature_name = next(
+            (l.strip() for l in prompt.splitlines()
+             if l.strip() and not l.startswith("##") and len(l.strip()) > 5),
+            "UPI Feature"
+        )[:60]
+
+    flow = proposals.get("flow_sequence") or []
+    user_journey = proposals.get("user_journey_plain") or []
+    apis = proposals.get("apis") or []
+
+    participants: set[str] = set()
+    for api in apis[:8]:
+        initiator = api.get("initiator", "")
+        for p in ["User", "UPI App", "App", "PSP", "PSP Bank", "NPCI", "NPCI Switch",
+                  "Issuer Bank", "Beneficiary Bank", "Acquirer Bank"]:
+            if p.lower() in initiator.lower():
+                participants.add(p)
+    if not participants:
+        participants = {"User", "UPI App", "PSP Bank", "NPCI Switch", "Issuer Bank"}
+
+    for spec in specs:
+        dtype = spec.get("diagram_type", "sequence")
+        steps = flow if "sequence" in dtype.lower() else (user_journey or flow)
+
+        if steps:
+            preview = "; ".join(str(s) for s in steps[:5])
+            desc = f"{feature_name} — {dtype} diagram. Steps: {preview}"
+        else:
+            desc = (
+                f"{feature_name} — {dtype} diagram. "
+                f"Participants: {' → '.join(sorted(participants))}"
+            )
+        spec["description"] = desc
+        spec["caption"] = desc
+
 
 # ---------------------------------------------------------------------------
 # LLM factories
@@ -443,9 +600,10 @@ _DEFAULT_PLANS: dict[str, dict] = {
             {"heading": "2. Strategic Rationale", "level": 1, "content_instructions": "Explain how this feature aligns with NPCI's vision, RBI Payments Vision 2025, and competitive ecosystem positioning.", "include_table": False, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
             {"heading": "3. Market Opportunity", "level": 1, "content_instructions": "Quantify the addressable market, target transaction volume, and expected merchant/user adoption in Year 1.", "include_table": True, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
             {"heading": "4. Product Capabilities", "level": 1, "content_instructions": "List key product capabilities with brief description of each. Group by: Core, Enhanced, and Future capabilities.", "include_table": True, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
-            {"heading": "5. Go-to-Market Plan", "level": 1, "content_instructions": "Define the GTM phases: Pilot (select banks), Limited Launch, and General Availability. Include readiness criteria for each phase.", "include_table": True, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
-            {"heading": "6. Revenue & Pricing Model", "level": 1, "content_instructions": "Describe the pricing structure for PSPs, merchants, and issuers. Include MDR, interchange, and any NPCI facilitation fee.", "include_table": True, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
-            {"heading": "7. Compliance Summary", "level": 1, "content_instructions": "Summarise the key regulatory requirements and how the product meets them. Reference specific RBI directives and NPCI OCs.", "include_table": False, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
+            {"heading": "5. User Journey & Experience Flow", "level": 1, "content_instructions": "Describe the end-to-end user experience step by step: initiation, authentication, processing, confirmation, and fallback paths. Include a numbered steps table with columns: Step, Activity, Responsible Party.", "include_table": True, "include_diagram": True, "diagram_type": "sequence", "diagram_description": "User journey sequence diagram showing end-to-end flow"},
+            {"heading": "6. Go-to-Market Plan", "level": 1, "content_instructions": "Define the GTM phases: Pilot (select banks), Limited Launch, and General Availability. Include readiness criteria for each phase.", "include_table": True, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
+            {"heading": "7. Revenue & Pricing Model", "level": 1, "content_instructions": "Describe the pricing structure for PSPs, merchants, and issuers. Include MDR, interchange, and any NPCI facilitation fee.", "include_table": True, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
+            {"heading": "8. Compliance Summary", "level": 1, "content_instructions": "Summarise the key regulatory requirements and how the product meets them. Reference specific RBI directives and NPCI OCs.", "include_table": False, "include_diagram": False, "diagram_type": "flowchart", "diagram_description": ""},
         ],
     },
     "Circular": {
@@ -965,12 +1123,40 @@ OUTPUT FORMAT — return exactly this JSON structure
 # Node 1 — retrieve_context
 # ---------------------------------------------------------------------------
 
+_DOC_TYPE_QUERIES = {
+    "TSD": [
+        "API request response parameters mandatory optional fields UPI",
+        "transaction flow sequence message types participants",
+        "integration prerequisites certification UAT error codes",
+        "XML schema elements ReqPay RespPay NPCI PSP",
+    ],
+    "BRD": [
+        "background current state limitations challenges UPI feature",
+        "functional requirements acceptance criteria obligation language",
+        "dispute management liability SLA NPCI stakeholder",
+        "business requirements product overview envisaged changes",
+    ],
+    "Product Note": [
+        "user journey step by step experience enrollment transaction",
+        "testing certification scenarios enrollment fallback disablement",
+        "salient points policy rules stakeholder product",
+        "dispute management roles responsibilities PSP issuer",
+    ],
+    "Circular": [
+        "NPCI directive participant obligations banks PSP TPAP must",
+        "implementation timeline go-live certification compliance",
+        "circular addressee subject mandatory advisory",
+    ],
+}
+
+
 def retrieve_context(state: dict) -> dict:
     logger.info("[retrieve_context] job_id=%s", state.get("job_id"))
     state["status"] = "retrieving"
 
     try:
         prompt = state.get("prompt", "")
+        doc_type = state.get("doc_type", "TSD")
         collection = state.get("collection_name", "default")
         use_rag = state.get("use_rag", True)
 
@@ -979,23 +1165,42 @@ def retrieve_context(state: dict) -> dict:
             state["rag_context"] = ""
             return state
 
-        # Derive topic keyword from prompt
-        topic = " ".join(prompt.split()[:6])
-
-        chunks, context = retrieve_multi_query(
-            prompt=prompt,
-            topic=topic,
-            collection_name=collection,
+        # Extract clean feature description (strip canvas/product header boilerplate)
+        clean_prompt = next(
+            (line.strip() for line in prompt.splitlines()
+             if line.strip() and not line.startswith("Product:")
+             and not line.startswith("##") and len(line.strip()) > 20),
+            prompt[:300]
         )
 
-        state["rag_chunks"] = chunks
+        seen: set[str] = set()
+        all_chunks: list[str] = []
+
+        # 1. Doc-type targeted queries — fetch NPCI pattern chunks specific to this doc type
+        for query in _DOC_TYPE_QUERIES.get(doc_type, _DOC_TYPE_QUERIES["TSD"]):
+            for chunk in retrieve_hybrid(query, collection_name=collection, top_k=2):
+                if chunk not in seen:
+                    seen.add(chunk)
+                    all_chunks.append(chunk)
+
+        # 2. Feature-specific semantic search — analogous NPCI feature chunks
+        chunks, _ = retrieve_multi_query(
+            prompt=clean_prompt,
+            topic=" ".join(clean_prompt.split()[:8]),
+            collection_name=collection,
+        )
+        for chunk in chunks:
+            if chunk not in seen:
+                seen.add(chunk)
+                all_chunks.append(chunk)
+
+        context = "\n\n---\n\n".join(all_chunks)
+        state["rag_chunks"] = all_chunks
         state["rag_context"] = context
-        if chunks:
+        if all_chunks:
             logger.info(
-                "[retrieve_context] collection=%s, retrieved_chunks=%d, rag_enabled=%s",
-                collection,
-                len(chunks),
-                use_rag,
+                "[retrieve_context] doc_type=%s collection=%s chunks=%d",
+                doc_type, collection, len(all_chunks),
             )
         else:
             logger.warning(
@@ -1084,6 +1289,9 @@ def plan_document(state: dict) -> dict:
             "signatory_title": state.get("signatory_title"),
             "signatory_department": state.get("signatory_department"),
         }
+        # Read proposals early — needed for both blueprint and LLM planning paths
+        proposals = state.get("proposals") or {}
+
         blueprint_plan = build_blueprint_plan(doc_type, brief)
         if blueprint_plan:
             plan_data = DocumentPlan.model_validate(blueprint_plan).model_dump()
@@ -1100,6 +1308,9 @@ def plan_document(state: dict) -> dict:
                         "description": section.get("diagram_description", section.get("heading", "")),
                         "caption": section.get("diagram_description", section.get("heading", "")),
                     })
+            # Replace generic blueprint descriptions with feature-specific ones from RAG proposals
+            if proposals and diagram_specs:
+                _enrich_diagram_specs(diagram_specs, proposals, prompt)
             state["diagram_specs"] = diagram_specs
             save_json_artifact(state.get("job_id", "tmp"), "document_plan.json", plan_data)
             return state
@@ -1111,24 +1322,23 @@ def plan_document(state: dict) -> dict:
         audience = state.get("audience", "")
         desired_outcome = state.get("desired_outcome", "")
         format_constraints = state.get("format_constraints", "")
-        proposals = state.get("proposals") or {}
+        # proposals already read above
         taxonomy = state.get("taxonomy") or {}
+        clarification_answers = state.get("clarification_answers") or ""
         proposals_block = ""
         if proposals:
-            import json as _json
-            proposals_block = (
-                "\n\nAUTHORITATIVE TECHNICAL SPECIFICATIONS (derived from NPCI documentation):\n"
-                f"APIs: {_json.dumps(proposals.get('apis', []), indent=2)}\n"
-                f"Auth Method: {proposals.get('auth_method', 'UPI PIN')}\n"
-                f"Transaction Limit: {proposals.get('transaction_limit', 'As per NPCI guidelines')}\n"
-                f"Flow Sequence: {_json.dumps(proposals.get('flow_sequence', []), indent=2)}\n"
-                f"Error Codes: {_json.dumps(proposals.get('error_codes', []), indent=2)}\n"
-                "Use these exact API names, field names, and error codes in the plan.\n"
-            )
+            proposals_block = _format_proposals_for_doc_type(proposals, doc_type)
+
         if taxonomy:
             proposals_block += (
                 f"\nFeature Classification: {taxonomy.get('primary_category', '')} "
                 f"({', '.join(taxonomy.get('labels', []))})\n"
+            )
+
+        if clarification_answers:
+            proposals_block += (
+                f"\nPM Clarification Answers (treat as authoritative — override any RAG assumption):\n"
+                f"{clarification_answers}\n"
             )
 
         context_block = ""
@@ -1232,7 +1442,8 @@ def plan_document(state: dict) -> dict:
 # Node 3 — generate_diagrams
 # ---------------------------------------------------------------------------
 
-def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str, llm_content=None) -> tuple[str, str]:
+def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str, llm_content=None, proposals: dict = None) -> tuple[str, str]:
+
     """Generate one diagram. Returns (diagram_id, path_or_empty).
 
     Strategy:
@@ -1257,11 +1468,14 @@ def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str, llm_c
         "- For ACTIVITY diagrams: every activity step MUST end with a semicolon, e.g. :Process Payment;\n"
         "- For SEQUENCE diagrams: declare all participants; show every message with a label.\n"
         "- For FLOWCHART (use_case / component): use --> arrows with labels.\n"
-        "- Include all actors, steps, and decision points relevant to the description.\n"
         "- Keep it to 6-14 steps/messages for readability.\n"
-        "- Every XML-based UPI API namespace must be xmlns:upi=\"http://npci.org/upi/schema/\"\n"
+        "CRITICAL RULE: This diagram is for a SPECIFIC UPI feature — you MUST use ONLY the exact "
+        "participants, API message names, and flow steps listed in the user message. "
+        "DO NOT substitute a generic UPI payment flow. Every step in the diagram must come from "
+        "the numbered flow steps provided. Do not invent steps not listed.\n"
     )
-    plantuml_user = f"Create a {dtype} PlantUML diagram for: {description}"
+    plantuml_user = _build_diagram_prompt(dtype, description, proposals)
+
 
     try:
         _llm_puml = llm_content if llm_content is not None else _make_llm_content()
@@ -1311,12 +1525,15 @@ def _generate_single_diagram(llm: ChatOllama, spec: dict, output_dir: str, llm_c
         f"Create a {dtype} diagram spec as STRICT JSON. "
         "Respond with valid JSON ONLY. No markdown, no explanation. "
         f"Use this schema example:\n{hint}\n"
-        "Make the diagram informative and presentation-ready. "
-        "Use a clear title, a short subtitle, explicit labels, and realistic domain terminology. "
-        "Prefer 4-7 nodes/messages when that improves clarity."
+        "CRITICAL: Use ONLY the feature-specific steps, participants, and API names provided in "
+        "the user message. Do NOT generate a generic UPI payment flow. "
+        "Make every label reflect the exact feature described. "
+        "Prefer 6-10 nodes/messages for completeness."
     )
+    # Build a rich user message for the fallback — include proposals if available
+    _fallback_user = _build_diagram_prompt(dtype, description, proposals) if proposals else f"Create a {dtype} diagram for: {description}"
     try:
-        resp2 = llm.invoke([SystemMessage(content=json_system), HumanMessage(content=f"Create a {dtype} diagram for: {description}")])
+        resp2 = llm.invoke([SystemMessage(content=json_system), HumanMessage(content=_fallback_user)])
         raw2 = resp2.content if hasattr(resp2, "content") else str(resp2)
         diagram_spec = _parse_json(raw2)
     except Exception as e:
@@ -1344,9 +1561,11 @@ def generate_diagrams(state: dict) -> dict:
         llm = _make_llm_json()
         generated: dict[str, str] = {}
 
+        proposals = state.get("proposals") or {}
         for spec in specs:
             try:
-                did, path = _generate_single_diagram(llm, spec, output_dir, llm_content=_make_llm_content())
+                did, path = _generate_single_diagram(llm, spec, output_dir, llm_content=_make_llm_content(), proposals=proposals)
+
 
                 if path:
                     generated[did] = path
@@ -1574,6 +1793,7 @@ def _write_section(
     desired_outcome: str = "",
     feature_prompt: str = "",
     proposals: dict = None,
+    clarification_answers: str = "",
 ) -> dict:
     section_key = section.get("section_key")
     heading = section.get("heading", "Section")
@@ -1588,16 +1808,9 @@ def _write_section(
     
     proposals_snippet = ""
     if proposals:
-        proposals_snippet = (
-            "AUTHORITATIVE TECHNICAL SPECIFICATIONS — use these exact names, do NOT invent alternatives:\n"
-            f"APIs: {_json.dumps(proposals.get('apis', []))}\n"
-            f"Request Fields: {_json.dumps(proposals.get('request_fields', []))}\n"
-            f"Error Codes: {_json.dumps(proposals.get('error_codes', []))}\n"
-            f"Auth Method: {proposals.get('auth_method', '')}\n"
-            f"Flow: {_json.dumps(proposals.get('flow_sequence', []))}\n"
-        )
+        proposals_snippet = _format_proposals_for_doc_type(proposals, doc_type)
 
-    context_snippet = rag_context[:2000] if rag_context else ""
+    context_snippet = rag_context[:5000] if rag_context else ""
     user_msg = (
         f"Write content for section: '{heading}'\n"
         f"Instructions: {instructions}\n"
@@ -1614,8 +1827,13 @@ def _write_section(
             else ""
         )
         + (
-            f"\nKnowledge-base context (use only if relevant to this section):\n{context_snippet}"
+            f"\nKnowledge-base context (NPCI corpus — use only where directly relevant):\n{context_snippet}"
             if context_snippet else ""
+        )
+        # clarification_answers LAST — authoritative, overrides everything above
+        + (
+            f"\nPM ANSWERS (AUTHORITATIVE — override RAG and all assumptions above):\n{clarification_answers}\n"
+            if clarification_answers else ""
         )
     )
 
@@ -1668,6 +1886,9 @@ def write_content(state: dict) -> dict:
 
         from concurrent.futures import ThreadPoolExecutor, as_completed
         proposals = state.get("proposals") or {}
+        feature_prompt = state.get("prompt", "")
+        clarification_answers = state.get("clarification_answers") or ""
+
         def _write_one(idx_section: tuple[int, dict]) -> tuple[int, dict]:
             idx, section = idx_section
             content = _write_section(
@@ -1677,8 +1898,9 @@ def write_content(state: dict) -> dict:
                 doc_type=doc_type,
                 audience=audience,
                 desired_outcome=desired_outcome,
-                feature_prompt=feature_prompt, 
-                proposals=proposals
+                feature_prompt=feature_prompt,
+                proposals=proposals,
+                clarification_answers=clarification_answers,
             )
             content["section_key"] = section.get("section_key")
             content["render_style"] = section.get("render_style", "body")

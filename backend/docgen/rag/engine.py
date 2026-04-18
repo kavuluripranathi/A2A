@@ -8,7 +8,8 @@ import re
 import uuid
 from pathlib import Path
 from typing import Optional
-
+import config as _root_config
+import requests
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -478,8 +479,8 @@ def search_collection(query: str, collection_name: str = "default", top_k: int =
 # Falls back to ChromaDB if rag_system is unavailable
 # ---------------------------------------------------------------------------
 
-RAG_SERVICE_URL = "http://localhost:8001"
-RAG_SERVICE_TIMEOUT = 180  # seconds
+RAG_SERVICE_URL = getattr(_root_config, "RAG_SYSTEM_URL", "http://localhost:8001")
+RAG_SERVICE_TIMEOUT = 300
 
 def _call_rag_service(query: str, top_k: int = 8) -> tuple[list[str], str] | None:
     """Call the rag_system microservice. Returns (chunks, context) or None if unavailable."""

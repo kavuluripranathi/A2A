@@ -1,0 +1,398 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "Today, a UPI payment begins when the customer opens a PSP‑bank’s UPI app and authorises the transaction with a PIN or biometric. The PSP Bank encrypts the credential block using the Common Library and forwards the payment request to NPCI. NPCI validates the request, forwards an authentication request to the Issuer Bank, receives the debit confirmation, routes a credit request to the Beneficiary Bank, and finally sends a consolidated confirmation back to the PSP Bank, which presents the outcome to the customer.",
+      "When a group expense needs to be settled, the existing UPI framework does not provide a native split capability. Each participant must independently generate a separate payment request or set up an individual autopay mandate, causing multiple debit requests to be processed by their respective PSP Banks, with NPCI routing each transaction separately. Consequently, users incur repeated transaction fees, experience delayed settlement of the overall bill, and must manually reconcile the individual payments."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI framework only supports individual point‑to‑point payments or separate mandate setups, which forces users to manually calculate and settle shared expenses. This manual approach creates operational friction for PSP banks, increases transaction volume on the NPCI switch, and exposes issuers to higher settlement risk. Consequently, the ecosystem cannot deliver the single‑click group‑expense experience that modern users expect."
+    ],
+    "bullet_points": [
+      "Manual share calculation – Payers – Leads to errors, delayed reimbursements, and higher support tickets.",
+      "Multiple independent ReqPay calls – PSP Banks – Increases API load, processing latency, and cumulative transaction fees for each participant.",
+      "Absence of consolidated settlement – Issuer and Beneficiary Banks – Results in fragmented credit flows, higher reconciliation effort, and delayed cash availability for merchants.",
+      "No native split mandate – NPCI – Prevents standardized routing, hampers scalability, and limits ability to enforce regulatory limits across split legs.",
+      "Lack of automated PIN enforcement for high‑value split legs – PSP Banks – Exposes compliance risk and potential breach of UPI authentication thresholds."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The Reserve Bank of India’s latest UPI guidelines mandate that all participants enhance user‑centric functionalities while preserving the existing security framework, prompting NPCI to introduce a native split‑mandate capability that aligns with the prescribed PIN authentication thresholds and daily aggregate limits. PSP Banks will benefit from reduced transaction‑handling overhead because the split flow consolidates multiple debit requests into a single mandate lifecycle, thereby lowering processing fees and operational complexity. Issuer Banks and Beneficiary Banks will see improved settlement efficiency as NPCI’s switch routes aggregated split settlements, ensuring compliance with the Smart Settlement model and minimizing delayed credit events.",
+      "NPCI will extend the existing REQ_PAY and REQ_MANDATE APIs to support split‑mandate processing, thereby avoiding the need for a parallel payment channel and preserving the current dispute management process. NPCI selected this approach over a custom peer‑to‑peer settlement model because it preserves the unified risk‑management controls of the UPI ecosystem and meets RBI’s requirement for consistent authentication across all transaction legs. Consequently, PSP Banks, Issuer Banks and Beneficiary Banks gain a frictionless single‑click experience for users while retaining full visibility and control over each individual debit, supporting both regulatory compliance and commercial value‑added service opportunities."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit feature enables a payer to initiate a single transaction that automatically divides a total expense among multiple VPA participants and triggers the corresponding debit requests in one coordinated flow. This capability involves the payer’s PSP Bank, the participating PSP Banks of each beneficiary, the Issuer Banks that hold the payer’s and beneficiaries’ accounts, and NPCI as the central switch. The scope of change introduces a Group Split Mandate and leverages the existing ReqPay/RespPay messaging while adding split‑calculation logic at the PSP level.",
+      "By eliminating the need for manual calculations and separate payment requests, AutoSplit reduces operational friction for users and lowers transaction‑fee overhead for merchants who would otherwise receive multiple partial payments. The feature delivers a single‑click experience that accelerates settlement, improves cash‑flow visibility, and enhances overall user satisfaction, thereby encouraging greater UPI adoption. Financial institutions gain a differentiated, value‑added service that can be marketed to retain and grow their customer base.",
+      "Under the new flow, PSP Banks are responsible for implementing the Group Split Mandate APIs, enforcing UPI‑PIN authentication for high‑value legs, and aggregating individual response confirmations into a consolidated status for the initiator. Issuer Banks must support real‑time debit of each participant’s account and provide standard settlement reports to NPCI, while NPCI validates purpose codes, routes all mandate and payment messages, and generates consolidated settlement files for split transactions. The business outcome is a streamlined end‑to‑end process that reduces processing load on PSPs, improves settlement efficiency, and aligns with regulatory compliance without altering the existing dispute framework."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This section is not applicable for the UPI AutoSplit feature. Users access the split functionality directly from the UPI app’s expense screen without any prior registration or opt‑in step."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Feature availability check – no enrollment flow required",
+          "PSP Bank"
+        ],
+        [
+          "Post Response",
+          "No post‑enrollment actions needed",
+          "PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "After enrollment, a payer initiates AutoSplit when a shared expense event occurs such as a group dinner. The trigger condition is the creation of a SplitCreate request that contains the total amount and the VPAs of all participants. The payer’s PSP validates the split request, calculates each participant’s share in accordance with functional requirement FR-02, and forwards a consolidated payment request to NPCI. NPCI validates the purpose code and routes individual ReqPay messages to each participant’s PSP for further processing.",
+      "For each participant, NPCI sends an authentication request to the participant’s PSP, which invokes the Common Library to capture PIN or biometric as required by FR-05. The participant’s PSP returns the authentication details to NPCI, which then forwards a debit request to the participant’s Issuer Bank. The Issuer Bank debits the participant’s account and acknowledges the debit with a response to NPCI, after which NPCI routes a credit request to the beneficiary’s Bank. The Beneficiary Bank credits the participant’s account, confirms the credit to NPCI, and NPCI aggregates all individual responses to deliver a consolidated transaction confirmation to the initiating PSP, completing the flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate split request format and participant VPAs",
+          "Payer PSP Bank"
+        ],
+        [
+          "Step 1",
+          "Create SplitCreate request with total amount and participant list",
+          "Payer PSP Bank"
+        ],
+        [
+          "Step 2",
+          "Calculate individual shares and generate individual ReqPay messages",
+          "Payer PSP Bank"
+        ],
+        [
+          "Step 3",
+          "Send authentication request to each participant’s PSP via NPCI",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Capture PIN/biometric and return authentication details",
+          "Participant PSP Bank"
+        ],
+        [
+          "Step 5",
+          "Debit participant’s account through Issuer Bank",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "Credit beneficiary’s account through Beneficiary Bank",
+          "Beneficiary Bank"
+        ],
+        [
+          "Step 7",
+          "Aggregate individual responses and produce consolidated transaction status",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "Notify initiating PSP and update transaction ledger in app",
+          "Payer PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit capability introduces several edge cases that differ from traditional point-to-point UPI transactions. Because a single mandate can generate multiple debit legs, the ecosystem must handle partial failures, retry attempts, and participant-level consent changes. These scenarios affect routing, authentication, and settlement across all participants. The following business rules capture the required constraints.",
+      "In addition to the new flow, the feature must coexist with existing UPI functionality without disrupting legacy payments. Therefore, explicit opt-in, device capability checks, and backward-compatibility windows are mandated. Operational teams must also define clear exception handling for amount limits and settlement modes. The numbered items enumerate these obligations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "NPCI shall require every user to explicitly opt‑in to the AutoSplit service within their UPI application; PSP Bank is responsible for presenting the opt‑in toggle, recording the consent, and ensuring that only opted‑in users can be included as participants in a split mandate.",
+      "PSP Bank must verify that the payer’s device possesses a hardware‑backed secure enclave or trusted execution environment before initiating a split transaction; if the device lacks this capability, PSP Bank shall fall back to a manual split process and notify the user.",
+      "In the event that an individual leg of a split fails due to a network timeout, PSP Bank shall automatically retry the debit up to two additional times within a five‑minute window; NPCI will convey the retry status to the initiator and mark the overall split as partially failed only after all retries are exhausted.",
+      "Beneficiary Bank shall honor any participant’s request to withdraw consent for future split debits immediately; upon receipt, Beneficiary Bank must inform NPCI, which will block further executions of the associated split mandate for that VPA.",
+      "NPCI will maintain legacy ReqPay routing unchanged, and PSP Bank shall support both the traditional point‑to‑point APIs and the new split APIs concurrently for a minimum of twelve months to ensure backward compatibility for all existing users.",
+      "When a split leg exceeds the PIN‑free threshold, Issuer Bank shall trigger a PIN authentication request; if the payer declines or the authentication fails, PSP Bank must abort the entire split transaction and return a consolidated failure response to the initiator.",
+      "If the Smart Settlement flag is set but the aggregate split amount surpasses the instant‑settlement ceiling, NPCI shall switch the transaction to scheduled settlement and notify all involved PSP Banks; PSP Bank must update the user interface to reflect the delayed credit and inform participants of the new settlement timeline."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the UPI AutoSplit feature does not modify the dispute management process. All split‑leg transactions are treated as independent UPI payments under the existing UDIR framework. Consequently, the standard liability and charge‑back rules continue to apply. NPCI, PSP Banks, Issuer Banks and Beneficiary Banks will follow the same dispute lifecycle as for any point‑to‑point payment.",
+      "PSP Banks remain responsible for receiving a customer’s dispute claim and routing it to the appropriate Issuer or Beneficiary Bank within the prescribed SLA. Issuer Banks retain primary liability for debits that are disputed, while Beneficiary Banks retain liability for credits, consistent with current UPI rules. The SLA for dispute acknowledgment and resolution (typically 24 hours for acknowledgment and 72 hours for final settlement) stays unchanged. Escalation follows the established path: Customer → PSP Bank → Issuer/Beneficiary Bank → NPCI, with NPCI providing arbitration only when the banks cannot resolve the issue."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "The functional requirements for the UPI AutoSplit feature are defined to ensure a consistent, secure, and user‑friendly experience across all ecosystem participants. Each requirement is expressed as a testable statement that can be validated by product managers, engineering teams, and compliance auditors. The list below captures the essential capabilities that must be implemented to deliver the intended group‑split functionality."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall allow a payer to create a Group Split Mandate referencing multiple VPA participants.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall automatically calculate each participant's share based on the total amount and predefined split ratios.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall trigger individual ReqPay requests to each participant's PSP using the existing payment APIs.",
+          "High"
+        ],
+        [
+          "FR-04",
+          "The system shall support Smart Settlement – either instant settlement after all debits succeed or scheduled settlement as per user preference.",
+          "Medium"
+        ],
+        [
+          "FR-05",
+          "The system shall enforce UPI PIN authentication for any participant debit exceeding INR 15,000 or for the first debit of a newly created mandate.",
+          "High"
+        ],
+        [
+          "FR-06",
+          "The system shall provide a consolidated RespTxnConfirmation to the initiator indicating overall success or failure of the split transaction.",
+          "High"
+        ],
+        [
+          "FR-07",
+          "The system shall allow the payer to modify or cancel a pending Group Split Mandate before any participant debit is executed.",
+          "Medium"
+        ],
+        [
+          "FR-08",
+          "The system shall enforce the existing daily aggregate transaction limit per VPA across all split legs of a Group Split Mandate.",
+          "Medium"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The NPCI platform and Common Library must evolve to enable the AutoSplit capability across the UPI ecosystem. This evolution introduces dedicated split‑management messages, expands the transaction schema with split metadata, and adds operational flags that control settlement behavior. NPCI will own the definition of these messages and the versioning of the Common Library, while PSP banks will be required to adopt the new specifications. The changes are designed to preserve backward compatibility for existing flows.",
+      "The forthcoming changes are organized into four logical groups: new API messages, schema extensions, Common Library version bump, and configuration flags for optional enablement. Each group specifies the participant responsible for implementation and the expected business outcome, such as a single‑click group payment experience and reduced operational overhead. NPCI will publish the updated specifications and enforce validation at the switch, while PSP banks will integrate the changes into their UPI apps and back‑end services. Issuer and Beneficiary banks will honor the new settlement flag without any code change beyond standard message handling."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "(1) NPCI shall introduce a suite of split‑management APIs – SplitCreate, SplitSchedule, SplitSettle, SplitModify, SplitCancel, and SplitStatus – and publish the message definitions; PSP banks must implement these APIs in their UPI applications and back‑end gateways.",
+      "(2) NPCI shall extend the transaction request schema with a splitDetails object that captures participant VPAs, individual share amounts or percentages, a unique splitId, and optional ruleConfig parameters; PSP banks are responsible for populating this object when invoking the new APIs.",
+      "(3) NPCI shall add a smartSettlementFlag to the transaction request to indicate whether the split should settle instantly or follow the standard settlement cycle; Issuer and Beneficiary banks must process this flag and route credits accordingly.",
+      "(4) NPCI shall release an updated Common Library version (e.g., 2.38) that incorporates split‑handling logic, encryption of splitDetails, and validation of the smartSettlementFlag; all PSP banks and UPI app developers must upgrade to the new CL version to participate in AutoSplit flows.",
+      "(5) NPCI shall introduce a platform‑level configuration flag named enableAutoSplit that allows each participating bank to opt‑in to the feature; PSP banks will set this flag during onboarding and must honor it when routing split requests.",
+      "(6) NPCI shall modify the VPA registration schema to capture splitId and the list of authorized participants for future split transactions; PSP banks must forward this enriched registration data to NPCI during the onboarding of new users."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of AutoSplit requires NPCI to augment its core routing and validation logic while preserving the existing UPI experience for all participants. Current processing treats each payment leg as an isolated ReqPay/RespPay exchange, which does not support coordinated split settlements. By embedding split‑specific metadata, NPCI can orchestrate a single logical transaction that spans multiple payer and payee banks.",
+      "These enhancements will reduce the number of round‑trips between PSPs and banks, lower operational overhead, and provide a unified confirmation to the initiating app. The changes also ensure that biometric and PIN authentication rules are consistently applied across all split legs. Consequently, users receive a seamless single‑click split experience without compromising security or compliance."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall extend the refCategory processing logic to recognise the new value ‘05’ as biometric‑authenticated split transactions, and shall enforce that any split leg exceeding INR 15,000 triggers a PIN challenge. The PSP Bank must forward the refCategory flag from the UPI App unchanged, while the Issuer Bank must honour the PIN requirement for the indicated legs.",
+      "2. NPCI shall validate the encrypted credential block (CRED) against the latest Common Library version before routing a SplitCreate request, rejecting any request where the CL version is lower than the mandated 2.36. The PSP Bank is responsible for embedding the correct CL version in the request, and the Issuer Bank must reject mismatched credentials.",
+      "3. NPCI shall modify the switch routing engine to route each participant’s individual ReqPay message through a consolidated split transaction identifier, ensuring that all legs are processed within a single transaction context. The PSP Bank of each participant shall attach the shared splitId, and the Beneficiary Bank shall credit the amount only after the NPCI switch confirms successful processing of all legs.",
+      "4. NPCI shall generate a consolidated RespTxnConfirmation that aggregates the status of each leg and returns a single success or failure code to the initiating PSP. The initiating PSP shall present this consolidated response to the UPI App, while each Issuer Bank continues to send its individual RespPay for audit purposes.",
+      "5. NPCI shall implement a timeout coordination mechanism that invokes REQ_CHK_TXN for any leg that does not receive a RespPay within the standard 30‑second window, and shall propagate the final leg status to the consolidated response. The PSP Bank must forward the timeout check request to the respective Issuer Bank, and the Beneficiary Bank must hold the credit until the final confirmation."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit capability requires the UPI mobile application and its sponsoring PSP to introduce new front‑end flows that guide the user through enrollment, consent capture and device binding. These flows must be presented as a single wizard so that the payer can create a split mandate, agree to the sharing rules and authorize the device that will hold the biometric credential. The PSP is responsible for persisting the consent artefacts and forwarding them to NPCI through the CL.",
+      "All changes are designed to operate within the existing UPI security model while adding minimal friction. The app will invoke the Common Library with the latest version that supports biometric‑enabled transactions and will store the generated credential block in the device’s secure enclave. The PSP will validate the device health check response before activating the split mandate and will surface any error to the user through the UI."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. UPI App shall add a dedicated Create Split screen that captures the total amount, participant VPAs and split ratios, and displays a summary before proceeding to consent.",
+      "2. UPI App shall integrate the CL SDK to generate an encrypted credential block for the split mandate and pass the block to the PSP via the existing secure channel.",
+      "3. PSP shall store the encrypted credential block in its back‑end repository and associate it with the payer’s VPA, ensuring that the block is never exposed in clear text.",
+      "4. UPI App shall present a consent capture dialog that explains the auto‑debit schedule, PIN exemption rules and the right to revoke, and must obtain an explicit affirmative tap before proceeding.",
+      "5. PSP shall record the user’s consent timestamp and consent version in its audit log and forward the consent record to NPCI as part of the SplitCreate request.",
+      "6. UPI App shall perform a device health check using the CL nonce‑challenge before binding the device, and shall send the result to PSP; PSP shall verify the health status and complete device binding only when the device reports a secure enclave state."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit capability introduces a coordinated payment flow that requires the UPI App and the PSP to extend their transaction‑time behavior. At the moment the app only captures a single credential set for a point‑to‑point payment; the new flow must capture, encrypt and transmit a credential block for each split leg while preserving the user experience. Consequently, the PSP must integrate the Common Library in a looped fashion and manage multiple ReqPay invocations within a single user action. This change is owned by the PSP Bank, with NPCI providing the updated CL version and specifications.",
+      "In addition to credential handling, the app and PSP must implement robust fallback logic to address partial failures or time‑outs during the split execution. If any participant’s debit fails, the PSP Bank shall invoke NPCI’s REQ_CHK_TXN to verify status and decide whether to retry, roll back, or present a consolidated error to the user. The response presentation layer in the UPI App shall aggregate individual outcomes into a single confirmation screen that clearly indicates successful and pending legs. This responsibility rests with the PSP Bank for orchestration and the UPI App team for UI rendering."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Credential Capture: PSP Bank shall invoke the Common Library to capture the payer’s UPI PIN or biometric data, encrypt it into a CRED block, and attach it to each split participant’s ReqPay request.",
+      "2. CL Invocation per Leg: PSP Bank shall call the CL for every participant in the split, ensuring the clVersion reflects biometric support and that the encrypted credential is refreshed for each transaction.",
+      "3. Multi‑ReqPay Generation: PSP Bank shall generate a separate ReqPay message for each beneficiary VPA, embedding the splitDetails and the shared CRED block, and transmit them sequentially to NPCI.",
+      "4. Fallback Handling – Timeout: If NPCI does not respond within the defined SLA for any leg, PSP Bank shall trigger a REQ_CHK_TXN to the Issuer Bank, evaluate the response, and retry the debit up to two times before marking the leg as failed.",
+      "5. Fallback Handling – Partial Success: When one or more legs succeed and others fail, PSP Bank shall coordinate with the Issuer Bank to initiate a reversal of successful debits if the business rule requires an all‑or‑none settlement, otherwise it shall proceed to settlement of successful legs and notify the user of pending amounts.",
+      "6. Consolidated Response Presentation: The UPI App shall collate the individual RespPay messages from NPCI, translate them into a single RespTxnConfirmation that lists each participant’s status, and display a clear summary to the payer, indicating total amount settled, any pending shares, and next steps."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank plays a pivotal role in authenticating and registering participants for the AutoSplit feature. When a payer creates a split mandate, the bank must ensure that the payer’s identity, device credentials, and biometric preferences are captured in compliance with NPCI standards. This establishes a trusted foundation for subsequent automated debits across multiple participants. The bank’s actions directly affect the speed and reliability of split settlements.",
+      "In addition to initial registration, the Issuer Bank is responsible for real‑time validation of each split leg and for communicating definitive responses to NPCI. The bank must store mandate details, enforce transaction limits, and provide signed acknowledgments that include challenge nonces where required. It also must generate settlement status updates that enable NPCI to consolidate the overall split outcome. These responsibilities ensure that the AutoSplit experience remains seamless for end‑users while maintaining regulatory compliance."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Issuer Bank shall maintain a secure mandate repository that stores the split mandate identifier, payer VPA, list of participant VPAs, individual share amounts or percentages, and the chosen settlement schedule.",
+      "Issuer Bank shall validate every debit request against the stored mandate, confirming that the requested amount matches the predefined share and that the aggregate of all legs does not exceed the per‑transaction ceiling; it shall also enforce UPI PIN authentication for any leg above INR 15,000 or for the first execution of a newly created mandate.",
+      "Issuer Bank shall respond to NPCI’s authentication challenge with a digitally signed acknowledgment that includes the mandate identifier, validation result for each participant, and the generated nonce to prevent replay attacks.",
+      "Issuer Bank shall update the encrypted credential block for each participant during device registration or biometric rotation, ensuring that the latest PIN or biometric data is stored and linked to the corresponding VPA for future split transactions.",
+      "Issuer Bank shall produce real‑time settlement status reports for each split leg and transmit a consolidated settlement confirmation to NPCI within the Smart Settlement window, indicating success or failure of the overall split."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank plays a pivotal role in the AutoSplit debit lifecycle. When the NPCI switch forwards an authenticated debit request for a split leg, the Issuer Bank must verify the credential block, enforce PIN/biometric rules, and ensure compliance with UPI limits. Successful validation triggers the real‑time debit of the payer’s account, while any failure must be communicated back to NPCI promptly. This responsibility ensures that the split transaction remains atomic and auditable.",
+      "In addition to core debit processing, the Issuer Bank must manage timeout scenarios and provide fallback mechanisms to maintain transaction integrity. By adhering to defined response codes and generating settlement reports, the Issuer Bank enables downstream credit and reconciliation for the beneficiary banks. These enhancements support the Smart Settlement model and preserve the end‑to‑end user experience expected from the AutoSplit feature."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Issuer Bank shall validate the encrypted credential block (CRED) received via NPCI, confirming that the UPI PIN or biometric reference (refCategory='05') matches the payer’s authentication and reject the request if validation fails.",
+      "2. Issuer Bank shall perform a real‑time debit of the payer’s account for the split amount, verify sufficient funds, and return a success response code (00) or appropriate failure code such as 91 for insufficient funds.",
+      "3. Issuer Bank shall include the transaction reference ID and a status indicator (e.g., “SETTLED” or “DEEMED”) in its response to NPCI, enabling accurate downstream settlement and audit trails.",
+      "4. Issuer Bank shall enforce a processing timeout of five seconds for each debit request; if the timeout is exceeded, it shall return the timeout response code (96) and log the event for subsequent reconciliation.",
+      "5. Issuer Bank shall support fallback handling by responding to NPCI’s REQ_CHK_TXN inquiries, allowing the status of timed‑out or pending debits to be resolved later without manual intervention.",
+      "6. Issuer Bank shall generate a consolidated settlement report for each AutoSplit batch, detailing individual debit outcomes, and transmit the report to NPCI within the standard settlement window."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

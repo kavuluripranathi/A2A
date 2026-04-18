@@ -1,0 +1,123 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India (NPCI) issues this circular for all UPI ecosystem participants. Reference: NPCI/OPS/OC No. 012/2025-2026 is assigned for traceability. Issue Date: 18 April 2026 is placed flush‑right as required."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All PSP Banks, Issuer Banks and NPCI**"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Implementation of UPI AutoSplit feature – Mandatory compliance for PSP and Issuer banks."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The present UPI ecosystem enables direct peer‑to‑peer transfers but does not provide an automated mechanism for shared‑expense distribution. This limitation obliges users to perform manual calculations and initiate multiple individual payments, which introduces errors and operational friction. In response, the issuer has decided to mandate the deployment of the AutoSplit feature to automate split computation and settlement while remaining within the existing UPI framework."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce the UPI AutoSplit feature to automate shared‑expense management. The decision applies to the new API messages SplitCreate, SplitSchedule, SplitSettle, SplitModify, SplitCancel, SplitStatus and SplitQuery, and to the extension of the ReqPay request schema with a splitDetails object, splitId and optional ruleConfig fields.",
+      "PSP Banks must implement all listed split APIs in accordance with the NPCI specification. They must incorporate the extended request schema for every split transaction and must aggregate individual RespTxnConfirmation messages into a consolidated status for the initiator. Compliance with existing UPI PIN and amount‑threshold rules remains mandatory.",
+      "Issuer Banks must support real‑time debit of payer accounts for each split leg within the prevailing per‑transaction and daily aggregate limits. They must produce settlement reports for split transactions in the standard NPCI format, including the splitId for traceability. Settlement of split legs exceeding the instant‑settlement threshold shall follow the standard 8‑cycle schedule.",
+      "NPCI will route all split‑related messages through the UPI switch, validate purpose codes, initiation mode and enforce settlement cycles. NPCI will generate consolidated settlement files for split transactions and maintain audit logs keyed by splitId."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must implement all mandate APIs (ReqMandate, ReqAuthMandate, ReqMandateConfirmation) as per NPCI specifications. PSP Banks must validate amount thresholds and enforce UPI PIN requirement for split transactions. PSP Banks must aggregate individual RespTxnConfirmation messages and forward a consolidated status to the initiator.",
+      "PSP Banks must support the new split lifecycle APIs – SplitCreate, SplitSchedule, SplitSettle, SplitModify, SplitCancel, SplitStatus, and SplitQuery – in accordance with the extended schema containing splitDetails, splitId, and ruleConfig fields. PSP Banks are advised to implement idempotent handling for split modification requests.",
+      "Issuer Banks must support real‑time debit of credit or debit accounts for mandate and split executions. Issuer Banks must provide settlement reports to NPCI in the standard format and include split transaction identifiers. Issuer Banks are advised to monitor daily aggregate limits per VPA and reject split legs that would breach the limit.",
+      "NPCI must route mandate creation, authentication, and payment requests between PSPs and must validate purpose codes, initiation mode, and enforce settlement cycles for split transactions. NPCI must generate consolidated settlement files for split transactions and include splitId for traceability. NPCI are advised to expose status APIs for split lifecycle monitoring to participating PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "This circular conveys the mandatory directives for the implementation of the UPI AutoSplit feature across the ecosystem. It supersedes no prior circular and remains effective upon issuance.",
+      "All PSP Banks must implement the mandate APIs, enforce amount thresholds, and aggregate transaction confirmations as prescribed. Issuer Banks must support real‑time debit for mandate executions and furnish settlement reports to NPCI. NPCI shall route mandate creation, authentication, and payment requests, validate purpose codes, and generate consolidated settlement files for split transactions.",
+      "Product Managers are required to ensure that product specifications align with the directives herein. Engineers are required to integrate the specified APIs and adhere to the schema extensions. Compliance Teams are required to verify that all obligations are met and maintain audit trails.",
+      "Please disseminate the information contained herein to the officials concerned. Failure to disseminate promptly may result in non‑compliance penalties."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "Yours Sincerely,\nSD/-\nAnil Kumar\nDirector, UPI Product Management\nNational Payments Corporation of India"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

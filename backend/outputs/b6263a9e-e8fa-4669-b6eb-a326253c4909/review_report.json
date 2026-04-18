@@ -1,0 +1,7 @@
+{
+  "errors": [],
+  "warnings": [
+    "Section 'Product Construct: Setting / Enrollment' was configured for a diagram but no diagram was attached.",
+    "Section 'Product Construct: Transaction Flow' was configured for a diagram but no diagram was attached."
+  ]
+}

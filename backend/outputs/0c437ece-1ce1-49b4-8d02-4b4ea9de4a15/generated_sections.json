@@ -1,0 +1,422 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "Today, when a consumer taps “Pay” in a UPI app, the app encrypts the payment credentials and forwards the request to its PSP bank. The PSP bank then submits the payment request to NPCI, which acts as the central switch and routes the request to the payer’s issuer bank for authentication. Upon successful authentication, the issuer bank debits the payer’s account and sends a confirmation back through NPCI to the PSP bank. NPCI subsequently routes the credit instruction to the beneficiary’s bank, which credits the recipient’s account and returns a final acknowledgment to the PSP and the consumer’s app.",
+      "Once the authentication and debit steps are completed, the transaction is considered final and there is no built‑in mechanism to halt or reverse the flow before settlement. If the consumer later discovers an incorrect amount, wrong merchant, or duplicate tap, they must initiate a grievance through the PSP bank, which forwards the dispute to the issuer and beneficiary banks for investigation. The banks resolve the issue via the standard UPI dispute process, which can involve refunds, charge‑back investigations, and reconciliation, incurring operational cost and latency. Consequently, erroneous payments generate millions of grievance tickets each year, driving significant expense for PSPs and banks and eroding consumer confidence."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI flow finalises a payment as soon as the payer app sends the REQ_PAY message, leaving no window for the user to intervene. Because the specification lacks a pre‑commit or hold state, any mistake is recorded on the ledger and must be resolved through the dispute process, which is costly and time‑consuming. This gap creates friction for consumers, escalates operational load for banks and PSPs, and puts the ecosystem at risk of non‑compliance with emerging RBI consumer‑safeguard directives."
+    ],
+    "bullet_points": [
+      "No real‑time reversal capability – Affects Payer PSP and Issuer Bank – leads to irreversible debits once the transaction is settled, inflating dispute tickets and remediation costs.",
+      "Current UPI spec does not support a pre‑commit hold state – Affects NPCI Switch – prevents pausing routing for a short window, causing race conditions and higher latency during peak volumes.",
+      "Absence of a user‑visible undo UI – Affects UPI App and the end‑customer – results in regret‑pay experiences, increased churn risk, and higher support call volume.",
+      "Regulatory compliance gap – Affects Compliance Teams of PSPs and Banks – may breach RBI’s forthcoming consumer‑safeguard mandates, exposing participants to penalties and reputational damage.",
+      "Security replay risk without dedicated nonce for undo action – Affects NPCI and Issuer Bank – opens a vector for malicious actors to trigger or cancel transactions fraudulently, undermining trust in the platform."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The PSP Bank must implement a consumer‑safeguard mechanism to comply with RBI’s 2024 Payment System Oversight guidelines that call for enhanced protection against erroneous payments. By introducing an ultra‑short undo window, the PSP Bank can cut the estimated 93 million erroneous payments per year, translating into an annual cost avoidance of roughly ₹11 billion for the ecosystem. NPCI will support the change by extending the Common Library to carry an ‘undo‑eligible’ flag, ensuring that the switch holds the transaction in a pending state while the countdown runs, thereby aligning the entire UPI network with the regulator’s consumer‑protection mandate.",
+      "The PSP Bank will display the Undo button and countdown on the UPI App UI, adding less than 0.5 seconds to checkout latency, which remains within the < 1 second end‑to‑end SLA defined by NPCI. Issuer Bank will defer the debit request until the undo timer expires, eliminating the need for a subsequent reversal flow and reducing settlement‑system load, while Beneficiary Bank will only receive a credit after the pending window closes. NPCI will manage the additional flag through a backward‑compatible version bump, avoiding disruptive changes to existing integrations and providing a simpler risk‑mitigation profile than full‑transaction reversal alternatives."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short “undo” window introduces a 10‑15 second safety net that appears immediately after a payer taps “Pay” in the UPI app. PSP Bank will update its mobile UI to show a clear “Undo” button with a countdown timer, while the underlying transaction flow continues to be routed through the NPCI switch unchanged. Issuer Bank and Beneficiary Bank are not required to modify their core processing logic because the cancellation, when invoked, is handled by the PSP before the debit request is sent to the Issuer Bank.",
+      "By allowing consumers to reverse a payment before funds are moved, the feature is expected to cut erroneous transactions by more than 30 % and generate an approximate 5 % uplift in overall transaction volume. This reduction translates into an estimated annual cost avoidance of ₹11 bn for grievance handling across the ecosystem, thereby strengthening consumer trust and meeting RBI’s enhanced consumer‑safeguard expectations. All participants benefit: PSP Bank gains higher user satisfaction, Issuer and Beneficiary Banks see fewer dispute tickets, and NPCI supports a more resilient payment experience without additional latency."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window is offered as an optional setting that banks can activate for their customers through the UPI app. The UI element is placed immediately after the user taps the “Pay” button, displaying a clear countdown timer and a prominent “Undo” button. Consent is captured implicitly when the user accepts the feature terms during the first activation, and the preference is stored in the app’s secure settings. The enrollment flow is coordinated by the PSP, with NPCI supplying the flag definition in the Common Library.",
+      "When a payment is initiated, the app includes an undoFlag in the REQ_PAY message and sends it to the PSP, which forwards it to NPCI. NPCI routes the request to the Issuer Bank and holds the transaction in a pending state for up to fifteen seconds. During this window the app shows the undo UI; if the user taps Undo, the app issues a cancellation request that the PSP forwards to NPCI. NPCI then instructs the Issuer Bank to release the hold and returns a final status of “Cancelled” or “Completed” to the app."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate device CL version and confirm undo feature flag is enabled for the PSP",
+          "PSP Bank, NPCI"
+        ],
+        [
+          "Step 1",
+          "User taps “Pay” on the UPI App",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "App sends REQ_PAY with undoFlag to PSP; PSP forwards to NPCI",
+          "PSP Bank"
+        ],
+        [
+          "Step 3",
+          "NPCI forwards request to Issuer Bank and holds transaction pending",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Undo UI displayed; if user selects Undo, app sends cancellation request to PSP",
+          "UPI App, PSP Bank"
+        ],
+        [
+          "Step 5",
+          "NPCI relays cancellation to Issuer Bank; Issuer releases hold and sends response",
+          "NPCI, Issuer Bank"
+        ],
+        [
+          "Post Response",
+          "App receives final status (Cancelled or Completed) and updates UI",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "When a registered user initiates a payment by tapping the Pay button, the PSP Bank immediately presents an ultra‑short undo window of 10‑15 seconds. The UI shows a countdown timer and an Undo button, giving the payer a chance to cancel the transaction before any funds move. If the payer selects Undo within the window, the PSP Bank aborts the flow and no request is sent to the NPCI switch. If the timer expires without action, the PSP Bank proceeds to the standard UPI payment flow.",
+      "After the undo window lapses, the PSP Bank uses the Common Library to encrypt the payer’s PIN or biometric credential and sends a REQ_PAY message to the NPCI switch. NPCI then forwards an authentication request to the Issuer Bank, which validates the credential, debits the payer’s account and returns a RESP_PAY to NPCI. NPCI routes a credit instruction to the Beneficiary Bank, which credits the payee’s account and replies with its own RESP_PAY. Finally, NPCI pushes a confirmation message back to both PSPs, allowing the PSP Bank to update the UI with a success or failure status."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify session and undo feature flag",
+          "PSP Bank"
+        ],
+        [
+          "Step 1",
+          "Capture Pay intent and display Undo countdown",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "If Undo not invoked, encrypt credentials via CL and send REQ_PAY to NPCI",
+          "PSP Bank"
+        ],
+        [
+          "Step 3",
+          "NPCI validates request and forwards authentication to Issuer Bank",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Issuer Bank authenticates payer, debits account, returns response",
+          "Issuer Bank"
+        ],
+        [
+          "Step 5",
+          "NPCI forwards credit instruction to Beneficiary Bank",
+          "NPCI"
+        ],
+        [
+          "Step 6",
+          "Beneficiary Bank credits payee account and returns response",
+          "Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "NPCI sends final transaction status to both PSPs",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "PSP Bank reflects success/failure on user device",
+          "PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window introduces several operational edge cases that must be coordinated across the ecosystem. NPCI is responsible for defining the new flag in the REQ_PAY message and for ensuring that the switch respects the flag during routing. PSP Bank must validate the user’s opt‑in status, display the countdown UI, and forward the flag to NPCI. Issuer Bank and Beneficiary Bank must handle reversal requests and treat cancelled payments as non‑settled events.",
+      "To preserve existing transaction flows, the feature is opt‑in and must not affect devices lacking secure hardware. PSP Bank must perform a capability check and suppress the undo UI on unsupported devices. Legacy UPI apps using CL versions prior to 2.36 will continue to operate without the undo flag, ensuring backward compatibility. All participants must log any deviation for compliance and audit purposes."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Opt‑in Requirement: PSP Bank shall expose an “Undo Window” toggle in its UPI app, defaulting to OFF; when a user enables it, PSP Bank records consent in the CL and includes the undo flag in every REQ_PAY sent to NPCI.",
+      "2. Device Constraint: PSP Bank must verify that the customer device supports a Trusted Execution Environment (TEE) or Secure Enclave before rendering the undo countdown; if the check fails, the transaction proceeds without the undo option.",
+      "3. Retry Logic: If a user taps Undo after the debit request has been dispatched to Issuer Bank, Issuer Bank must attempt a reversal within five seconds and report success to NPCI; failure to reverse results in the payment being settled normally.",
+      "4. Consent Withdrawal: PSP Bank shall allow users to disable the undo feature at any time; once withdrawn, PSP Bank must cease sending the undo flag for all subsequent payments and must delete the stored consent record.",
+      "5. Backward Compatibility: For UPI apps operating on CL versions earlier than 2.36, PSP Bank must not set the undo flag; NPCI shall ignore any undo flag received from legacy apps to avoid processing anomalies.",
+      "6. Exception Handling: In the event of a network outage during the undo window, PSP Bank must fall back to the standard payment flow without attempting cancellation; NPCI must log the missed undo attempt for audit and reporting.",
+      "7. Operational Rule for Monitoring: Issuer Bank and Beneficiary Bank must treat an undone transaction as a “Cancelled” event and must not generate dispute tickets; NPCI’s eFRM system shall exclude such events from fraud scoring calculations."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window does not alter the existing dispute management process. Because the payment is cancelled before the debit request reaches the Issuer Bank, no transaction is recorded on the ledger and therefore no dispute can be raised. The handling of any post‑undo grievance continues to follow the standard UPI dispute framework governed by NPCI, the Payer PSP, the Issuer Bank and the Beneficiary Bank.",
+      "Liability, service‑level agreements and escalation paths remain unchanged and are owned by the same participants as before. NPCI retains responsibility for routing and for the 24‑hour acknowledgment SLA, while the Payer PSP and Issuer Bank continue to own the initial authentication and debit steps; the Beneficiary Bank remains responsible for credit and settlement. Any payment that inadvertently proceeds despite the undo option will be processed under the existing dispute workflow with the same escalation hierarchy to the RBI and NPCI."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "The ultra‑short undo window introduces a reversible step in the UPI payment flow, requiring precise UI behavior and transaction control. This introduction outlines the testable functional capabilities that must be delivered by the PSP, NPCI switch, and participating banks to ensure a consistent, compliant, and low‑latency experience for end‑users."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall display an Undo button with a visible countdown timer of 10 to 15 seconds immediately after the user confirms a payment.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall allow the user to cancel the payment by tapping the Undo button within the countdown period, resulting in no debit request being sent to the Issuer Bank.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall ensure that if the Undo button is not tapped before the countdown expires, the payment proceeds automatically without additional user interaction.",
+          "High"
+        ],
+        [
+          "FR-04",
+          "The system shall limit the additional latency introduced by the Undo window to no more than 0.5 seconds from the original checkout time.",
+          "Medium"
+        ],
+        [
+          "FR-05",
+          "The system shall log the Undo action and its outcome (cancelled or proceeded) in the transaction audit trail accessible to the PSP and NPCI for compliance reporting.",
+          "Medium"
+        ],
+        [
+          "FR-06",
+          "The system shall enforce that the Undo window is only applicable to payments initiated via the standard REQ_PAY flow and not to batch or scheduled payments.",
+          "Low"
+        ],
+        [
+          "FR-07",
+          "The system shall present the Undo UI consistently across all supported UPI apps, adhering to the design guidelines defined by the PSP’s UI/UX standards.",
+          "Medium"
+        ],
+        [
+          "FR-08",
+          "The system shall reject any attempt to invoke Undo after the countdown has elapsed, returning an appropriate error response to the UPI app.",
+          "High"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing enrollment and payment‑initiation flow does not contain any provision for a reversible transaction, so the UPI switch and Common Library (CL) lack fields that indicate an undo window. Consequently, PSP banks cannot signal a short‑lived cancellation option and the issuer bank proceeds to debit as soon as authentication succeeds. To introduce the ultra‑short “undo” window, NPCI must extend the platform specifications, schema definitions, and CL capabilities.",
+      "NPCI will publish a new version of the CL that recognises an undo flag, add configuration controls that allow each PSP to opt‑in, and modify the REQ_PAY payload to carry the undo parameters. These changes enable the PSP app to display a countdown timer and the issuer bank to hold the debit request until the window expires, while keeping overall latency within the 1‑second SLA."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall introduce a new API pair REQ_UNDO_INIT and RESP_UNDO_INIT that allows a PSP Bank to query the switch for undo eligibility before the debit request is forwarded; NPCI operates the switch, PSP Bank invokes the API.",
+      "2. NPCI will extend the REQ_PAY schema with a boolean field \"undoEnabled\" and an integer field \"undoWindowSec\"; NPCI updates the schema, PSP Bank populates these fields during payment initiation, and Issuer Bank must honour the window before processing the debit.",
+      "3. NPCI shall release CL version 2.38 that embeds the undo flag into the encrypted credential block (CRED) and validates the nonce‑based challenge for the undo window; NPCI provides the library, PSP Bank integrates the new CL into its UPI App.",
+      "4. NPCI will add a platform‑wide configuration flag \"ENABLE_UNDO\" that can be toggled per PSP; NPCI manages the flag in the switch, PSP Bank requests activation through the onboarding portal.",
+      "5. NPCI will modify the LIST_ACCOUNT response to include an attribute \"undoSupported\" for each VPA, allowing PSP Apps to display eligibility; NPCI updates the response, Issuer Bank supplies the attribute based on its internal policy.",
+      "6. NPCI shall define a new transaction status code \"DEEMED_UNDO\" that indicates a payment was cancelled within the undo window; NPCI propagates the status, Beneficiary Bank must treat this as a non‑credit event and release any provisional holds."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI transaction flow processes a payment end‑to‑end as soon as the payer app sends the REQ_PAY message, with the switch immediately routing debit and credit requests. Because the flow lacks a reversible state, any mistake made by the consumer is settled before the user can intervene, leading to costly disputes. NPCI therefore needs to embed a short‑lived hold mechanism that can be triggered by a new transaction attribute.",
+      "NPCI will introduce a dedicated hold queue for transactions flagged with the new refCategory value, allowing the payer PSP to present an undo option for up to 15 seconds. During this interval the switch will retain the encrypted credential block, perform additional validation, and postpone the final debit until the window expires. This change preserves the end‑to‑end latency SLA while providing a safety net that aligns with regulatory expectations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall extend the switch routing logic to recognise refCategory='05' as an ultra‑short undo eligible transaction and place such requests in a temporary hold queue pending user confirmation.",
+      "2. NPCI shall validate the CRED block against the CL version that supports the undo flag, rejecting any REQ_PAY that does not contain the required flag or uses an outdated CL version.",
+      "3. NPCI shall modify the debit request sent to the Issuer Bank to include a ‘pending’ status indicator, ensuring that the actual fund debit occurs only after the undo window lapses without a cancellation.",
+      "4. NPCI shall enrich the response sent back to the payer PSP with an ‘undoAvailable’ field and the remaining countdown time, enabling the app to display the timer and undo button accurately.",
+      "5. NPCI shall route a reversal message to both Issuer and Beneficiary banks if the payer activates the undo action, marking the transaction as DEEMED status and ensuring that any provisional credit is rolled back in compliance with settlement rules."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "To enable the ultra‑short undo window, the UPI App and its PSP must extend the existing enrollment flow with explicit consent capture and device binding steps. The UI will present a clear consent screen that explains the reversible payment option and records the user’s agreement before any transaction is processed. Both the UPI App and the PSP are responsible for ensuring that the captured consent is stored in a tamper‑evident manner and linked to the device identifier.",
+      "The additional logic must invoke the Common Library (CL) SDK to generate a biometric‑enabled credential block and store the resulting keys in the device’s secure enclave. The PSP will orchestrate the API call that registers the device binding with NPCI, while the UPI App validates the binding status before showing the undo countdown. This coordinated change preserves end‑to‑end security and meets RBI’s enhanced consumer safeguard expectations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. UI Change – The UPI App shall add an enrollment screen that displays the reversible‑payment consent text and a mandatory “I Agree” checkbox; PSP will provide the consent wording and localisation assets.",
+      "2. Consent Capture – Upon user agreement, the PSP must record the consent flag in its back‑end and transmit a signed acknowledgment to NPCI via the REQ_REG_MOB flow; the UPI App will display a confirmation toast once the acknowledgment is received.",
+      "3. CL SDK Invocation – The UPI App shall call the latest CL version (≥2.36) to create a credential block that includes the refCategory='05' flag for biometric‑authenticated transactions; PSP is responsible for supplying the CL configuration parameters.",
+      "4. Secure Local Key Storage – The UPI App must store the generated private key and device binding token in the device’s TEE or Secure Enclave; PSP will enforce key rotation policies and audit storage compliance.",
+      "5. Device Check Logic – Before initiating any payment, the UPI App shall verify the device binding status by invoking REQ_ACTIVATION; PSP will reject payments from unbound devices and return a descriptive error to the app.",
+      "6. Undo UI Integration – The UPI App will extend the payment confirmation screen with a 10‑15 second countdown and an “Undo” button; PSP will honor an undo request by sending a cancellation flag in the next REQ_PAY message to NPCI."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing payment flow completes the debit‑credit sequence as soon as the payer confirms the PIN or biometric. Introducing an ultra‑short undo window requires the UPI App and PSP to retain control for an additional 10‑15 seconds after the confirmation. During this interval the app must keep the encrypted credential block alive, display a countdown, and allow the user to cancel. All of these actions are performed before the PSP forwards the request to NPCI.",
+      "Because the undo decision is taken before the switch processes the transaction, the PSP must implement fallback logic for network delays or switch errors. If the undo is not triggered, the app proceeds with the standard REQ_PAY flow and presents the final status to the consumer. These transaction‑time changes are owned by the PSP Bank while NPCI supplies the updated Common Library specifications. The result is a reversible payment experience without affecting the end‑to‑end latency SLA."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Capture the payer’s PIN or biometric, encrypt it using the NPCI‑provided Common Library (CL) version that supports the undo flag, and retain the encrypted credential block until the undo window expires. Ownership: PSP Bank (app integration) and NPCI (CL specification).",
+      "2. Invoke the CL with the new clVersion that includes the undo‑window indicator, ensuring the request payload carries a Boolean \"undoEnabled\" flag. Ownership: PSP Bank (application code) and NPCI (spec change).",
+      "3. Display a persistent UI element showing a 10‑15 second countdown and an Undo button immediately after the payer taps Pay. The UI must be built by the PSP Bank and must not alter the Issuer Bank’s processing logic. Ownership: PSP Bank (UX implementation).",
+      "4. Implement fallback handling that aborts the transaction if the user taps Undo or if the network timeout exceeds the undo window; the app must send a cancellation message to NPCI and suppress the debit request. Ownership: PSP Bank (cancellation logic) and NPCI (switch support for cancellation).",
+      "5. Present the final response to the consumer indicating either Payment Successful, Payment Cancelled by User, or Payment Failed, using the standard RESP_PAY format enriched with an \"undoStatus\" field. Ownership: PSP Bank (response rendering) and Issuer Bank (status generation)."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of an ultra‑short undo window changes the lifecycle of a UPI payment at the Issuer Bank. Previously the bank would debit the payer’s account as soon as the REQ_PAY message was received, leaving no opportunity for reversal. To support the new safety net, the Issuer Bank must treat the initial request as a provisional hold until the undo period lapses.",
+      "These changes require the Issuer Bank to augment its authentication and registration logic without affecting the overall latency SLA. All new data elements must be persisted in the bank’s transaction repository and be available for real‑time validation when an undo request arrives from NPCI. The bank’s response to NPCI must clearly indicate whether the payment was cancelled or proceeded, enabling downstream PSPs to update the UI accordingly."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The Issuer Bank must store a temporary hold record for each incoming REQ_PAY, capturing the transaction identifier, payer VPA, amount, and a timestamp marking the start of the 10‑15 second undo window.",
+      "2. Upon receipt of an undo request from NPCI, the Issuer Bank must validate that the request references a hold record that is still within the configured undo window and that the transaction has not yet been settled.",
+      "3. The Issuer Bank must extend its REQ_PAY response handling to include a new status code “Cancelled by User” and return this code only after successful validation of an undo request.",
+      "4. Credential management at the Issuer Bank must retain the encrypted CRED block for the duration of the undo window and purge it only after the hold is either settled or cancelled, ensuring no premature loss of authentication data.",
+      "5. Every undo action must be logged with transaction ID, payer identifier, timestamp of the undo request, and outcome, to satisfy audit, compliance, and dispute‑resolution requirements.",
+      "6. The Issuer Bank must expose (or enhance) an API endpoint that accepts the undo request from NPCI, authenticates it using the existing CL‑based mechanism, and processes the cancellation logic in real time."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "In the existing UPI flow, the Issuer Bank immediately debits the payer's account once it receives the debit request from NPCI, leaving no opportunity to halt the transaction after the user taps Pay. This creates a hard constraint for the ultra‑short “undo” window, because any reversal would have to be processed as a separate refund after settlement, increasing latency and cost. The new feature therefore requires the Issuer Bank to introduce a controlled hold period that aligns with the 10‑15 second safety net presented to the consumer.",
+      "The Issuer Bank will implement a pending‑state mechanism that respects the undo flag from NPCI, validates credentials with the latest CL version, and only finalises the debit after the window lapses. By doing so, the bank protects customers from accidental payments while preserving the end‑to‑end latency SLA of under one second. This change also ensures that all downstream systems receive consistent status codes for monitoring and reconciliation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Credential/Auth Validation – Issuer Bank must decrypt and validate the CRED block received from NPCI, confirm that refCategory='05' is present for biometric‑authenticated transactions, and reject any request that fails this check, thereby ensuring only properly authenticated debits proceed.",
+      "2. Debit Processing with Hold – Issuer Bank shall place the incoming debit request into a pending state for a maximum of 15 seconds, awaiting an explicit Undo flag from NPCI before committing the fund movement, which aligns with the user‑visible undo window.",
+      "3. Response Codes – Issuer Bank must return response code U001 (Undo pending) to NPCI while the transaction is held, U002 (Undo executed) if an undo is received within the window, and the standard success code 00 only after the pending period expires without an undo.",
+      "4. Timeout Handling – If the 15‑second window expires without an Undo, Issuer Bank shall automatically convert the pending entry to a definitive debit and send a success response; in case of network latency, the bank must trigger a fallback to core banking systems within 5 seconds to guarantee finality.",
+      "5. Fallback and Reconciliation – When NPCI does not receive a final confirmation due to timeout or communication failure, Issuer Bank shall generate a reconciliation file, flag the transaction as \"undo‑expired,\" and invoke the standard dispute management workflow without altering existing dispute policies."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

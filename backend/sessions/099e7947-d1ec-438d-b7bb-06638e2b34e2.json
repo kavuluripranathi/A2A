@@ -1,8 +1,15 @@
 {
   "session_id": "099e7947-d1ec-438d-b7bb-06638e2b34e2",
   "created_at": "2026-04-16T16:36:24.579352",
-  "updated_at": "2026-04-16T16:43:52.415403",
+  "updated_at": "2026-04-17T12:11:52.200442",
   "title": "UPI Reward Layer (Interoperable Loyalty) Standardized rewards system: Cashback, points,...",
+  "bundle_id": "49dba7ad-f43d-4c8f-98eb-afead8cf631d",
+  "bundle_jobs": {
+    "BRD": "a263713e-976d-44e3-81db-3e884f24e581",
+    "TSD": "62d962b5-ea17-4ada-856a-cde3497a0ad2",
+    "Product Note": "14dd4ce0-d084-432f-835d-fbb866f600eb",
+    "Circular": "045434ef-26be-483e-bdd1-280961b90c3b"
+  },
   "requirement": {
     "feature_request": "UPI Reward Layer (Interoperable Loyalty)\nStandardized rewards system:\nCashback, points, merchant offers\nPortable across apps (like credit card rewards).",
     "messages": [
@@ -235,5 +242,11 @@
       }
     ],
     "current_version": 1
+  },
+  "prototype": {
+    "status": "idle",
+    "feature_name": "",
+    "screen_count": 0,
+    "error": null
   }
 }

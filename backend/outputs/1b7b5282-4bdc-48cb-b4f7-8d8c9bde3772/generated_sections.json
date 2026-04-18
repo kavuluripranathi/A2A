@@ -1,0 +1,127 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "The issuing organization name shall appear at the top left of the circular. It must be rendered in full legal name, e.g., \"National Payments Corporation of India (NPCI)\", in uppercase bold font. No abbreviations or logos are permitted.",
+      "The circular reference number shall be positioned on the same line as the organization name, separated by a single space. It must conform to the pattern [ORG]/[DEPT]/OC No. [NNN]/[YYYY-YYYY] where [ORG] is the issuing organization abbreviation, [DEPT] the responsible department, [NNN] a three‑digit sequential number, and [YYYY-YYYY] the fiscal year span. Example: NPCI/OPS/OC No. 045/2025-2026.",
+      "The issue date shall be placed flush‑right on the same line as the reference number. The date format shall be DD‑MMM‑YYYY (e.g., 17‑APR‑2026). This element must be the last item on the line.",
+      "No additional decorative elements, watermarks, or footers shall precede the body of the circular. The letterhead block must be completed before any body paragraph begins. Compliance with this format ensures traceability and archival consistency."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "The present draft of the circular does not enumerate the full spectrum of ecosystem participants required to implement the Advanced Rule-Based Payment Splits feature. This omission may lead to inconsistent adoption and compliance gaps. All **PSP Banks, Issuer/Remitter Banks, Beneficiary/Payee Banks, UPI App Providers, Merchant Acquirers, Product Managers, Engineers, Compliance Teams, and NPCI** must be expressly identified as primary addressees.",
+      "The regulatory intent mandates that every stakeholder responsible for transaction processing, rule configuration, and risk management be informed. Absence of a comprehensive addressee list could result in delayed integration and oversight failures. Consequently, the circular shall list the aforementioned categories as mandatory recipients.",
+      "Inclusion of both technical and non‑technical roles ensures holistic compliance across development, deployment, and oversight phases. The current draft lacks this distinction. Therefore, the addressee line must incorporate **Product Managers, Engineers, Compliance Officers, and Security Teams** alongside the institutional participants.",
+      "The directive applies uniformly to all entities operating within the UPI ecosystem, irrespective of size or market share. No exemption shall be permitted unless expressly authorized by NPCI. All listed participants are required to acknowledge receipt and act in accordance with the specifications."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Directive to implement Advanced Rule‑Based Payment Splits feature across UPI PSP and Bank systems."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, UPI transactions support basic split functionality limited to equal division or fixed amount per participant. This limitation forces PSPs and merchants to perform manual calculations or develop ad‑hoc logic, leading to settlement delays and reconciliation errors. The ecosystem therefore lacks a standardized, rule‑based split mechanism that can handle percentage allocations, priority ordering, and caps across multiple stakeholders. Consequently, the Issuer has mandated the introduction of the Advanced Rule‑Based Payment Splits feature to provide a uniform, automated split engine across the UPI network."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce the Advanced Rule‑Based Payment Splits feature across the UPI ecosystem. The decision mandates implementation of a dedicated Split Engine and associated routing enhancements. This directive applies to all PSP banks, issuer and beneficiary banks, and the NPCI Switch.",
+      "The following technical artifacts are within scope: the Split Engine module (source code package com.npci.upi.split), the transaction settlement module (SettlementProcessor), the reconciliation schema (SplitReconciliationSchema.json), and the UPI Switch routing logic (RoutingEngine). All referenced components must be version‑controlled under the next CL release.",
+      "The existing REQ_PAY and RESP_PAY messages shall be extended to include the fields splitRuleId and splitAllocation as defined in SplitRuleExtension.xsd. A new API, REQ_SPLIT_CONFIG, and its response RESP_SPLIT_CONFIG shall be introduced for rule creation and retrieval. The CL version field must be incremented to reflect the added capability.",
+      "All PSPs must adopt the updated message formats and invoke the new REQ_SPLIT_CONFIG API within 30 days of release. Compliance with existing fraud‑risk management and validation checks remains mandatory. Failure to conform will result in transaction rejection by the NPCI Switch."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must integrate the Advanced Rule-Based Payment Split Engine into their transaction processing stack and expose the new REQ_SPLIT_RULE and RESP_SPLIT_RULE APIs as defined in the specification. PSP Banks must validate split rule parameters, enforce percentage totals to equal 100 %, and reject any request that violates cap limits or priority constraints. PSP Banks are advised to update their merchant and consumer UI to allow rule definition and to retain an immutable audit trail of split configurations for dispute resolution.",
+      "Issuer/Remitter Banks must support split‑settlement at the debit stage by allocating funds to multiple beneficiary accounts in accordance with the rule set received from NPCI. Issuer Banks must ensure that the sum of debited amounts matches the payer’s total and must generate individual settlement entries for each split leg. Issuer Banks are advised to enhance fraud monitoring to detect anomalous split patterns and to reconcile split transactions within the same batch window.",
+      "Beneficiary/Payee Banks must accept split credit entries routed through the NPCI switch and credit each beneficiary account as per the split rule metadata. Beneficiary Banks must generate a RESP_SPLIT_ACK for each successful credit and must reject credits that exceed account limits or violate regulatory caps. Beneficiary Banks are advised to provide real‑time notification to the end‑user application of credit receipt and to maintain split‑specific reconciliation reports.",
+      "UPI Apps must capture split rule inputs from the user, invoke the CL to encrypt the CRED block containing the rule set, and transmit the REQ_SPLIT_RULE message to the payer’s PSP. UPI Apps must display error messages for any validation failure returned by the PSP and must ensure that the split UI remains consistent with the underlying rule engine. UPI Apps are advised to implement graceful fallback to manual split entry in case of service unavailability and to log all split rule transactions for audit purposes.",
+      "NPCI must extend the Switch to carry split rule metadata in the transaction payload and must enforce schema validation against the published split specification. NPCI must reject any transaction where split percentages do not sum to 100 % or where cap limits are breached, and must forward a standardized error response to the originating PSP. NPCI are advised to publish versioned documentation of the split APIs and to provide a sandbox environment for PSPs to test compliance before production rollout."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "All product managers, engineers, and compliance teams must ensure the circulation of this circular within their respective units. Please disseminate the information contained herein to the officials concerned."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "The Advanced Rule-Based Payment Splits feature is hereby approved. Yours Sincerely,\nSD/-\nAnil Kumar\nHead – Product Management\nNational Payments Corporation of India."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

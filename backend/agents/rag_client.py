@@ -74,10 +74,12 @@ def call_rag_clarify(
     feature_description: str,
     canvas_sections: list = None,
     research_report: dict = None,
+    rag_session_id: str = None,
 ) -> dict:
     """
-    Call rag_system /clarify to get taxonomy + proposals before doc generation.
-    Returns {taxonomy, proposed_skeleton, blocking_gaps} or empty dict on failure.
+    Call rag_system /clarify to get taxonomy + proposals + questions.
+    Pass rag_session_id to reuse a previous clarify session (avoids re-running LLM calls).
+    Returns full clarify response or empty dict on failure.
     """
     import httpx
     import config
@@ -93,27 +95,30 @@ def call_rag_clarify(
     if research_report:
         research_summary = research_report.get("summary", "")
 
+    payload = {
+        "feature_description": feature_description,
+        "product_canvas": product_canvas,
+        "research_summary": research_summary,
+        "document_type": "TSD",
+    }
+
     try:
         resp = httpx.post(
             f"{config.RAG_SYSTEM_URL}/clarify",
-            json={
-                "feature_description": feature_description,
-                "product_canvas": product_canvas,
-                "research_summary": research_summary,
-                "document_type": "TSD",   # TSD gives the richest proposals (APIs, fields, error codes)
-            },
-            timeout=60,
+            json=payload,
+            timeout=180,
         )
         resp.raise_for_status()
         data = resp.json()
         logger.info(
-            "[rag_clarify] taxonomy=%s proposals_apis=%d blocking_gaps=%d",
+            "[rag_clarify] taxonomy=%s proposals_apis=%d questions=%d blocking_gaps=%d",
             data.get("taxonomy", {}).get("primary_category", "unknown"),
             len((data.get("proposed_skeleton") or {}).get("apis", [])),
+            len(data.get("questions", [])),
             len(data.get("blocking_gaps", [])),
         )
         return data
     except Exception as e:
-        logger.warning("[rag_clarify] RAG /clarify unavailable — skipping enrichment: %s", e)
+        logger.error("[rag_clarify] RAG /clarify FAILED: %s", e, exc_info=True)
         return {}
 

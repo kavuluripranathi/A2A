@@ -201,13 +201,27 @@ PRODUCT_NOTE_BLUEPRINT = {
             "heading": "Product Construct: Setting / Enrollment",
             "level": 1,
             "render_style": "body",
-            "content_instructions": "Describe UI placement, indicative user journey, technical flow, and roles/responsibilities for the enrollment/setting process. Cover: how a user initiates and completes enrollment, what each participant does, and how consent is captured or verified.",
-            "prompt_instruction": "Structure as UI Placement, Indicative Journey, and Roles & Responsibilities. Include a table with Step | Activity | Responsible. Derive the specific steps entirely from the input.",
+            "content_instructions": (
+                "If the feature requires explicit enrollment or opt-in by the user: describe UI placement, "
+                "step-by-step enrollment journey, consent capture, and participant roles. "
+                "If the feature does NOT require a separate enrollment or setting step (e.g., it is "
+                "auto-enabled, accessed directly from the payment screen, or triggered from recent "
+                "transactions): write exactly two sentences stating that this section is not applicable "
+                "for this feature and briefly explain why (e.g., 'This feature does not require a "
+                "separate enrollment step. Users access it directly from [describe entry point] without "
+                "any prior registration or opt-in.'). NEVER leave this section blank."
+            ),
+            "prompt_instruction": (
+                "If enrollment applies: structure as UI Placement → Indicative Journey → "
+                "Roles & Responsibilities table (Step | Activity | Responsible). "
+                "If enrollment does NOT apply: write 2 sentences only — state it is not applicable "
+                "and explain the entry point. Do not fabricate enrollment steps that do not exist."
+            ),
             "include_table": True,
             "table_fallback_profile": "process_steps",
             "include_diagram": True,
             "diagram_type": "activity",
-            "diagram_description": "Enrollment and setting journey across key participants",
+            "diagram_description": "Feature access / enrollment journey across key participants",
         },
         {
             "section_key": "product_construct_transaction",
@@ -379,15 +393,20 @@ BRD_BLUEPRINT = {
             "level": 2,
             "render_style": "body",
             "content_instructions": (
-                "Describe the end-to-end enrollment or setting process. "
-                "Cover: UI placement, consent capture, indicative user journey step by step, "
-                "and a Roles & Responsibilities table with columns [Step, Activity, Responsible]. "
-                "Rows: Pre-Check → Step 1..N → Post Response. Minimum 1 paragraph + R&R table."
+                "If the feature requires explicit enrollment or opt-in: describe UI placement, "
+                "consent capture, and the step-by-step enrollment journey with a Roles & "
+                "Responsibilities table [Step, Activity, Responsible]. "
+                "If the feature does NOT require a separate enrollment or setting step: write exactly "
+                "two sentences stating that this section is not applicable for this feature and briefly "
+                "explain why (e.g., 'This feature does not require a separate enrollment step. "
+                "Users access it directly from [entry point] without prior registration or opt-in.'). "
+                "NEVER leave this section blank."
             ),
             "prompt_instruction": (
-                "Write a brief overview paragraph then produce a Step/Activity/Responsible table. "
-                "Each step names the acting entity (UPI App, PSP, NPCI, Issuer Bank). "
-                "No XML tags. Describe the journey in plain business language."
+                "If enrollment applies: write overview paragraph + Step/Activity/Responsible table. "
+                "If enrollment does NOT apply: write exactly 2 sentences — not applicable + reason. "
+                "Do not fabricate enrollment steps that do not exist for this feature. "
+                "No XML tags. Plain business language."
             ),
             "include_table": True,
             "include_diagram": True,

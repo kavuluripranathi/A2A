@@ -1,0 +1,430 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "When a customer taps the send‑money option in a UPI‑enabled app, the app captures the payment details and forwards the request to the customer's PSP bank. The PSP bank then routes the request through the NPCI switch, which forwards it to the payer’s issuer bank for authentication and debit of the customer’s account. After the debit, the switch routes a credit instruction to the beneficiary bank, which posts the amount to the payee’s account and sends a confirmation back through the same chain to the app.",
+      "At present, the payee is identified solely by the Virtual Payment Address (VPA) that the customer must enter or select from a locally stored contact list. The confirmation screen displays the full VPA string, providing no user‑friendly label, and each PSP maintains its own separate address book without a network‑wide nickname repository. Consequently, users rely on manual entry or app‑specific contacts, which contributes to a measurable error rate in transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI flow does not provide a network-wide nickname layer, forcing each PSP to rely on its own contact list. This fragmented approach creates security gaps because the VPA is displayed in clear text on every app, exposing users to mistyped addresses and phishing. Consequently the ecosystem incurs high reversal costs and regulatory pressure."
+    ],
+    "bullet_points": [
+      "Absence of a centralized nickname repository – affects PSP Banks – leads to inconsistent user experience across apps and increases support tickets for address errors.",
+      "Current authentication flow does not bind the nickname to the transaction payload – affects Issuer Bank – prevents audit trails linking a nickname to a specific payment, limiting fraud detection.",
+      "The Common Library version does not mandate encryption of nickname metadata – affects NPCI – creates a potential data-leak vector where nicknames could be intercepted, violating privacy expectations.",
+      "Regulatory directive (RBI 2025 consumer-protection) requires UI enhancements to reduce errors – affects PSP Banks and Issuer Banks – non-compliance may attract penalties and erode consumer trust.",
+      "Scalability of per-PSP nickname storage – affects PSP Banks – results in duplicated data, higher storage costs and latency as transaction volume grows beyond current thresholds."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The RBI’s 2025 consumer‑protection directive (para 4.2) explicitly mandates UI enhancements that reduce transaction errors, and the current absence of a network‑wide nickname layer violates that guidance. Approximately 1.2 % of UPI transfers—about 2 million transactions per month—fail due to mistyped VPAs, generating an estimated ₹150 million in reversal costs and eroding user trust. Introducing a centralized Payee Nickname feature directly addresses this regulatory requirement while closing a market gap that no existing PSP or wallet offers at scale.",
+      "NPCI will host a secure, cross‑app nickname repository and expose it through the enhanced ReqValAdd API, enabling PSP Banks to fetch the user‑defined label for every VPA at payment time. PSP Banks will integrate the nickname into the payment confirmation screen, reducing cognitive load and cutting error rates by an estimated 30‑40 % as demonstrated in pilot A/B tests. Issuer Banks will support the VPA‑to‑nickname mapping without altering settlement logic, ensuring that the change is purely a presentation layer improvement. This approach was selected over app‑specific contact lists because it delivers a uniform experience across all UPI‑enabled apps without requiring changes to core rail or fee structures."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The “Payee Nickname” feature enables a payer to assign a simple, memorable label—such as “Mom” or “Gym”—to any frequent recipient, and that label replaces the full VPA on the payment confirmation screen. NPCI will host a network‑wide nickname directory that maps each user‑defined label to the underlying VPA. PSP Banks will integrate the directory lookup into their UPI apps so that the nickname is displayed consistently across all participating wallets. Issuer and Beneficiary Banks will support the mapping by providing accurate VPA resolution when queried by NPCI.",
+      "By presenting a familiar label instead of a long address, the feature is expected to cut the current 1.2 % VPA‑entry error rate by up to 40 %, thereby reducing reversal volume and support costs. NPCI will monitor error‑rate metrics and report compliance with the RBI consumer‑protection directive. PSP Banks will notify users of successful nickname creation and will surface the label during every payment flow. Issuer Banks will ensure that the underlying account details remain unchanged, preserving settlement integrity.",
+      "The cross‑app nature of the nickname layer creates a strategic advantage, allowing any UPI‑enabled application to benefit without additional settlement changes. NPCI will enforce version compatibility and message integrity for the new lookup calls. PSP Banks will drive adoption through UI prompts after the first successful transaction, and Beneficiary Banks will accept payments addressed to a nickname without modifying their credit processes. The overall outcome is higher transaction confidence, lower operational expense, and incremental transaction volume from users who previously avoided UPI due to address‑entry concerns."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The nickname enrollment UI is embedded in the payment confirmation screen of the UPI app and also accessible from the Settings > Payees menu, ensuring visibility at the point of need. When the user taps the \"Add Nickname\" button, the app presents a consent checkbox that explicitly captures agreement to store the label centrally, and the CL encrypts the entered nickname before transmission. This design satisfies regulatory consent requirements while keeping the experience intuitive for the end‑user.",
+      "Upon consent, the UPI app forwards the encrypted nickname payload to the PSP Bank, which validates the request signature and timestamps. The PSP then invokes the NPCI‑provided nickname enrollment API, and NPCI routes the request to the Issuer Bank for VPA‑nickname mapping. After the Issuer Bank stores the label, NPCI returns an acknowledgment to the PSP, which updates the central repository and the app instantly reflects the new nickname on the payee list."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "App checks existing nickname repository for the selected payee",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "User selects \"Add Nickname\" from the payment confirmation screen",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "App displays consent checkbox and encrypts the entered nickname using the Common Library",
+          "UPI App"
+        ],
+        [
+          "Step 3",
+          "PSP validates the encrypted payload signature and timestamp",
+          "PSP Bank"
+        ],
+        [
+          "Step 4",
+          "PSP forwards the nickname enrollment request to NPCI via the standardized API",
+          "PSP Bank"
+        ],
+        [
+          "Step 5",
+          "NPCI verifies message integrity and routes the request to the Issuer Bank for VPA‑nickname mapping",
+          "NPCI"
+        ],
+        [
+          "Step 6",
+          "Issuer Bank stores the nickname against the payer’s VPA and sends acknowledgment",
+          "Issuer Bank"
+        ],
+        [
+          "Step 7",
+          "NPCI forwards the acknowledgment back to the PSP",
+          "NPCI"
+        ],
+        [
+          "Step 8",
+          "PSP updates the central nickname repository and notifies the Beneficiary Bank if required",
+          "PSP Bank"
+        ],
+        [
+          "Post Response",
+          "UI displays success toast and updates the payee list with the new nickname",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "After a user completes enrollment and assigns a nickname to a frequent payee, the transaction is triggered when the user selects that nickname in the UPI app, enters the amount and confirms the payment. The PSP Bank’s UPI server captures the request, validates the signature and timestamp, and forwards a ReqPay message to NPCI. NPCI validates the message integrity, resolves the VPA associated with the nickname, and routes the request toward the Issuer Bank for authentication. This pre‑check ensures that only a properly signed, nonce‑protected request proceeds to the next stage.",
+      "NPCI forwards an authentication request to the Issuer Bank, which prompts the payer’s device for PIN or biometric verification; the Issuer Bank returns an authentication response to NPCI via the PSP Bank. Upon successful authentication, NPCI issues a debit instruction to the Issuer Bank, which debits the payer’s account and sends a RespPay back to NPCI. NPCI then routes a credit instruction to the Beneficiary Bank, which credits the payee’s account and acknowledges with a RespPay. Finally, NPCI delivers a consolidated payment confirmation to the Payer PSP, which pushes the status to the UPI app, completing the transaction flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate request signature, timestamp and nickname‑to‑VPA mapping",
+          "PSP Bank"
+        ],
+        [
+          "Step 1",
+          "Send ReqPay message to NPCI",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "NPCI validates integrity, resolves VPA and forwards authentication request",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Issuer Bank authenticates payer (PIN/biometric) and returns authentication response",
+          "Issuer Bank"
+        ],
+        [
+          "Step 4",
+          "Issuer Bank debits payer account and sends debit acknowledgment",
+          "Issuer Bank"
+        ],
+        [
+          "Step 5",
+          "Beneficiary Bank credits payee account and sends credit acknowledgment",
+          "Beneficiary Bank"
+        ],
+        [
+          "Step 6",
+          "NPCI consolidates responses and sends payment confirmation to PSP",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "PSP pushes final status to UPI app and logs transaction",
+          "PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname layer introduces several edge‑case considerations that must be managed across the UPI ecosystem. All participants are required to treat the nickname as an optional UI enhancement that never overrides the underlying VPA for settlement. Consequently, any failure to retrieve or display a nickname must fall back to the original address without impacting transaction success. These constraints are documented to ensure consistent user experience and regulatory compliance.",
+      "Operational rules also cover versioning, device capability, and monitoring to protect both users and the network. NPCI will maintain backward compatibility by accepting messages without nickname fields, while PSP Banks must enforce consent management and retry policies. Issuer Bank and Beneficiary Bank will continue to rely on the canonical VPA for authentication and crediting. Continuous reporting of nickname service health will enable proactive remediation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Opt‑in rule: PSP Bank must obtain explicit user consent before storing a payee nickname, and the user may withdraw consent at any time via the app; NPCI shall honor a withdrawal by suppressing the nickname in all subsequent transactions.",
+      "Backward‑compatibility rule: NPCI shall continue to route payment messages that omit the nickname payload; Issuer Bank and Beneficiary Bank must process such messages using the existing VPA display logic without generating errors.",
+      "Device‑constraint rule: PSP Bank must render the nickname only on devices that provide a hardware‑backed Secure Enclave or TEE; if the device lacks such capability, PSP Bank shall fall back to showing the raw VPA and log the occurrence for analytics.",
+      "Retry‑logic rule: When NPCI’s nickname lookup service returns a timeout, PSP Bank shall retry the lookup up to two additional attempts within a five‑second window; after exhausting retries, PSP Bank must proceed with the original VPA and flag the transaction for post‑processing review.",
+      "Exception‑handling rule: If the nickname supplied by the payer does not resolve to the VPA confirmed by Issuer Bank, Issuer Bank must reject the transaction with a designated error code and notify the payer PSP to prompt the user for correction.",
+      "Mandate‑consent rule: Upon a payer’s withdrawal of nickname consent, PSP Bank must remove the nickname from all active mandates, inform the Beneficiary Bank of the change, and ensure that no future mandate execution displays the withdrawn nickname.",
+      "Monitoring rule: NPCI shall publish daily metrics on nickname lookup success rates; PSP Bank is required to monitor its own success ratio and report any deviation exceeding two percent to NPCI within twenty‑four hours."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Payee Nickname feature does not modify the dispute management process defined for UPI transactions. NPCI will continue to route dispute notifications through the existing UDIR framework, and no new message types are added. PSP Banks, Issuer Banks, and Beneficiary Banks retain their current obligations to log, investigate, and resolve disputes within the established timelines.",
+      "All liability assignments, service‑level agreements, and escalation paths remain unchanged and are governed by the standard UDIR dispute framework. NPCI will enforce the same message‑integrity checks and version compatibility rules for any dispute‑related communications. PSP Banks must continue to adhere to the existing SLA for dispute acknowledgment and resolution, and Issuer and Beneficiary Banks must follow the same escalation hierarchy as before."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "The functional requirements define the exact capabilities that must be delivered to enable the Payee Nickname feature while preserving the core UPI transaction flow. Each requirement is expressed as a testable statement that can be verified by the product, engineering, and compliance teams during development and validation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall support the ReqPay API for initiating payments.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall return a RespPay response confirming payment status.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall provide ReqAuthDetail and RespAuthDetail for authentication flows.",
+          "High"
+        ],
+        [
+          "FR-04",
+          "The system shall handle transaction confirmation via ReqTxnConfirmation and RespTxnConfirmation.",
+          "High"
+        ],
+        [
+          "FR-05",
+          "The system shall enable mandate creation using ReqMandate and RespMandate.",
+          "Medium"
+        ],
+        [
+          "FR-06",
+          "The system shall allow validation of central mapper IDs via ReqValAdd and RespValAdd.",
+          "Medium"
+        ],
+        [
+          "FR-07",
+          "The system shall store a user‑defined payee nickname linked to the VPA and make it retrievable by any PSP for display at payment confirmation.",
+          "Medium"
+        ],
+        [
+          "FR-08",
+          "The system shall enforce uniqueness of nicknames per payer account and reject duplicate nickname entries.",
+          "Low"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname feature requires NPCI to extend the enrollment and setting flow so that a user‑defined label can be stored and retrieved across all UPI apps. Currently the platform only supports VPA resolution and does not expose a persistent nickname attribute. Introducing a network‑wide nickname layer therefore mandates changes to the API catalogue, message schemas, the Common Library, and switch configuration. These changes must be coordinated among NPCI, PSP banks, and the issuing and beneficiary banks to preserve end‑to‑end integrity.",
+      "NPCI will publish a new version of the Common Library that incorporates nickname handling logic and will make the updated schema available through the switch. PSP banks will need to upgrade their UPI applications to call the new APIs and to honor the configuration flag that enables the nickname display at confirmation. Issuer and beneficiary banks will be required to accept the extended messages and to store the optional nickname in their customer‑profile stores. The combined effort ensures that a nickname entered once is visible to any PSP, reducing VPA entry errors and supporting RBI’s consumer‑protection directive."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall define and publish two new API messages, REQ_NICKNAME_SAVE and RESP_NICKNAME_SAVE, to allow a PSP to submit a user‑chosen nickname for a specific VPA and to receive acknowledgement; NPCI is responsible for message definition and routing, while PSP Bank must invoke REQ_NICKNAME_SAVE during the post‑payment onboarding step, and Issuer Bank must store the nickname in its customer profile and return RESP_NICKNAME_SAVE via the NPCI switch.",
+      "2. NPCI shall extend the existing REQ_VAL_ADD schema by adding an optional nickname attribute that carries the label when a PSP validates a Central Mapper ID; NPCI is responsible for schema versioning, PSP Bank must populate the nickname field when present, and Issuer Bank must validate the field’s format and persist it alongside the VPA mapping.",
+      "3. NPCI shall release Common Library version 2.38 (or higher) that embeds nickname encryption within the credential block and supports the new configuration flag; NPCI is responsible for publishing the updated CL package, PSP Bank must integrate the new CL into its mobile SDK, and Issuer Bank must support the CL version negotiation during the authentication handshake.",
+      "4. NPCI shall introduce a switch‑level configuration flag named enableNicknameLayer that can be toggled per PSP; NPCI is responsible for exposing the flag in the switch administration console, PSP Bank must set the flag to true when its app supports nickname display, and Beneficiary Bank must honor the flag by including the nickname in the credit‑confirmation message when the flag is active.",
+      "5. NPCI shall add a nicknameDisplayFlag field to the LIST_ACCOUNT response so that PSPs can query whether a VPA has an associated nickname; NPCI is responsible for schema amendment, Issuer Bank must populate the flag based on its stored nickname, and PSP Bank must read the flag and render the nickname on the payment confirmation screen."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The NPCI platform will introduce a set of routing and validation enhancements to accommodate the new Payee Nickname capability. These changes focus on interpreting the refCategory flag, strengthening credential verification, and ensuring that the nickname is carried through the switch to the beneficiary bank. By embedding the nickname early in the flow, the ecosystem can present a consistent, user‑friendly label at every confirmation screen.",
+      "The revised processing logic is expected to reduce address‑entry errors and lower reversal volumes, directly supporting the RBI’s consumer‑protection directive. NPCI will also enforce version compatibility, guaranteeing that only PSPs supporting the nickname feature can participate. The outcome is a smoother payer experience while preserving the integrity and auditability of biometric‑authenticated transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall inspect the refCategory field in the incoming ReqPay and, when the value is '05', instruct the Issuer Bank to apply biometric‑authentication rules and log the event for audit.",
+      "2. NPCI shall validate the encrypted credential block (CRED) using the RSA‑SHA256 2048‑bit certificate; if validation fails, NPCI shall reject the request and send a signed error response to the originating PSP Bank.",
+      "3. NPCI shall route the payment request to the Payee PSP based on the VPA‑to‑nickname mapping and shall include the nickname in the payload forwarded to the Beneficiary Bank for display at confirmation.",
+      "4. NPCI shall verify the clVersion supplied by the PSP Bank; if the version is below the required threshold for nickname support, NPCI shall return a version‑mismatch response to the PSP Bank and halt further processing.",
+      "5. NPCI shall deliver the final RespPay to the originating PSP Bank only after receiving a successful credit acknowledgment from the Beneficiary Bank, and shall embed the nickname in the response so the PSP Bank can render it to the end‑user."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The upcoming Payee Nickname capability requires the UPI application and its PSP to introduce a coordinated set of enrollment, consent capture, and device‑binding steps. These steps must be visible to the end‑user, securely processed by the Common Library, and persisted in a device‑protected keystore. By embedding the new flow directly in the app UI, the ecosystem can guarantee that the nickname is linked to a verified device and that the user has explicitly agreed to the service. This alignment also satisfies the RBI’s consumer‑protection directive for transparent UI enhancements.",
+      "From a business perspective, the changes enable a cross‑app, network‑wide nickname layer without altering settlement or fee structures. The UPI App will present the consent experience, while the PSP will orchestrate the backend calls to NPCI and manage cryptographic material. Together they ensure that the nickname is stored only after successful device binding, reducing address‑entry errors and supporting the strategic goal of higher transaction success rates."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. The UPI App shall display an enrollment screen that explains the Payee Nickname feature and obtains the user’s explicit consent before any nickname is saved; ownership: UPI App.",
+      "2. The PSP shall provide a consent capture API that records the user’s agreement in the transaction log and returns a confirmation token to the UPI App; ownership: PSP.",
+      "3. The UPI App shall invoke the Common Library SDK to generate an encrypted credential block (CRED) during enrollment, passing the confirmation token and device identifier; ownership: PSP (via CL integration) and UPI App (SDK call).",
+      "4. The PSP shall mandate that the UPI App store the generated private key and device binding metadata in the device’s Trusted Execution Environment (TEE) or Secure Enclave, ensuring it is inaccessible to other applications; ownership: PSP (policy) and UPI App (implementation).",
+      "5. The UPI App shall execute a device health‑check routine that validates the TEE status, nonce freshness, and CL version before completing the binding request; ownership: PSP (defines check criteria) and UPI App (performs check)."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of a network‑wide payee nickname requires the UPI App and the PSP to adjust how credentials are captured and how the Common Library (CL) is invoked at the moment of payment. The PSP must ensure that the CL version in use supports the nickname field and that the encrypted credential block carries the payer’s authentication data securely. NPCI is responsible for publishing the compatible CL version and for validating its integrity during each transaction. Issuer and Beneficiary banks continue to rely on the encrypted block for authentication and settlement without any change to their core processing logic.",
+      "Fallback handling and response presentation are equally critical to preserve a seamless user experience. If the CL fails or a timeout occurs, the PSP must revert to displaying the raw VPA while still completing the payment using the standard flow. Upon successful completion, the PSP must replace the VPA on the confirmation screen with the stored nickname supplied by the Beneficiary Bank, ensuring the payer sees the familiar label before authorising the final acknowledgment."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. PSP Bank shall capture the payer’s authentication credential (PIN or biometric) by invoking the NPCI‑provided Common Library (CL) version 2.36 or higher; NPCI shall maintain the CL SDK and certify its compatibility; Issuer Bank shall accept the encrypted credential block as part of the ReqPay message.",
+      "2. PSP Bank shall embed the payee nickname, obtained from the Beneficiary Bank’s nickname service, into the encrypted credential (CRED) block of the ReqPay request; NPCI shall route the enriched request to the Issuer Bank; Issuer Bank shall validate the nickname field alongside the VPA.",
+      "3. If the CL invocation does not return a valid response within the defined timeout, PSP Bank shall trigger a fallback path that displays the raw VPA to the user and continues the payment using the standard flow; NPCI shall forward the fallback‑enabled request unchanged; Issuer Bank shall process the debit based on the VPA alone.",
+      "4. Upon receipt of the RespPay from the Issuer Bank, PSP Bank shall replace the VPA in the confirmation screen with the nickname supplied by the Beneficiary Bank and present it to the payer; Beneficiary Bank shall include the nickname in the credit‑side response; NPCI shall ensure the nickname field is preserved end‑to‑end.",
+      "5. PSP Bank shall log the nickname, transaction amount, and status in its audit trail and forward the log identifier to NPCI for centralized monitoring; NPCI shall retain the identifier for dispute resolution; Issuer Bank and Beneficiary Bank shall reference the identifier if a reversal or query arises."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of a network-wide payee nickname layer requires the Issuer Bank to extend its authentication and registration processes. When a payer registers a nickname, the Issuer Bank must capture the association between the customer’s VPA and the chosen label. This ensures that subsequent payment flows can retrieve the nickname without exposing the underlying VPA.",
+      "During each payment, the Issuer Bank participates in the authentication exchange and must surface the stored nickname to the NPCI switch for display on the confirmation screen. The bank also has to enforce validation rules that prevent duplicate or malformed nicknames for a given account. These actions collectively reduce transaction errors and support the RBI’s consumer-protection directive."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Issuer Bank shall store a persistent mapping of each customer’s VPA to the user-defined nickname, retaining the record in a secure, encrypted repository that is accessible only to authorized bank services.",
+      "2. Issuer Bank shall validate that any nickname submitted through the PSP registration request conforms to length (max 20 characters), character set (alphanumeric and space), and uniqueness within the customer’s account before persisting it.",
+      "3. Issuer Bank shall respond to the NPCI-initiated REQ_AUTH_DETAILS call with a RespAuthDetails message that includes the authentication outcome and, when the transaction is flagged for nickname display, the corresponding nickname retrieved from its store.",
+      "4. Issuer Bank shall incorporate the nickname identifier into its credential management workflow, ensuring that the encrypted credential block (CRED) generated by the CL contains a reference to the stored nickname and that the nonce-based challenge is verified for each authentication attempt.",
+      "5. Issuer Bank shall acknowledge the PSP’s ReqValAdd request for nickname lookup within the stipulated SLA (typically 2 seconds) and return a RespValAdd containing the linked VPA and nickname, or an appropriate error code if the mapping is absent."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank remains the authoritative source for authenticating the payer and authorising the debit of funds. With the Payee Nickname feature, the bank must now validate the encrypted credential block (CRED) that includes the nickname reference, ensuring the CL version supports refCategory='05' for biometric‑authenticated requests. This validation guarantees that the nickname layer does not compromise security or introduce replay risks.",
+      "After successful authentication, the Issuer Bank proceeds to lock the payer's account, debit the transaction amount, and generate a unique transaction reference that is propagated back through the NPCI switch. The bank must embed the confirmed nickname in the RESP_PAY payload so that downstream PSPs can display the user‑friendly label at confirmation. In cases where processing exceeds the SLA, the bank must trigger timeout handling and initiate the prescribed fallback sequence."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Issuer Bank shall validate the encrypted credential block (CRED) using the latest Common Library version and confirm that refCategory='05' is present for biometric‑authenticated payments; any mismatch shall result in an immediate authentication failure response.",
+      "2. Issuer Bank shall perform the debit only after successful credential validation, lock the payer's account for the exact transaction amount, and create a unique transaction reference that is included in the downstream response.",
+      "3. Issuer Bank shall return RESP_PAY with standardized response codes: 00 for successful debit, 91 for issuer timeout, 94 for authentication failure, and must include the mapped payee nickname in the response note field for display by PSPs.",
+      "4. Issuer Bank shall implement a 5‑second processing timeout monitor; if the bank cannot send RESP_PAY to NPCI within this window, it shall send a timeout error code 91 and rely on the PSP to invoke REQ_CHK_TXN for status reconciliation.",
+      "5. Issuer Bank shall maintain a fallback path that automatically re‑queries the transaction status using REQ_CHK_TXN upon timeout and must notify the payer via SMS within 30 seconds of the fallback initiation."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

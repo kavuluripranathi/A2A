@@ -1,0 +1,319 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The purpose of this Product Note is to capture a complete, stakeholder‑focused description of the Payee Nickname feature. It outlines the business rationale, functional behavior, operational responsibilities, testing requirements and compliance considerations. By consolidating this information, the note enables consistent implementation across all UPI‑enabled applications and PSPs.",
+      "The primary audience includes product managers, engineering leads, compliance and risk teams, as well as banking partners and PSP operations groups. These readers will use the document to align on requirements, validate technical designs, and plan rollout activities. It also serves as a reference for audit and regulatory review.",
+      "The scope of this note covers the end‑to‑end user journey from nickname creation to payment confirmation, the associated policy rules, failure and fallback handling, testing scenarios, and the unchanged dispute management framework. It does not modify settlement logic, fee structures, or core UPI rail protocols. All guidance is limited to the network‑wide nickname layer and its impact on user experience and operational processes."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "Today, every UPI‑enabled application relies on the Virtual Payment Address (VPA) as the primary identifier for a beneficiary. The VPA is a 12‑to‑20‑character string that users must type or select from an app‑specific contact list. While the underlying switch routes payments correctly, there is no network‑wide mechanism to associate a friendly label with that address. Consequently, each PSP maintains its own saved‑contact repository, which does not synchronize across apps.",
+      "The reliance on raw VPAs creates measurable friction. Industry data shows that roughly 1.2 % of all UPI transfers—about two million transactions each month—fail because the address is entered incorrectly. These failures generate reversal processing, support tickets, and a loss of consumer confidence that together cost the ecosystem more than ₹150 million per month. Moreover, users who switch between wallets must re‑enter or re‑save the same beneficiary, increasing the likelihood of error.",
+      "Introducing a network‑level \"Payee Nickname\" layer directly addresses these pain points. By allowing users to assign a memorable label such as \"Mom\" or \"Electricity Bill\" that is stored centrally and displayed on every UPI app, the feature eliminates the need to type the full VPA for repeat transactions. Early pilots indicate a 30‑40 % reduction in wrong‑beneficiary complaints, translating into significant cost savings and higher transaction success rates. The enhancement also satisfies the RBI’s 2025 consumer‑protection directive, positioning the UPI ecosystem as a safer, more user‑friendly digital payment rail."
+    ],
+    "bullet_points": [
+      "Cross‑app consistency – the nickname is visible on any UPI‑enabled wallet, removing duplicate contact management.",
+      "Error reduction – replaces long, error‑prone VPAs with short, user‑chosen labels, cutting mistyped‑address incidents.",
+      "Operational cost savings – fewer reversals and support interactions lower monthly expense for banks and PSPs.",
+      "Regulatory compliance – aligns with RBI’s consumer‑protection mandate for UI improvements.",
+      "Incremental rollout – leverages existing VPA‑to‑nickname mapping APIs without altering settlement logic.",
+      "Enhanced user trust – a familiar label at confirmation builds confidence in the payment flow."
+    ],
+    "numbered_items": [
+      "No native, network‑wide nickname capability exists; each PSP maintains isolated contact data.",
+      "Beneficiary identifiers are long VPAs that must be manually entered or selected, increasing cognitive load.",
+      "Mistyped VPAs cause approximately 2 million failed transactions per month.",
+      "Reversals and support handling for these failures cost the ecosystem over ₹150 million monthly.",
+      "Users switching between wallets must recreate saved contacts, leading to duplication and error.",
+      "The current UI does not meet the RBI’s directive for reducing transaction errors through user‑friendly enhancements."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname feature allows a UPI user to assign a short, memorable label—such as \"Mom\", \"Gym\" or \"Electricity Bill\"—to any frequent recipient. The nickname replaces the long Virtual Payment Address (VPA) on the payment confirmation screen across all UPI-enabled applications. Because the mapping is stored centrally at the network level, the same label appears consistently no matter which PSP's app the user opens. This creates a uniform, network-wide contact layer that was previously only available as app-specific address books.",
+      "When a user initiates a payment, the app displays the chosen nickname next to the amount field, letting the user confirm the beneficiary with a single tap. The workflow remains identical to the standard REQ_PAY flow, so settlement, fees and routing are unchanged. Early pilots show a 30-40% reduction in wrong-beneficiary complaints, translating into lower reversal costs and higher user confidence. The feature therefore drives operational efficiency while delivering a smoother, error-free experience for the 70% of users who repeatedly pay a small set of contacts.",
+      "Nicknames are stored in the NPCI-managed repository using the same encryption and key-management standards that protect all UPI transaction data (RSA-SHA256 with a minimum 2048-bit key). Access is limited to the payer's PSP and is never shared with third parties, preserving privacy of the user's personal labeling. The feature does not alter any authentication or settlement messages, so existing security controls such as the nonce-based challenge and TEE-protected credential block remain fully effective. Compliance with the RBI's consumer-protection directive is maintained, as the enhancement only adds a UI layer without exposing additional sensitive data."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The nickname control is embedded directly on the payee selection screen of the UPI app. When a user taps a saved VPA, a thin “Add Nickname” button appears beneath the address line. The UI follows the app’s design system, using the same font, colour palette and placement as the amount entry field to keep the experience seamless. This placement ensures the option is visible at the moment the user is most likely to need it.",
+      "To enroll a nickname, the user first opens the UPI app and selects a frequent payee. After the standard payment confirmation screen shows the amount and VPA, the user taps the “Add Nickname” prompt, enters a memorable label such as “Mom” and confirms with a single tap. The app then presents a consent dialog that explicitly states the nickname will be stored centrally and used across all UPI‑enabled apps. The user’s acceptance is recorded as part of the transaction log.",
+      "Behind the scenes, the PSP receives the nickname payload and validates it against format rules before invoking the NPCI nickname service via a secure API call. NPCI stores the VPA‑to‑nickname mapping in the common library and propagates the record to all participating PSPs, ensuring the label appears consistently on every app. The issuer bank does not participate in this flow, but the PSP must retain an audit trail linking the user’s consent to the stored record. Once NPCI returns a success acknowledgement, the app updates its local cache and shows a confirmation toast to the user."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify user is logged in and has completed at least one successful payment to the payee",
+          "User & PSP"
+        ],
+        [
+          "Step 1",
+          "User selects “Add Nickname” next to the payee entry on the confirmation screen",
+          "User"
+        ],
+        [
+          "Step 2",
+          "PSP validates nickname format and stores mapping via NPCI nickname service",
+          "PSP"
+        ],
+        [
+          "Step 3",
+          "NPCI acknowledges storage and propagates mapping to all participating PSPs",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "App displays nickname confirmation and updates local cache",
+          "PSP & User"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname feature expands the UPI transaction scope by introducing a user‑friendly label that replaces the raw VPA on the payment confirmation screen. This enhancement is implemented as a network‑level mapping stored centrally and accessed by all participating PSPs. It does not modify settlement logic, fee structures, or the underlying rail, so existing banking and regulatory processes remain intact. The change is limited to the UI layer and the API that retrieves the nickname during the payment flow.",
+      "The feature is supported in both the standard online UPI flow and the offline UPI Lite X mode used at merchant locations. In online mode the nickname is resolved in real time through the NPCI switch before the request is forwarded to the issuer and beneficiary banks. In offline mode the PSP caches the nickname‑to‑VPA mapping, allowing the same confirmation experience without a live network call. Operationally, PSPs must ensure the cache is refreshed regularly to stay consistent with the central repository.",
+      "When a payer launches the UPI app, the app presents the saved nickname next to the amount field, allowing the user to select the intended recipient with a single tap. After the user confirms the amount, the app prompts for the UPI PIN; upon successful authentication the PSP packages a payment request and sends it to the NPCI switch. NPCI routes the request to the payer’s issuing bank for debit, then to the payee’s bank for credit, and finally returns a success response to the PSP. The app displays a success notification, completing the transaction and logging the event for audit and dispute handling."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate that a nickname‑to‑VPA mapping exists for the selected payee",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "User opens UPI app and selects the payee nickname",
+          "Payer UPI App"
+        ],
+        [
+          "Step 2",
+          "App displays payment confirmation screen with amount and nickname",
+          "Payer UPI App"
+        ],
+        [
+          "Step 3",
+          "User authenticates using UPI PIN",
+          "Payer UPI App"
+        ],
+        [
+          "Step 4",
+          "PSP sends payment request to NPCI and receives confirmation response",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "User receives success notification and transaction is logged",
+          "Payer UPI App"
+        ],
+        [
+          "Post Response",
+          "Update nickname usage metrics and notify user of transaction status",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname feature introduces a user‑defined label that replaces the raw VPA on the payment confirmation screen. While this improves usability, it also creates new data handling responsibilities for PSPs and banks. Policies must therefore address when a nickname can be created, how consent is obtained, and how the information is protected throughout its lifecycle. Clear rules ensure compliance with RBI directives and maintain trust across the UPI ecosystem.",
+      "Consent is the cornerstone of the nickname service; users must actively opt‑in before any label is persisted. The opt‑in flow should be tied to the first successful transaction or an explicit “Add Nickname” action, with a timestamped record stored for audit purposes. Because nicknames are optional, users retain the right to decline or later withdraw consent without affecting their ability to transact using the underlying VPA.",
+      "Operationally, nicknames are display‑only data and must never influence routing, settlement, or mandate processing. They must be encrypted at rest using strong RSA‑SHA256 2048‑bit keys, retained only for the period of an active relationship or a defined maximum, and securely deleted upon user‑initiated disablement or consent revocation. Regular key rotation and prompt re‑encryption are required to mitigate the risk of key compromise."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Nickname creation is optional; the PSP must obtain explicit user opt‑in before storing any label.",
+      "2. Consent must be captured at the moment of the first successful payment or when the user selects “Add Nickname”, and must be logged with timestamp and PSP identifier.",
+      "3. Stored nicknames may be used solely for display on the payment confirmation screen and must never be transmitted to settlement or routing components.",
+      "4. Nickname data must be encrypted at rest using RSA‑SHA256 2048‑bit keys or stronger, and retained only while the user maintains an active relationship or for a maximum of 24 months after last use.",
+      "5. PSPs must rotate encryption keys at least annually or immediately after any compromise, and must re‑encrypt all stored nicknames within 48 hours of rotation.",
+      "6. Users may disable or delete a nickname at any time; the PSP must purge the record from all caches within 24 hours and cease its display across all UPI apps.",
+      "7. Upon user revocation of consent, the PSP must immediately stop using the nickname and delete the record in accordance with the defined retention policy."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The nickname layer is stored centrally at the NPCI mapper and is retrieved in real time by any UPI‑enabled app during the payment flow. This ensures that a user who adds a label on one wallet will see the same label on another wallet without additional onboarding steps. The central store respects the existing data‑privacy framework, exposing only the nickname to the PSP that initiated the request.",
+      "Nicknames are displayed only on the payment confirmation screen and never replace the underlying VPA in settlement or audit logs. This preserves the integrity of transaction records for banks and regulators while still delivering a user‑friendly label at the point of interaction. If a user edits or deletes a nickname, the change propagates instantly to all downstream apps.",
+      "In the rare event that the central nickname service is unavailable, the PSP must fall back to showing the full VPA and present a clear message that the nickname could not be loaded. The fallback must not block the transaction; it simply reverts to the standard address view. All fallback paths are required to be logged for operational monitoring."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. A nickname may contain up to 30 alphanumeric characters and spaces; special characters are prohibited to avoid parsing issues.",
+      "2. Users must be able to add, edit, or delete a nickname from within the app’s ‘Manage Payees’ screen at any time.",
+      "3. The PSP is responsible for validating that the nickname does not duplicate an existing label for the same payer to prevent ambiguity.",
+      "4. During the payment confirmation step, the nickname must appear alongside the amount and VPA in a font size no smaller than the amount field for readability.",
+      "5. Any change to a nickname must trigger a push notification to the user confirming the update, satisfying RBI’s consumer‑notification requirement.",
+      "6. The nickname service must enforce rate limiting of 10 updates per user per day to mitigate abuse and ensure system stability.",
+      "7. All nickname data must be encrypted at rest using RSA‑SHA256 with a minimum 2048‑bit key, aligning with the NPCI security standards.",
+      "8. PSPs must retain an audit trail of nickname creation, modification, and deletion for a minimum of 12 months for compliance reviews."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the Payee Nickname feature does not alter the dispute handling model defined for UPI transactions. All disputes continue to be governed by the standard UDIR (Unified Dispute and Investigation Repository) framework that NPCI currently mandates. No additional dispute codes or workflows are introduced for nickname‑related transactions. This ensures that the ecosystem retains a single, consistent process for all payment issues.",
+      "For banks and PSPs, the operational impact is limited to displaying the nickname on the confirmation screen; the underlying transaction identifiers, such as the VPA and transaction reference, remain unchanged. Consequently, the existing logging, audit, and reconciliation mechanisms continue to satisfy regulatory and compliance requirements. Users will raise a dispute in the same manner as before, using the app’s native dispute flow. The PSP’s support teams can reference the original VPA from the transaction record when investigating any claim.",
+      "Liability for any disputed payment stays with the issuing and beneficiary banks as defined in the current UPI dispute policy. The presence of a nickname does not create a new category of error, and any claim that the nickname caused confusion will be evaluated under the same criteria used for standard VPA disputes. No extra documentation or evidence is required beyond what is already captured in the transaction log. Therefore, the overall risk profile for participants remains unchanged."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "Testing is conducted in three progressive environments: a sandbox that mimics the NPCI switch for early integration, a staging environment that mirrors production data volumes and latency, and a production‑like environment where end‑to‑end flows are validated with live credentials under controlled conditions. Each environment is isolated to prevent cross‑contamination of test data and to ensure that performance metrics reflect realistic user behavior. Stakeholders receive access credentials and environment documentation well in advance of test cycles.",
+      "Mandatory test scenarios cover the full nickname lifecycle. The happy‑path enrollment scenario confirms that a user can create and store a nickname without errors. Transaction scenarios verify that the nickname replaces the VPA on the confirmation screen and that the payment completes successfully. Fallback scenarios test PIN failures and timeout conditions to ensure the system returns the correct decline codes. Finally, disablement scenarios validate that removing a nickname reverts the UI to display the raw VPA across all supported apps.",
+      "Certification follows a structured three‑step process. First, the PSP’s internal quality assurance team executes the full test matrix and signs off on functional and security compliance. Second, NPCI conducts an independent certification run using the staging environment to confirm adherence to the common library specifications and cross‑app consistency. Third, the PSP product owner provides a formal acceptance sign‑off, after which the feature is promoted to production.",
+      "Audit expectations are defined for both pre‑launch and post‑launch periods. Auditors will review test logs, defect tracking records, and certification reports to verify that all mandatory scenarios were executed and passed. Ongoing operational audits will focus on monitoring nickname usage metrics, error rates, and any incidents related to fallback handling. All audit artifacts must be retained for a minimum of twelve months and be made available to NPCI and the RBI upon request."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Happy path enrollment",
+          "Verify successful registration and storage of a payee nickname",
+          "PSP Product Team"
+        ],
+        [
+          "Transaction with nickname",
+          "Confirm nickname appears on confirmation screen and payment succeeds",
+          "PSP Engineering"
+        ],
+        [
+          "PIN failure fallback",
+          "Ensure transaction is declined with appropriate error when authentication fails",
+          "PSP QA"
+        ],
+        [
+          "Timeout handling",
+          "Validate that transaction aborts with business decline on timeout",
+          "PSP Operations"
+        ],
+        [
+          "Nickname disablement",
+          "Test removal of nickname and subsequent use of raw VPA",
+          "PSP Compliance"
+        ],
+        [
+          "Cross‑app consistency",
+          "Verify nickname is visible across multiple UPI apps for the same user",
+          "NPCI Integration Team"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "Before a PSP can enroll or enable the Payee Nickname capability, a series of operational and security checks must be satisfied. These checks confirm that the PSP’s environment, APIs, and compliance artefacts meet NPCI’s specifications. Only when every check passes can the nickname service be activated on the PSP’s platform. This safeguards the network against inconsistent implementations.",
+      "During each payment, additional runtime checks are performed to guarantee that the nickname displayed to the user is accurate and that the transaction complies with security and processing rules. The checks are executed by the NPCI switch, the issuer bank, and the PSP’s transaction engine in a tightly sequenced flow. If any check fails, the transaction is halted before funds are moved. The outcome is communicated to the user as a decline with an appropriate reason code.",
+      "Failure of a pre‑check at enrollment results in the PSP being unable to publish the nickname feature to its customers, requiring remediation before re‑submission. At transaction time, a failed check leads to an immediate abort, preserving the payer’s funds and maintaining a clear audit trail. These consequences ensure that both the ecosystem’s reliability and the user experience remain protected."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Verify PKI certificate compliance (RSA SHA‑256, 2048‑bit minimum) – performed by the PSP security team; failure blocks enrollment until the certificate is updated.",
+      "Confirm access to the Central Mapper service for nickname‑VPA resolution – performed by the PSP integration team; failure results in inability to fetch nicknames and enrollment is rejected.",
+      "Validate that the PSP’s API version supports nickname fields (required CL version) – performed by PSP product; failure leads to the feature toggle being disabled.",
+      "Ensure a user‑consent workflow is in place for storing nicknames – performed by PSP UX/compliance; failure prevents activation due to regulatory breach.",
+      "Check that the nickname storage database meets encryption and data‑retention policies – performed by PSP data security; failure halts enabling until remediation.",
+      "Confirm implementation of push‑notification hooks for nickname updates – performed by PSP operations; failure may delay updates but enrollment can proceed only after remediation.",
+      "Verify that the entered VPA maps to an active nickname in the central mapper – performed by the NPCI switch; failure returns a business decline indicating an invalid payee.",
+      "Ensure the user’s authentication (UPI PIN or biometric) succeeds – performed by the issuer bank; failure results in a technical decline code and transaction abort.",
+      "Enforce timeout monitoring on the request‑response cycle – performed by the PSP; failure triggers an aborted transaction with a business decline code for timeout.",
+      "Confirm that the nickname is not being used as a transaction identifier – performed by the PSP validation layer; failure blocks the transaction and returns an error stating that nicknames cannot be used for payment."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

@@ -1,0 +1,467 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "Today the UPI ecosystem supports single‑party payments through the standard ReqPay/RespPay flow. A payer PSP initiates a ReqPay, NPCI coordinates authentication, debit, credit and confirmation using the existing message set (ReqAuthDetail, ReqTxnConfirmation, etc.). All participants – payer PSP, payee PSP, issuer and beneficiary banks – rely on the VPA as the unique identifier. The switch enforces the ₹15,000 per‑transaction limit and the same daily aggregate ceiling for each VPA.",
+      "The current model does not provide a native mechanism to divide a bill among multiple beneficiaries. Users must manually calculate shares, create separate ReqPay messages for each participant, or send ad‑hoc requests, which introduces latency, error risk and higher processing load on PSPs. This manual workflow also prevents the use of mandate‑based recurring splits and limits the ability to apply smart settlement logic across split legs. Consequently, the experience deviates from UPI’s goal of frictionless, real‑time payments.",
+      "The proposed AutoSplit feature builds on the existing ReqPay and ReqMandate APIs while introducing dedicated SplitCreate, SplitSchedule and SplitSettle messages to carry split metadata. By retaining VPA as the payer and beneficiary identifier, the solution inherits the current transaction limits, PIN‑based authentication and daily caps, ensuring compliance with NPCI rules. Smart settlement is applied: if the aggregate split amount is ≤ ₹15,000 the credit to all beneficiaries occurs instantly; otherwise the standard 8‑cycle settlement is used. This incremental approach reuses the proven CL encryption, credential block (CRED) handling and NPCI switch routing, minimizing ecosystem disruption and simplifying certification."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit feature extends the standard UPI payment flow to automatically divide a shared expense among multiple VPA participants. When a payer initiates a split through the UPI App, the app forwards a ReqPay request to the payer’s PSP, which routes it through the NPCI switch. NPCI coordinates authentication with the payee PSPs, triggers debit from the payer’s bank and credits each beneficiary’s bank, all without manual intervention from the individual participants. The participants involved are the payer PSP, the payer’s issuing bank, the NPCI switch, the payee PSPs and their respective beneficiary banks, and the UPI mobile application that presents the split UI.",
+      "By automating calculation, request generation and settlement, AutoSplit eliminates the need for users to manually compute shares, send separate payment requests, or chase reminders. This reduces transaction friction, lowers error rates, and accelerates cash flow, delivering a measurable increase in user satisfaction and encouraging higher transaction volumes for PSPs and banks. The feature also creates a new revenue opportunity through value‑added services and potential mandate‑based recurring splits, aligning with the broader goal of expanding UPI adoption."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit feature operates within the standard UPI topology where the payer's UPI app communicates with the payer PSP, which in turn sends a ReqPay message to the NPCI switch. NPCI forwards authentication requests (ReqAuthDetail) to the payee PSP and routes debit and credit instructions to the issuer/remitter and beneficiary banks respectively. All participants – UPI App, Payer PSP, Payee PSP, NPCI Switch, Issuer/Remitter Bank, and Beneficiary Bank – retain their existing roles, with the split logic executed by the PSPs using the extended request schema.",
+      "Key design decisions include reusing the existing ReqPay, ReqMandate, and transaction confirmation APIs while introducing SplitCreate, SplitModify/Cancel, and SplitStatus messages for lifecycle management. The VPA is used as the unique identifier for both payer and each split participant, and the per‑transaction and daily limits remain identical to the baseline UPI rules (₹15,000 without PIN, higher amounts requiring UPI PIN). Smart Settlement is applied: instant credit when the total split amount is ≤ ₹15,000, otherwise settlement follows the standard 8‑cycle schedule."
+    ],
+    "bullet_points": [
+      "Leverages existing UPI message flow (ReqPay → ReqAuthDetail → Debit/Credit → Confirmation) to minimize integration effort.",
+      "Extends request payload with a splitDetails object containing participants, amounts, and execution rules.",
+      "Maintains current UPI limits and authentication requirements to ensure compliance and risk mitigation."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The enrollment flow establishes a persistent AutoSplit mandate that enables automatic distribution of future shared expenses. The UPI App captures participant VPAs and split parameters, then leverages the standard ReqMandate and related mandate APIs to create a cryptographically protected mandate across the UPI ecosystem. Successful completion results in a MandateStatus of Created, which the app stores for subsequent split transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate device, CL version, and feature flag for AutoSplit; ensure refCategory='05' if biometric auth is required",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Construct ReqMandate with VPA, UMN, total Amount, PurposeCode=14, InitiationMode=11, and optional split metadata",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "Transmit ReqMandate to Payer PSP",
+          "Payer PSP"
+        ],
+        [
+          "Step 3",
+          "Forward ReqMandate to NPCI for routing",
+          "Payer PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI sends ReqAuthMandate to Payee PSP(s) to authenticate participants",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Payee PSP validates participant VPAs and returns RespAuthMandate",
+          "Payee PSP"
+        ],
+        [
+          "Step 6",
+          "NPCI forwards mandate creation request to Issuer (payer) Bank for hold allocation",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Issuer Bank creates mandate record and returns RespMandate with MandateStatus=Created",
+          "Issuer Bank"
+        ],
+        [
+          "Step 8",
+          "Payer PSP relays RespMandate to UPI App via RespMandateConfirmation",
+          "Payer PSP"
+        ],
+        [
+          "Post Response",
+          "UPI App displays enrollment success, stores Mandate ID (splitId) for future split executions",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit transaction follows the standard UPI payment lifecycle augmented with split metadata. After the payer initiates a payment request, the NPCI switch orchestrates authentication, debit, and settlement while handling split participant details. Smart Settlement determines whether the split is settled instantly or scheduled based on the total amount, ensuring compliance with the INR 15,000 limit and PIN requirements."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate VPA format, amount limits, split metadata, and payer balance",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Payer PSP initiates ReqPay (type Pay) with VPA, amount, purpose code",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI sends ReqAuthDetail to Payee PSP",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Payee PSP validates merchant details and returns RespAuthDetail",
+          "Payee PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI forwards Debit request (ReqPay type Debit) to payer’s account or voucher",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Payer PSP confirms debit via ReqTxnConfirmation and receives RespTxnConfirmation",
+          "Payer PSP"
+        ],
+        [
+          "Step 6",
+          "NPCI settles instantly or schedules settlement based on Smart Settlement flag",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "Payer PSP relays final status to UPI App; App updates UI and records split settlement",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:VPA>payer@bank</upi:VPA>\n    <upi:Amount>1200.00</upi:Amount>\n    <upi:PurposeCode>14</upi:PurposeCode>\n    <upi:InitiationMode>11</upi:InitiationMode>\n    <upi:SplitDetails>\n        <upi:Participant>\n            <upi:VPA>friend1@bank</upi:VPA>\n            <upi:Share>400.00</upi:Share>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>friend2@bank</upi:VPA>\n            <upi:Share>400.00</upi:Share>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>friend3@bank</upi:VPA>\n            <upi:Share>400.00</upi:Share>\n        </upi:Participant>\n    </upi:SplitDetails>\n</upi:ReqPay>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Transaction Successful</upi:RespMessage>\n    <upi:TxnReference>TXN1234567890</upi:TxnReference>\n</upi:RespPay>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section defines the UPI message set that underpins the AutoSplit capability. It documents the existing core APIs—ReqPay/RespPay, ReqAuthDetail/RespAuthDetail, ReqTxnConfirmation/RespTxnConfirmation, ReqMandate/RespMandate, ReqAuthMandate/RespAuthMandate, and ReqMandateConfirmation/RespMandateConfirmation—along with the newly introduced split‑management messages SplitCreate, SplitSchedule, SplitSettle, SplitModify, SplitCancel, and SplitStatus. The scope covers the required request and response fields, mandatory extensions to the schema for split metadata, and the transaction‑limit and authentication rules that apply to both standard and split transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit feature leverages the existing UPI payment flow with a focus on mandate‑based recurring transactions. The primary APIs involved are ReqPay, ReqAuthDetail, ReqMandate, and ReqTxnConfirmation, which together orchestrate authentication, debit, and settlement across payer and payee PSPs via the NPCI switch.",
+      "Each API follows a strict request/response pattern using the UPI XML schema. The request payload carries mandatory fields such as VPA, Amount, and PurposeCode, while optional fields like SeqNum and UPIPIN support recurring and high‑value scenarios. Responses return standard status codes, human‑readable messages, and transaction identifiers for downstream reconciliation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "VPA",
+          "String",
+          "35",
+          "Virtual Payment Address of payer or payee",
+          "Y"
+        ],
+        [
+          "UMN",
+          "String",
+          "32",
+          "Unique Mandate Number generated by payer PSP",
+          "Y"
+        ],
+        [
+          "Amount",
+          "Decimal",
+          "15",
+          "Transaction amount in INR",
+          "Y"
+        ],
+        [
+          "PurposeCode",
+          "Integer",
+          "2",
+          "Code indicating transaction purpose (e.g., 14 for split settlement)",
+          "Y"
+        ],
+        [
+          "InitiationMode",
+          "Integer",
+          "2",
+          "Mode of initiation; 11 used for debit against UMN",
+          "Y"
+        ],
+        [
+          "SeqNum",
+          "Integer",
+          "2",
+          "Sequence number for recurring mandate executions",
+          "N"
+        ],
+        [
+          "UPIPIN",
+          "String",
+          "6",
+          "UPI PIN required for amounts > INR 15,000 or first debit of a mandate",
+          "N"
+        ],
+        [
+          "RespCode",
+          "String",
+          "2",
+          "Response code indicating success or decline",
+          "Y"
+        ],
+        [
+          "RespMessage",
+          "String",
+          "100",
+          "Human readable response description",
+          "Y"
+        ],
+        [
+          "TxnReference",
+          "String",
+          "35",
+          "Unique transaction identifier generated by NPCI",
+          "Y"
+        ],
+        [
+          "MandateStatus",
+          "String",
+          "10",
+          "Status of mandate (Created, Active, Paused, Revoked)",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: Payer PSP to NPCI -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:VPA>payer@bank</upi:VPA>\n    <upi:Amount>1500.00</upi:Amount>\n    <upi:PurposeCode>14</upi:PurposeCode>\n    <upi:InitiationMode>11</upi:InitiationMode>\n    <upi:UPIPIN>123456</upi:UPIPIN>\n</upi:ReqPay>",
+      "<!-- Response: NPCI to Payer PSP -->\n<upi:RespPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Success</upi:RespMessage>\n    <upi:TxnReference>TXN1234567890</upi:TxnReference>\n</upi:RespPay>",
+      "<!-- Request: NPCI to Payee PSP -->\n<upi:ReqAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:VPA>payee@bank</upi:VPA>\n</upi:ReqAuthDetail>",
+      "<!-- Response: Payee PSP to NPCI -->\n<upi:RespAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Auth OK</upi:RespMessage>\n</upi:RespAuthDetail>",
+      "<!-- Request: Payer PSP to NPCI (Mandate Creation) -->\n<upi:ReqMandate xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:VPA>payer@bank</upi:VPA>\n    <upi:UMN>UMN1234567890ABCD</upi:UMN>\n    <upi:Amount>500.00</upi:Amount>\n    <upi:PurposeCode>14</upi:PurposeCode>\n    <upi:InitiationMode>11</upi:InitiationMode>\n    <upi:SeqNum>01</upi:SeqNum>\n    <upi:UPIPIN>123456</upi:UPIPIN>\n</upi:ReqMandate>",
+      "<!-- Response: NPCI to Payer PSP (Mandate Creation) -->\n<upi:RespMandate xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Mandate Created</upi:RespMessage>\n    <upi:TxnReference>TXN9876543210</upi:TxnReference>\n    <upi:MandateStatus>Created</upi:MandateStatus>\n</upi:RespMandate>",
+      "<!-- Request: Payer PSP to NPCI (Transaction Confirmation) -->\n<upi:ReqTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:VPA>payer@bank</upi:VPA>\n    <upi:TxnReference>TXN1234567890</upi:TxnReference>\n</upi:ReqTxnConfirmation>",
+      "<!-- Response: NPCI to Payer PSP (Transaction Confirmation) -->\n<upi:RespTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Transaction Settled</upi:RespMessage>\n    <upi:TxnReference>TXN1234567890</upi:TxnReference>\n</upi:RespTxnConfirmation>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit capability introduces three supporting APIs – SplitCreate, SplitSchedule, and SplitSettle – to orchestrate the lifecycle of a shared‑expense transaction. A payer PSP initiates SplitCreate with split metadata, NPCI distributes the request to each beneficiary PSP, and acknowledgments are returned to the payer PSP. Once participants accept, the payer may invoke SplitSchedule to define a future settlement date, after which NPCI triggers SplitSettle to execute either an instant or smart settlement based on the aggregate amount.",
+      "Additional lifecycle APIs – SplitModify/Cancel and SplitStatus/Query – enable participants to amend or abort a split and to retrieve current split status. These secondary messages follow the same routing pattern: the initiating PSP sends the request to NPCI, which forwards it to the relevant PSPs, and a response containing RespCode and TxnReference is returned to the caller."
+    ],
+    "bullet_points": [
+      "Enables automated distribution of total amount among multiple VPAs.",
+      "Supports both immediate (instant) and deferred (smart) settlement modes.",
+      "Provides mechanisms for modification, cancellation, and status inquiry."
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate mandatory fields (SplitId, VPA, Amount) in request",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Send SplitCreate request to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI routes request to each beneficiary PSP",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Beneficiary PSP acknowledges receipt and returns status",
+          "Payee PSP"
+        ],
+        [
+          "Post Response",
+          "Payer PSP receives RespCode and TxnReference confirming creation",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: Payer PSP to NPCI -->\n<upi:SplitCreate xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:SplitId>SP1234567890</upi:SplitId>\n    <upi:PayerVPA>alice@bank</upi:PayerVPA>\n    <upi:TotalAmount>1500.00</upi:TotalAmount>\n    <upi:SplitDetails>\n        <upi:Participant>\n            <upi:VPA>bob@bank</upi:VPA>\n            <upi:Amount>500.00</upi:Amount>\n        </upi:Participant>\n        <upi:Participant>\n            <upi:VPA>carol@bank</upi:VPA>\n            <upi:Amount>1000.00</upi:Amount>\n        </upi:Participant>\n    </upi:SplitDetails>\n</upi:SplitCreate>",
+      "<!-- Response: NPCI to Payer PSP -->\n<upi:RespSplitCreate xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Split created successfully</upi:RespMessage>\n    <upi:SplitId>SP1234567890</upi:SplitId>\n    <upi:TxnReference>TXN9876543210</upi:TxnReference>\n</upi:RespSplitCreate>",
+      "<!-- Request: Payer PSP to NPCI (Schedule) -->\n<upi:SplitSchedule xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:SplitId>SP1234567890</upi:SplitId>\n    <upi:ScheduledDate>2026-05-01</upi:ScheduledDate>\n</upi:SplitSchedule>",
+      "<!-- Response: NPCI to Payer PSP (Schedule) -->\n<upi:RespSplitSchedule xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Split scheduled</upi:RespMessage>\n    <upi:TxnReference>TXN9876543211</upi:TxnReference>\n</upi:RespSplitSchedule>",
+      "<!-- Request: Payer PSP to NPCI (Settle) -->\n<upi:SplitSettle xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:SplitId>SP1234567890</upi:SplitId>\n    <upi:SettlementMode>SMART</upi:SettlementMode>\n</upi:SplitSettle>",
+      "<!-- Response: NPCI to Payer PSP (Settle) -->\n<upi:RespSplitSettle xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:RespCode>00</upi:RespCode>\n    <upi:RespMessage>Settlement initiated</upi:RespMessage>\n    <upi:TxnReference>TXN9876543212</upi:TxnReference>\n</upi:RespSplitSettle>",
+      "<!-- Field Dictionary (Markdown Table) -->\n| Field Name      | dType   | dLength | Description                                          | Mandatory |\n|-----------------|---------|---------|------------------------------------------------------|-----------|\n| SplitId         | String  | 32      | Identifier for split transaction                     | Y         |\n| PayerVPA        | String  | 35      | Virtual Payment Address of payer initiating split    | Y         |\n| TotalAmount     | Decimal | 15      | Aggregate amount to be split                        | Y         |\n| ParticipantVPA  | String  | 35      | VPA of a split participant                          | Y         |\n| ParticipantAmount| Decimal | 15      | Amount allocated to participant                      | Y         |\n| ScheduledDate   | String  | 10      | Planned settlement date (YYYY-MM-DD)                | N         |\n| SettlementMode  | String  | 10      | Mode of settlement: INSTANT or SMART               | N         |\n| RespCode        | String  | 2       | Response status code                                 | Y         |\n| RespMessage     | String  | 100     | Human readable response description                  | Y         |\n| TxnReference    | String  | 35      | Unique transaction identifier from NPCI              | Y         |\n| SplitStatus     | String  | 10      | Current status of split (Created, Scheduled, Settled)| N         |"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit feature builds on the existing UPI message set and introduces additional split‑specific processing. Each integration point must handle both protocol‑level and business‑level failures to ensure a consistent user experience.",
+      "The table below enumerates all error conditions that can arise during eligibility checks, activation, authentication, timeout handling, and split‑metadata validation. The Response Code follows the UPI standard, while the Error Code provides a concise identifier for logging and remediation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "92",
+          "ERR_VPA_INVALID",
+          "Provided VPA does not exist or is malformed",
+          "ReqPay",
+          "Payer PSP",
+          "TD"
+        ],
+        [
+          "93",
+          "ERR_INSUFF_FUNDS",
+          "Payer account has insufficient balance for split leg",
+          "ReqPay",
+          "Issuer Bank",
+          "BD"
+        ],
+        [
+          "94",
+          "ERR_LIMIT_EXCEEDED",
+          "Transaction amount exceeds per‑transaction limit of INR 15,000 without PIN",
+          "ReqPay",
+          "Payer PSP",
+          "TD"
+        ],
+        [
+          "95",
+          "ERR_AUTH_FAILED",
+          "UPI PIN or biometric authentication failed for the transaction",
+          "ReqAuthDetail",
+          "Payer PSP",
+          "BD"
+        ],
+        [
+          "96",
+          "ERR_TIMEOUT",
+          "No response from NPCI within the configured timeout, triggering fallback logic",
+          "ReqTxnConfirmation",
+          "NPCI Switch",
+          "TD"
+        ],
+        [
+          "98",
+          "ERR_SPLIT_METADATA",
+          "Mandate request missing mandatory split details or participant information",
+          "ReqMandate",
+          "Payer PSP",
+          "BD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "Identify all participants using VPA; populate VPA field for payer and each beneficiary in splitDetails object.",
+      "Enforce per‑leg amount limit of 15000 INR; if amount exceeds this or if it is the first debit of a mandate, include UPIPIN in the credential block as required by CL.",
+      "Apply the same daily aggregate limit of 1 lakh INR per VPA across all split legs; PSP must sum scheduled legs for a VPA and reject creation if limit would be breached.",
+      "Implement Smart Settlement: when total split amount is less than or equal to 15000 INR request instant credit via standard ReqPay flow; otherwise set settlement flag to trigger the standard 8‑cycle settlement schedule.",
+      "Handle timeouts by invoking REQ_CHK_TXN if RespPay is not received within 30 seconds of sending ReqPay; reconcile the transaction status based on the check response.",
+      "Integrate the dedicated split APIs – SplitCreate, SplitSchedule, SplitSettle, plus SplitModify/Cancel and SplitStatus/Query – and include splitId and splitDetails (participants, amounts, rules) in each request as defined in the schema extension."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

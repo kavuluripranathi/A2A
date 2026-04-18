@@ -1,0 +1,130 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India (NPCI) – UPI Product Management Division. This circular communicates the official specifications for the Ultra‑Short Undo Window feature.",
+      "Reference: NPCI/UPI/OC No. 045/2026-2027. Issue Date: 17‑Apr‑2026 (right‑aligned)."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "**All PSP banks, UPI app providers, Issuer/Remitter banks, Beneficiary/Payee banks, and NPCI** are bound by this circular. They must comply with the specifications herein and implement the ultra‑short undo window as directed.",
+      "All PSP banks, including those hosting UPI applications, are bound by this circular. They must integrate the required API flag changes and ensure the undo functionality is available to end‑users.",
+      "All UPI application providers are bound by this circular. They are advised to update the UI to present a 10‑15 second Undo button with a countdown timer.",
+      "All Issuer/Remitter banks are bound by this circular. They must support transaction reversal within the defined window and process the corresponding REQ_PAY modifications.",
+      "All Beneficiary/Payee banks are bound by this circular. They are advised to accept reversal notifications and adjust credit entries in accordance with the updated flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Directive to implement ultra‑short undo window feature for UPI payment flow across all PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem processes approximately 186 billion transactions annually, with an observed error rate of about 0.05 % that translates into tens of millions of erroneous payments each year. No provision currently exists to allow a payer to cancel a payment immediately after initiation, resulting in costly dispute handling and eroding consumer confidence. Introducing an ultra‑short “undo” window of 10‑15 seconds after the user taps “Pay” can curtail these errors, aligns with RBI’s enhanced consumer‑safeguard expectations, and has demonstrated a 30 % reduction in grievance tickets in pilot studies. Accordingly, the issuer directs all PSPs to implement the undo feature, including the UI countdown and the required API flag, to be deployed in the upcoming OTA release cycle."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce an ultra‑short “undo” window of 10‑15 seconds for all consumer‑initiated REQ_PAY transactions. The decision applies to the REQ_PAY API schema, the payer‑side UI module, the NPCI Switch routing logic, and the Common Library (CL) used by UPI Apps.",
+      "The decision mandates the addition of a Boolean field `undoEnabled` in the REQ_PAY request payload and a corresponding `undoStatus` element in the RESP_PAY response. The `undoEnabled` flag must be evaluated by the NPCI Switch before forwarding the request to the Issuer/Remitter Bank. If the flag is true and the user triggers an undo within the window, the Switch shall issue a REQ_CANCEL transaction and return a cancelled RESP_PAY.",
+      "The Common Library version 2.40 shall be updated to expose an `AbortPayment` method that the UPI App invokes when the Undo button is tapped. The UI module shall render a countdown timer and invoke `AbortPayment` while preserving the existing authentication flow.",
+      "All PSPs must deploy the updated UI component displaying the countdown timer and Undo button, and must support the new schema version in OTA releases. PSPs are advised to conduct latency testing to ensure the additional round‑trip does not exceed 0.5 seconds. Compliance teams must verify that dispute management processes remain unchanged and that the feature complies with RBI consumer‑safeguard directives."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI must publish a specification amendment that introduces the \"undoSupported\" flag in the REQ_PAY message schema. NPCI must ensure the Switch processes a cancellation request within the 10-15 second window and aborts the transaction flow accordingly. NPCI are advised to provide a sandbox test harness for PSP validation.",
+      "Payer PSP must embed the \"undoSupported\" flag in all outbound REQ_PAY messages for transactions eligible for the undo window. Payer PSP must generate and transmit a cancellation request to NPCI immediately upon receipt of an Undo action from the UPI App, ensuring the request reaches the Switch before the window expires. Payer PSP are advised to update fraud-monitoring rules to treat cancelled transactions as non-settled and to log the event for audit purposes.",
+      "Issuer/Remitter Bank must honor a cancellation request received from NPCI and abort the debit operation if the request arrives within the defined undo interval. Issuer/Remitter Bank must record the cancellation event with the original transaction identifier in its transaction ledger. Issuer/Remitter Bank are advised to reconcile cancelled transactions during end-of-day processing to prevent residual holds.",
+      "Beneficiary/Payee Bank must reject any credit posting if NPCI forwards a cancellation request before the credit is finalized. Beneficiary/Payee Bank must maintain only a provisional hold on the beneficiary account until the undo window lapses. Beneficiary/Payee Bank are advised to promptly notify the Payee PSP of the final transaction status to avoid unnecessary notifications.",
+      "UPI App must render a visible 10-15 second countdown timer and an \"Undo\" button immediately after the user taps \"Pay\". UPI App must invoke the cancellation API within the displayed window when the user selects Undo, ensuring the request is transmitted to the Payer PSP without exceeding 0.4 seconds of additional latency. UPI App are advised to conduct usability testing to confirm the timer visibility and button accessibility across device form-factors."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "The ultra‑short \"undo\" window feature is approved for inclusion in the UPI product suite. Product managers must incorporate the feature into the Product Feature documentation and reference the affected artifacts: UPI App UI, PSP API flag, and NPCI Common Library version.",
+      "Engineering leads must schedule OTA updates to deliver the UI countdown timer and API flag within the next release cycle. All implementations must be validated against the ≤0.5 s latency impact and the 1 s end‑to‑end UPI SLA.",
+      "Compliance officers are required to verify that the feature satisfies RBI’s enhanced consumer safeguard directive and update internal policy registers accordingly. Any deviation must be escalated to the NPCI Governance Board before deployment.",
+      "Product managers, engineers, and compliance teams must submit a consolidated status report to the Head of Product Feature Governance every Friday until rollout completion. Reports shall include test results, risk assessments, and sign‑off evidence.",
+      "Please disseminate the information contained herein to the officials concerned. All recipients must acknowledge receipt within two business days."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "Yours Sincerely,\nSD/-\nAnil Kumar\nDirector\nNPCI"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

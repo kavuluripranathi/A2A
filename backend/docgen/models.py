@@ -217,6 +217,9 @@ class BundleGenerateRequest(BaseModel):
     product_note_title: Optional[str] = None
     circular_title: Optional[str] = None
     session_id: Optional[str] = None
+    # Clarification answers from PM (collected via /api/pre-clarify)
+    clarification_answers: Optional[str] = None
+    rag_session_id: Optional[str] = None
 
 
 class BundleJobDetail(BaseModel):

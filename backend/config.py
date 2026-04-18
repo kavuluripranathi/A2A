@@ -4,9 +4,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Model configuration
-MODEL_PROVIDER = os.getenv("MODEL_PROVIDER", "openai")
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o")
+MODEL_PROVIDER = os.getenv("MODEL_PROVIDER", "ollama")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-oss:120b-cloud")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
 
 # Tavily web search
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")

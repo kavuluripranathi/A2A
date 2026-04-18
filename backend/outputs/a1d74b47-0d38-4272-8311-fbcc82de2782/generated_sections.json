@@ -1,0 +1,428 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem currently operates on a VPA‑centric model where every payment request carries the full Virtual Payment Address (e.g., user@bank). PSPs invoke the ReqPay API to initiate a transaction, and the NPCI switch routes the request through the standard authentication and settlement stages without any user‑friendly alias. Existing APIs such as ReqValAdd already allow a PSP to fetch the VPA linked to a Central Mapper ID (cmId), but they return only the raw address and do not expose a persistent nickname field.",
+      "A significant limitation is the absence of a network‑wide nickname layer; each UPI app maintains its own local contact list, resulting in inconsistent experiences across PSPs. Approximately 1.2 % of UPI transfers—about 2 million transactions per month—fail due to mistyped VPAs, generating roughly ₹150 million in reversal and support costs. This error rate persists because users must manually enter or verify the full address for every payment, and there is no shared repository for user‑defined labels.",
+      "The proposed technical approach leverages the existing ReqValAdd API and central mapper infrastructure to store a user‑defined nickname alongside the VPA. By persisting the nickname at the NPCI‑managed mapper, every PSP can retrieve and display the same label during the payment confirmation screen, reducing cognitive load and error probability. This solution aligns with RBI’s 2025 consumer‑protection directive, requires no changes to settlement or fee logic, and introduces only a lightweight metadata field to the current flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname feature introduces a network‑wide alias layer that allows a payer to assign a simple, memorable label—such as “Mom” or “Gym”— to any frequent beneficiary. The nickname is persisted in a central mapping service managed by NPCI and is referenced by all participating PSPs, the UPI switch, and the payer’s UPI app during the payment flow. When a user initiates a transaction, the UPI app retrieves the nickname via the central mapper and displays it on the confirmation screen instead of the raw VPA. This experience is consistent across all UPI‑enabled applications, eliminating the need for app‑specific contact lists.",
+      "By replacing cryptic VPAs with user‑defined labels, the feature targets the 1.2 % error rate that currently leads to roughly two million failed transfers per month and associated reversal costs of over ₹150 million. Early pilots show a 30‑40 % reduction in wrong‑beneficiary complaints, translating into lower support overhead, higher user confidence, and compliance with RBI’s consumer‑protection directive. The cross‑app nickname layer also unlocks incremental transaction volume from the 70 % of users who repeatedly pay a small set of contacts, delivering measurable business value while leaving settlement and fee logic unchanged."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The Payee Nickname feature introduces a network-wide mapping service that links a user-defined label to a VPA. NPCI operates the central mapper and the UPI switch, exposing the ReqValAdd API to all PSPs. The Payer PSP invokes ReqValAdd with the cmId to obtain the canonical VPA, while the Payee PSP receives the nickname as part of the payment confirmation payload. The UPI App consumes the nickname from the response and renders it on the UI, replacing the raw VPA for the end‑user.",
+      "During a transaction the topology follows the standard REQ_PAY sequence: the Payer PSP sends ReqPay to NPCI, NPCI routes to the Payee PSP, and both parties exchange authentication and confirmation messages (ReqAuthDetail, RespAuthDetail, ReqTxnConfirmation, RespTxnConfirmation). The nickname layer is injected after the VPA is resolved; the nickname is stored centrally and is immutable for the duration of the transaction, ensuring no impact on settlement or fee logic. Key design decisions include re‑using existing APIs, enforcing RSA‑SHA256 2048‑bit certificates for all inter‑PSP communication, and limiting the feature to UI presentation only, thereby preserving the core UPI rail unchanged."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The enrollment flow enables a payer to associate a user‑defined nickname with a beneficiary VPA across the UPI network. After a successful payment, the UPI App triggers a nickname‑set request, which uses the ReqValAdd API to resolve the central mapper ID (cmId) to the actual VPA. The resolved VPA is returned to the PSP, which stores the nickname mapping centrally, ensuring the label appears in any UPI‑enabled app for subsequent transactions.",
+      "This process complies with NPCI’s cross‑app nickname specification and leverages existing secure channels; the PSP must persist the nickname in its user profile store and propagate the mapping to the central nickname repository via the standard CL‑encrypted payload. The flow reduces address‑entry errors and provides a consistent user experience across all participating PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "UPI App verifies that the user has not already assigned a nickname for the target VPA",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "User initiates nickname enrollment via UI after a successful payment or from contacts screen",
+          "UPI App"
+        ],
+        [
+          "Step 2",
+          "UPI App sends ReqValAdd with cmId and payee address to Payer PSP",
+          "Payer PSP"
+        ],
+        [
+          "Step 3",
+          "Payer PSP forwards ReqValAdd to NPCI which routes to the Central Mapper service",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Central Mapper resolves cmId to the linked VPA and returns it to NPCI",
+          "Central Mapper"
+        ],
+        [
+          "Step 5",
+          "NPCI delivers the VPA response to Payer PSP, which stores the nickname‑VPA mapping in its persistent store",
+          "Payer PSP"
+        ],
+        [
+          "Post Response",
+          "UPI App retrieves the stored nickname for display in future payment screens",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The transaction execution follows the standard UPI payment flow, augmented by the Payee Nickname layer that resolves a stored nickname to the underlying VPA before the request is sent. The payer’s UPI app presents the nickname, the PSP translates it to the VPA, and the encrypted credential block (CRED) is generated by the Common Library. The flow then proceeds through the NPCI switch, the issuer and beneficiary banks, and returns a confirmation to the app.",
+      "All steps comply with NPCI specifications: ReqPay initiates the payment, ReqAuthDetail obtains the PIN‑based authentication, and ReqTxnConfirmation synchronises the final status between the payer and payee PSPs. The process ensures replay protection via nonce, uses RSA‑SHA256 certificates, and respects transaction limits defined by NPCI. Successful completion updates the nickname mapping for future use."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate payer credentials, resolve nickname to VPA, and ensure sufficient balance",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Payer PSP sends ReqPay (with CRED block) to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI forwards the payment request to Payee PSP",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Payee PSP returns RespPay acknowledgment to NPCI",
+          "Payee PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI delivers RespPay to Payer PSP",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Payer PSP invokes ReqAuthDetail and receives RespAuthDetail for PIN authentication",
+          "Payer PSP"
+        ],
+        [
+          "Step 6",
+          "Payer PSP and Payee PSP exchange ReqTxnConfirmation / RespTxnConfirmation to finalize status",
+          "Payer PSP / Payee PSP"
+        ],
+        [
+          "Post Response",
+          "Payer PSP presents final confirmation to the UPI app, logs the transaction and updates nickname usage",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section defines the UPI message set that will be leveraged to implement the Payee Nickname feature. It details the six APIs – ReqPay/RespPay, ReqAuthDetail/RespAuthDetail, ReqTxnConfirmation/RespTxnConfirmation, ReqMandate/RespMandate, ReqMandateConfirmation/RespMandateConfirmation, and ReqValAdd/RespValAdd – as they are used by the payer PSP to initiate, authenticate, confirm, and manage transactions and mandates. The scope of change is confined to extending the request and response payloads with nickname‑related fields while preserving existing settlement, fee, and routing logic."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The ReqValAdd API enables a PSP to retrieve the Virtual Payment Address (VPA) associated with a Central Mapper ID (cmId) supplied by the payer. The flow begins with the payer's UPI app sending the cmId to the PSP, which then invokes ReqValAdd toward NPCI; NPCI forwards the request to the central mapper, receives the linked VPA, and returns it to the PSP for display or further processing.",
+      "ReqValAdd follows a request‑response pattern using UPI XML messages. The request carries a timestamp, transaction identifier, sequence number, QR/API version, and a purpose code that indicates the nickname lookup operation. The response echoes the timestamp, transaction identifier, and sequence number, confirming successful retrieval of the VPA."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "ts",
+          "String",
+          "35",
+          "Timestamp of the request",
+          "N"
+        ],
+        [
+          "txn",
+          "String",
+          "35",
+          "Transaction identifier",
+          "N"
+        ],
+        [
+          "Sequence",
+          "Integer",
+          "35",
+          "Sequence number for message ordering",
+          "N"
+        ],
+        [
+          "ver",
+          "String",
+          "35",
+          "Version of the QR or API payload",
+          "N"
+        ],
+        [
+          "purpose",
+          "String",
+          "35",
+          "Purpose code for the transaction (e.g., NicknameLookup)",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqValAdd xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:ts>20240417123045Z</upi:ts>\n    <upi:txn>TXN1234567890</upi:txn>\n    <upi:Sequence>1</upi:Sequence>\n    <upi:ver>2.36</upi:ver>\n    <upi:purpose>NicknameLookup</upi:purpose>\n</upi:ReqValAdd>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespValAdd xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:ts>20240417123046Z</upi:ts>\n    <upi:txn>TXN1234567890</upi:txn>\n    <upi:Sequence>1</upi:Sequence>\n</upi:RespValAdd>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The ReqValAdd API enables a PSP to retrieve the canonical VPA associated with a Central Mapper ID (cmId) supplied by the payer. When a user selects a saved nickname, the PSP invokes ReqValAdd, passing the cmId and the mapper‑format address; NPCI routes the request to the central mapper, which returns the linked VPA. This lookup occurs before the primary ReqPay flow, ensuring the payment screen displays the correct VPA behind the user‑friendly nickname.",
+      "ReqValAdd operates as a supporting service to the primary payment APIs (ReqPay, ReqAuthDetail, ReqTxnConfirmation) and does not alter settlement logic. It follows the same security model, using the UPI PIN for authentication and RSA‑SHA256 certificates for transport integrity, and any failure is reported via standard error responses defined in the primary API suite."
+    ],
+    "bullet_points": [
+      "Pre-Check – PSP validates cmId format and mapper address – PSP",
+      "Step 1 – PSP sends ReqValAdd with cmId and payeeAddr – PSP",
+      "Step 2 – NPCI forwards request to Central Mapper – NPCI",
+      "Step 3 – Central Mapper resolves and returns linked VPA – Central Mapper",
+      "Post Response – PSP receives linkedVPA and proceeds with ReqPay – PSP"
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "ts",
+          "String",
+          "35",
+          "Timestamp of the request or response",
+          "Y"
+        ],
+        [
+          "txn",
+          "String",
+          "35",
+          "Transaction identifier",
+          "Y"
+        ],
+        [
+          "Sequence",
+          "Integer",
+          "35",
+          "Message sequencing number",
+          "Y"
+        ],
+        [
+          "ver",
+          "String",
+          "35",
+          "Version of the API payload",
+          "N"
+        ],
+        [
+          "purpose",
+          "String",
+          "35",
+          "Purpose code for nickname lookup",
+          "N"
+        ],
+        [
+          "cmId",
+          "String",
+          "20",
+          "Central Mapper ID supplied by the payer",
+          "Y"
+        ],
+        [
+          "payeeAddr",
+          "String",
+          "50",
+          "Payee address in mapper format (e.g., user@mapper.npci)",
+          "Y"
+        ],
+        [
+          "linkedVPA",
+          "String",
+          "50",
+          "VPA resolved from the central mapper",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqValAdd xmlns:upi=\"http://npci.org/upi/schema/\">\n   <upi:ts>20230417123045Z</upi:ts>\n   <upi:txn>TXN123456789</upi:txn>\n   <upi:Sequence>1</upi:Sequence>\n   <upi:ver>2.0</upi:ver>\n   <upi:purpose>NickNameLookup</upi:purpose>\n   <upi:cmId>CM123456</upi:cmId>\n   <upi:payeeAddr>mom123@mapper.npci</upi:payeeAddr>\n</upi:ReqValAdd>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespValAdd xmlns:upi=\"http://npci.org/upi/schema/\">\n   <upi:ts>20230417123046Z</upi:ts>\n   <upi:txn>TXN123456789</upi:txn>\n   <upi:Sequence>1</upi:Sequence>\n   <upi:linkedVPA>mom123@bank</upi:linkedVPA>\n</upi:RespValAdd>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The error handling section enumerates all response conditions that integration engineers must anticipate when invoking the UPI APIs supporting the Payee Nickname feature. Each row maps a UPI response code and a vendor‑specific error identifier to the API, the responsible entity, and the design or business decision classification.",
+      "Scenarios cover eligibility verification, activation validation, authentication failures, timeout conditions, and nickname‑specific business rules. Proper handling of these codes enables deterministic fallback, user‑friendly messaging, and compliance with NPCI specifications."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "01",
+          "ERR_INELIGIBLE_NICKNAME",
+          "Payee is not eligible for the nickname service or the feature is disabled for the VPA.",
+          "ReqValAdd",
+          "NPCI",
+          "BD"
+        ],
+        [
+          "02",
+          "ERR_NICKNAME_ACTIVATION",
+          "Nickname activation request rejected due to missing or invalid Central Mapper ID (cmId).",
+          "ReqValAdd",
+          "PSP",
+          "TD"
+        ],
+        [
+          "03",
+          "ERR_AUTH_PIN",
+          "User PIN validation failed during the authentication exchange.",
+          "ReqAuthDetail",
+          "Issuer Bank",
+          "TD"
+        ],
+        [
+          "04",
+          "ERR_TIMEOUT",
+          "No response received from NPCI within the SLA for the payment request.",
+          "ReqPay",
+          "NPCI",
+          "TD"
+        ],
+        [
+          "05",
+          "ERR_NICKNAME_DUPLICATE",
+          "Attempt to create a nickname that already exists for the given VPA.",
+          "ReqValAdd",
+          "PSP",
+          "BD"
+        ],
+        [
+          "06",
+          "ERR_MANDATE_INVALID",
+          "Mandate creation failed because mandatory fields are missing or contain invalid data.",
+          "ReqMandate",
+          "Payee PSP",
+          "TD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "PSPs must invoke the ReqValAdd API with the payer‑entered cmId before displaying the payee selection screen; the response VPA must be cached for the duration of the transaction and used to replace the raw VPA with the stored nickname on the confirmation UI.",
+      "If the ReqValAdd call does not return a successful response within the configured 5‑second timeout, the PSP must fall back to displaying the original VPA, log a timeout event, and prompt the user to verify the address manually before proceeding.",
+      "Nicknames are UI‑only identifiers – they must never be transmitted in any UPI message payload (ReqPay, RespPay, etc.); the underlying VPA remains the sole identifier for settlement and must be used for all downstream calls.",
+      "All PSP‑to‑NPCI communications, including ReqValAdd, must be secured using RSA (SHA‑256) certificates with a minimum key strength of 2048 bits; certificate validation failures must abort the nickname lookup and trigger a fallback to manual VPA entry.",
+      "When a nickname is created or modified, the PSP must update the central mapper repository via the appropriate API and must send a push notification to the user confirming the change; failure to acknowledge the update must result in a retry after 30 seconds and eventual user alert if the operation remains unsuccessful."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

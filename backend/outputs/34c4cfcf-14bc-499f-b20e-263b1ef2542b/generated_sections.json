@@ -1,0 +1,303 @@
+[
+  {
+    "section_key": "document_overview",
+    "section_heading": "Document Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The purpose of this Product Note is to capture a complete, stakeholder‑focused description of the UPI AutoSplit feature. It records the business rationale, functional flow, policy constraints, and operational responsibilities so that all parties have a single source of truth. The document also serves as the baseline for design, testing, certification, and compliance activities.",
+      "The primary audience includes product managers who define the feature roadmap, engineering teams that implement the APIs and UI, and compliance officers responsible for regulatory adherence. It is also intended for banks, payment service providers, and third‑party app providers who will integrate or support the AutoSplit capability. By addressing these groups, the note ensures alignment across the end‑to‑end ecosystem.",
+      "The scope of this note is limited to the AutoSplit functionality within the existing UPI framework. It covers the end‑user journey, mandate creation, split payment processing, policy rules, failure handling, testing scenarios, and dispute management, but does not modify core UPI message specifications beyond the introduced split APIs. All references are confined to the AutoSplit feature and its interaction with the standard UPI switch."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "Today most UPI users settle shared expenses by having a single participant make the full payment and then manually request reimbursements from friends or roommates. The payer typically calculates each share on paper or a messaging app and sends individual payment requests through the UPI app. This ad‑hoc approach works but adds friction and creates opportunities for mistakes.",
+      "The manual workflow introduces several pain points. Users must remember to calculate amounts, enter each VPA, and often chase pending payments, which leads to delayed settlements and disputes. UPI’s per‑transaction PIN requirement for amounts above ₹15,000 and daily aggregate limits further complicate larger group bills. Additionally, PSPs receive multiple discrete transactions, increasing processing overhead and reducing the overall efficiency of the network.",
+      "AutoSplit embeds the split logic directly into the UPI transaction flow, eliminating the need for separate calculations and follow‑up requests. By creating a group mandate and orchestrating parallel debit requests, the feature delivers a single success notification while each leg is treated as an individual transaction for compliance and dispute handling. This automation aligns with banks’ goals to increase transaction volume, improve user retention, and open new revenue streams through value‑added services."
+    ],
+    "bullet_points": [
+      "Manual calculation errors increase the risk of incorrect payments.",
+      "Users must send multiple individual payment requests, leading to higher latency.",
+      "Follow‑up reminders and chasing unpaid shares generate user frustration.",
+      "Large group bills often exceed the ₹15,000 PIN‑free threshold, triggering additional authentication steps.",
+      "Daily aggregate limits across multiple legs can cause partial failures when the combined amount approaches the ceiling.",
+      "PSPs incur higher operational costs processing numerous discrete transactions for a single shared expense."
+    ],
+    "numbered_items": [
+      "Seamless end‑to‑end experience removes the need for manual split calculations.",
+      "Instant or scheduled settlement provides flexibility for both small and large group expenses.",
+      "Single success notification improves user confidence while each leg remains auditable.",
+      "Compliance with existing UPI limits and PIN rules ensures no regulatory changes are required.",
+      "Reduced transaction count per shared expense lowers processing load for PSPs and banks.",
+      "New mandate‑based workflow creates opportunities for banks to offer premium split‑management services."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "feature_description",
+    "section_heading": "Product Overview - Feature Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI AutoSplit feature lets a user initiate a shared‑expense transaction with a single tap. After the user enters the total amount and the VPAs of all participants, the app automatically calculates each person’s share and creates a group split mandate. The mandate is confirmed by the UPI network, after which individual payment requests are generated for every participant. This eliminates the need for manual calculations and separate payment messages.",
+      "AutoSplit supports both immediate settlement and scheduled settlement, giving participants the flexibility to pay now or at a later agreed time. The feature respects existing UPI limits – no participant can be asked to pay more than their individual transaction ceiling, and a PIN is required for any leg exceeding INR 15,000 or for the first debit of a new mandate. If any participant’s debit fails, the entire split is marked as failed, ensuring that the initiator receives a clear outcome. The result is a single success notification for the whole group when all legs succeed.",
+      "Security and privacy are built into every step of the AutoSplit flow. Authentication data is encrypted by the Common Library on the device and transmitted through the secure UPI switch, while the user’s PIN or biometric credential is never stored in clear text. Only the virtual payment addresses of participants are shared with the network, minimizing personal data exposure, and each participant must explicitly consent to the mandate before any debit occurs. The design also leverages the device’s secure enclave to protect cryptographic keys, aligning with NPCI’s privacy‑by‑design guidelines."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "This feature does not require a separate enrollment step. Users access AutoSplit directly from the UPI app’s payment screen by selecting the AutoSplit option and entering the amount and participants, without any prior registration or opt‑in."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate prerequisites and participant readiness",
+          "Initiating client / gateway"
+        ],
+        [
+          "Step 1",
+          "Submit request and route to the next hop per integration rules",
+          "Gateway / orchestrator"
+        ],
+        [
+          "Step 2",
+          "Process, validate, and forward or respond",
+          "Core platform"
+        ],
+        [
+          "Post Response",
+          "Return outcome and persist audit trail",
+          "Client / gateway"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit transaction scope encompasses a single payer initiating a shared‑expense split that involves multiple participants, each identified by their Virtual Payment Address (VPA). The total amount to be split must respect the aggregate of individual participant limits and the prevailing daily aggregate ceiling for each VPA. Each participant’s share is treated as an independent debit, allowing the standard UPI per‑transaction and daily limits to apply. The feature supports both immediate settlement and scheduled settlement based on the payer’s preference.",
+      "To enable native splitting, the UPI ecosystem introduces three new message types – SplitCreate, SplitSchedule, and SplitSettle – alongside the existing mandate and payment messages. The PSP’s backend now orchestrates a Group Split Mandate, stores split metadata, and coordinates individual ReqPay calls on behalf of the payer. NPCI’s switch routes each debit and credit as a distinct transaction while preserving the logical grouping for reporting and dispute handling. These changes are encapsulated within the existing CL security framework, so no new cryptographic flows are required.",
+      "AutoSplit supports two operational modes: instant mode, where the total split amount is ≤ ₹15,000 and all participant debits are processed in real time, and scheduled mode, where the split is held for up to 24 hours before settlement. For any participant debit exceeding ₹15,000, or for the first debit under a newly created mandate, the payer must supply the UPI PIN or biometric authentication as defined by refCategory = 05. Mandate pause or revocation by any participant is honoured before the next scheduled debit, preventing unintended debits. The feature respects the existing daily aggregate limit of ₹1 lakh per VPA across all split legs.",
+      "Step 1 – The user opens the UPI app, selects AutoSplit, enters the total bill and the VPAs of all participants. Step 2 – The app calculates each share, creates a Group Split Mandate via SplitCreate, and receives confirmation. Step 3 – For every participant, the app issues a ReqPay request; the participant authenticates with PIN or biometric if required. Step 4 – Each PSP returns a transaction confirmation, which the app aggregates to determine overall success. Step 5 – When all debits succeed, NPCI settles the amounts instantly or at the scheduled time, and the app displays a single success notification to the initiator."
+    ],
+    "bullet_points": [
+      "Instant settlement for total split ≤ ₹15,000.",
+      "Scheduled settlement up to 24 hours for larger totals.",
+      "PIN or biometric required for debits > ₹15,000 or first mandate use.",
+      "Mandate pause/revocation enforced before scheduled debit.",
+      "Individual participant limits enforce aggregate transaction ceiling.",
+      "Each split leg is a separate transaction for dispute and charge‑back."
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre‑Check",
+          "Validate participant limits, mandate status, and aggregate daily ceiling",
+          "PSP Bank (Mandate Service)"
+        ],
+        [
+          "Step 1",
+          "User initiates AutoSplit and enters participants in UPI App",
+          "UPI App (Customer)"
+        ],
+        [
+          "Step 2",
+          "Create Group Split Mandate via SplitCreate and receive confirmation",
+          "PSP Bank (Mandate Engine)"
+        ],
+        [
+          "Step 3",
+          "Send individual payment requests (ReqPay) for each participant",
+          "PSP Bank (Payer) & NPCI Switch"
+        ],
+        [
+          "Step 4",
+          "NPCI routes debit to Issuer Bank and credit to Beneficiary Bank; banks send confirmations",
+          "Issuer/Remitter Bank & Beneficiary Bank"
+        ],
+        [
+          "Step 5",
+          "Aggregate confirmations and present success/failure to user",
+          "UPI App & PSP Bank"
+        ],
+        [
+          "Post‑Response",
+          "Settle funds instantly or at scheduled time and notify all parties",
+          "NPCI & PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "policy_rules",
+    "section_heading": "Key Considerations & Policy Rules",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit capability introduces new consent and participation requirements that must be clearly communicated to users. Participation is strictly optional; users must actively enable the feature in their app settings before any split mandate can be created. This opt‑in model ensures that only willing customers are enrolled in automated shared‑expense processing.",
+      "All split‑related data, including participant identifiers and share allocations, must be stored in a secure, encrypted repository either on the device’s secure enclave or within the PSP’s protected vault. Retention is limited to the active life of the mandate plus a 30‑day audit window to satisfy regulatory and forensic needs. Cryptographic keys protecting this data are subject to regular rotation to mitigate long‑term exposure.",
+      "Participants retain the right to pause, revoke, or disable their involvement in any active split mandate at any point, and the PSP must enforce these changes before the next scheduled debit. If the PSP disables the AutoSplit feature globally, existing mandates are marked inactive and users receive notification, while any in‑flight transactions are allowed to settle. No new split requests may be initiated until the feature is re‑enabled."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Participation in AutoSplit is optional; users must explicitly opt‑in via the app settings before any split mandate can be created.",
+      "2. Consent for each split transaction must be captured at mandate creation and stored for the mandate’s lifecycle; any change in participants or amounts requires fresh consent.",
+      "3. Split‑related credential data must be stored in the device’s secure enclave or a bank‑hosted encrypted vault, retained only for the mandate duration plus a 30‑day audit window.",
+      "4. Cryptographic keys used to protect split metadata must be rotated at least every 90 days or immediately upon detection of a compromise, following the institution’s key‑management policy.",
+      "5. A participant may pause or revoke their involvement in a split mandate at any time; the PSP must honor the pause before the next scheduled debit and reject pending debits for that participant.",
+      "6. If the AutoSplit feature is disabled at the PSP level, all active mandates are automatically marked inactive, users are notified, and no new split requests may be initiated while allowing in‑flight transactions to complete."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The AutoSplit flow relies on VPAs to identify every participant, ensuring consistency with existing UPI transactions. All split legs are subject to the same per‑transaction and daily aggregate limits that apply to standard UPI payments. The platform validates that the combined amount does not exceed the sum of each participant’s remaining limit before any debit request is issued. This pre‑check prevents downstream declines and protects both users and PSPs.",
+      "When a split is initiated, the app must present a clear summary of each participant’s share and request explicit consent before any payment request is sent. If a participant’s share exceeds the PIN‑free threshold, the UI must trigger a PIN entry prompt for that leg only. The consent screen should also indicate the scheduled settlement time, if any, so users understand when funds will be transferred. All confirmations are logged for audit and dispute purposes.",
+      "Mandate lifecycle events such as pause, revocation, or modification must be processed in real time and reflected in any pending or future split executions. The PSP must reject any debit attempt that follows a participant’s pause action, returning a standardized error to the initiating app. Detailed transaction receipts, including split identifiers and participant breakdowns, are required to be available in the user’s transaction history for at least 90 days. These receipts support both user transparency and regulatory reporting."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Total split amount must never exceed the aggregate of individual participant limits after applying any active pauses or revocations.",
+      "A PIN entry is mandatory for any participant leg whose amount is greater than INR 15,000 or for the first debit under a newly created mandate.",
+      "If a participant’s VPA is inactive or not registered, the split request for that leg must be rejected and the entire split marked as failed.",
+      "Scheduled splits must honor the user‑selected settlement window and cannot be executed earlier than the defined time.",
+      "Any change to a split mandate – pause, cancel, or modify – must be communicated to all affected participants via in‑app notification before the next scheduled execution.",
+      "All split transactions are treated as independent debit events for dispute handling, meaning each leg follows the standard UDIR charge‑back process."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of the AutoSplit capability does not modify the existing dispute handling framework for UPI transactions. Each participant’s share is processed as an independent debit transaction, and therefore any dispute is evaluated against that single leg rather than the aggregate split. The standard UDIR (Unified Dispute and Resolution) process continues to apply without alteration. This ensures that users and banks experience the same resolution timelines they are accustomed to.",
+      "For PSPs, the operational flow remains identical: a disputed debit is routed to the issuing bank, which investigates and, if warranted, initiates a charge‑back. Liability for unauthorized or erroneous debits stays with the issuer, while the payee bank’s responsibility is limited to crediting the amount once the dispute is cleared. No additional data elements or callbacks are required from the AutoSplit module. Consequently, existing compliance and audit mechanisms can be reused unchanged.",
+      "From a compliance perspective, the unchanged dispute model simplifies regulatory reporting, as the same transaction identifiers and timestamps are used for each split leg. Merchants or group organizers do not assume any new liability for the collective transaction; they are only liable for the portion they originated. All settlement and reversal timestamps continue to be captured by the NPCI switch, preserving the audit trail needed for dispute resolution. Stakeholders can therefore rely on the familiar UDIR SLA commitments."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "testing_certification",
+    "section_heading": "Testing, Certification & Audits",
+    "render_style": "body",
+    "paragraphs": [
+      "Testing for the AutoSplit feature is performed across three distinct environments to ensure parity with live operations. A sandbox environment replicates the NPCI switch and provides mock PSP endpoints for rapid iteration. An integration environment mirrors the production network, connecting to live‑type PSP banks and the NPCI test switch for end‑to‑end validation. A pre‑production staging tier runs the final release candidate against the same configuration as the live system, enabling a final sanity check before certification.",
+      "Certification requires execution of a defined set of mandatory scenarios. The happy‑path case validates successful mandate creation, accurate share calculation, and instant settlement when all participants approve. A partial‑failure case confirms that a single participant’s insufficient funds or PIN rejection causes the entire split to be marked failed and that the initiator receives the correct error response. The scheduled‑settlement scenario tests the 24‑hour hold logic, ensuring amounts are held and released at the appointed time.",
+      "The certification workflow follows a step‑wise process that is documented and signed off by both the PSP and NPCI compliance teams. First, the PSP submits a test plan outlining coverage of all mandatory scenarios. Second, functional testing is executed in the pre‑production environment with results logged. Third, security and performance tests are run to verify encryption handling and transaction throughput. Fourth, the PSP presents a certification report for review, after which NPCI issues a conformance certificate.",
+      "Post‑certification, auditors will verify that operational logs capture every split transaction, mandate lifecycle event, and error condition for at least 90 days. Audits also check that the PSP enforces the policy rules around transaction limits, PIN prompts, and mandate pauses. Any deviation identified during an audit must be remediated within the timeframe stipulated in the service level agreement, and a re‑certification may be required."
+    ],
+    "bullet_points": [
+      "Sandbox with mock NPCI switch and simulated PSP endpoints.",
+      "Integration tier using NPCI test switch and live‑type PSP bank interfaces.",
+      "Pre‑production staging that mirrors production configuration for final validation."
+    ],
+    "numbered_items": [
+      "Submit detailed test plan covering all mandatory scenarios to NPCI compliance portal.",
+      "Execute functional test cases in the pre‑production environment and capture result logs.",
+      "Perform security validation, including encryption of credential blocks and replay‑attack protection.",
+      "Run performance benchmarks to confirm transaction latency meets the ≤2‑second target.",
+      "Compile certification report with evidence of successful scenario execution and sign‑off from the PSP QA lead.",
+      "Obtain NPCI conformance certificate and update production release documentation."
+    ],
+    "table_data": {
+      "headers": [
+        "Scenario",
+        "Objective",
+        "Owner"
+      ],
+      "rows": [
+        [
+          "Happy path enrollment and split settlement",
+          "Verify successful creation of group mandate, correct share calculation, and instant settlement when all participants approve",
+          "PSP Bank"
+        ],
+        [
+          "Partial failure due to one participant insufficient funds",
+          "Ensure the overall split transaction is marked failed and appropriate error is returned to initiator",
+          "PSP Bank"
+        ],
+        [
+          "Scheduled settlement after 24‑hour hold",
+          "Validate that split amounts are held and settled at the scheduled time",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "annexure_prechecks",
+    "section_heading": "Annexure: Pre-Checks",
+    "render_style": "body",
+    "paragraphs": [
+      "Before a PSP can enable AutoSplit for its customers, it must confirm that its UPI switch is running the latest Common Library version that supports split metadata. The bank must also ensure that the daily aggregate transaction ceiling (e.g., ₹1 lakh per VPA) is enforced for split legs. Additionally, the PSP’s compliance team must certify that the mandate management module is active and can process pause or revocation requests. Failure to meet any of these conditions prevents the feature from being turned on for the bank’s user base.",
+      "The enrollment flow requires a successful Group Split Mandate creation test. The PSP must validate that the mandate payload includes a unique split identifier and a correctly populated participant list with VPA addresses. It must also verify that the mandate can be paused, modified, or cancelled through the designated APIs. If the test mandate is rejected, the enrollment process is halted and the bank must remediate the schema or API integration issues.",
+      "When a split transaction is initiated, the app first checks that the sum of all participant shares does not exceed the combined individual transaction limits of the participants. The PSP then enforces the UPI PIN rule: any debit above ₹15,000 or the first debit of a newly created mandate must be authenticated with the payer’s PIN. A real-time status query confirms that each participant’s mandate is active and not currently paused. If any of these checks fail, the individual ReqPay request is declined and the overall split is marked as failed.",
+      "Declines triggered by pre-check failures are communicated back to the initiating app with a clear error code indicating the root cause (e.g., “LimitExceeded”, “PinRequired”, “MandatePaused”). The app surfaces the error to the user, allowing them to adjust amounts, provide a PIN, or reactivate a paused mandate. From an operational perspective, the PSP logs the failure for audit and does not debit any accounts, preserving the integrity of the settlement pipeline."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

@@ -1,0 +1,132 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "The circular shall commence with the issuing organization name 'National Payments Corporation of India' (NPCI) positioned at the top left of the page. This identifier provides unequivocal traceability across all downstream communications.",
+      "Immediately beneath the organization name, the department designation 'UPI Operations' must be displayed in standard font size. The department label shall be placed on the same line or directly below the organization name as per the prescribed layout.",
+      "The reference block must contain a circular reference number adhering to the format NPCI/UPI/OC No. XXX/YYYY-YYYY, where XXX is a sequential three‑digit identifier and the year range reflects the fiscal period. The reference number shall be unique for each issuance.",
+      "The issue date shall be positioned flush‑right on the same line as the reference number and expressed in DD‑MM‑YYYY format. No additional textual elements may precede the reference block."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "All **PSP Banks, Issuer Banks, Payee PSPs, NPCI, and UPI Application Providers** are the designated recipients of this circular."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Directive to implement One‑Tap repeat payment feature across all UPI PSPs and issuer banks."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The present UPI repeat‑payment workflow requires the payer to navigate multiple screens, resulting in an average transaction time of approximately 4.2 seconds and three to four taps per payment. Market analysis indicates that 42 % of users omit payee details for recurring payments, creating an estimated ₹12 billion of unutilised repeat‑payment volume annually. To address this ecosystem shortfall and to comply with RBI guidance on friction‑less digital payments, the Issuer Bank hereby directs all PSP Banks to adopt the One‑Tap Repeat capability using the existing REQ_PAY/RESP_PAY message set with an optional repeat‑reference flag. This directive aims to reduce the repeat‑payment journey to a single tap, halve the time‑to‑pay, and capture the identified revenue opportunity."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to enable the One‑Tap Repeat payment capability across the UPI ecosystem. The decision applies to the existing ReqPay, ReqAuthDetail and ReqTxnConfirmation message suite. No new API messages shall be introduced; an optional repeatTxnRefId field may be added to the request schema for traceability. All participants must adopt the change within the next release cycle.",
+      "PSP Banks must implement handling of ReqPay, ReqAuthDetail and ReqTxnConfirmation in accordance with NPCI specifications for repeat payments. Each repeat request shall set initiationMode=11 and purposeCode=14 and shall include the optional repeatTxnRefId when available. PSPs must validate these fields before forwarding the request to the NPCI Switch. PSPs are advised to update their testing suites to cover the repeat‑pay scenario.",
+      "Issuer Banks must support real‑time debit of the payer’s account upon receipt of the NPCI debit request for repeat transactions. The Issuer shall respond with a RespPay containing the transaction status as defined in the UPI specification. Issuers must ensure that the debit operation adheres to the standard per‑transaction and daily limits. Issuers are advised to monitor repeat‑pay transaction patterns for fraud detection.",
+      "NPCI shall route ReqPay messages to the appropriate Payee PSP and shall validate the authentication details for all repeat payments. For amounts exceeding INR 15,000, NPCI shall enforce PIN verification irrespective of the repeat flag. NPCI must accept the optional repeatTxnRefId field without breaking existing schema validation. NPCI is advised to publish an amendment note to the Common Library indicating support for the repeat flag in CL version 2.36 or later."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must implement ReqPay, ReqAuthDetail and ReqTxnConfirmation handling as per NPCI specifications. PSP Banks must validate initiationMode=11 and purposeCode=14 for repeat payments. PSP Banks are advised to log the optional repeatTxnRefId for analytics and audit purposes.",
+      "Issuer Banks must support real-time debit of the payer account upon receipt of the NPCI debit request. Issuer Banks must respond with the transaction status in RespPay. Issuer Banks are advised to ensure funds-availability verification completes within one second.",
+      "NPCI must route ReqPay to the appropriate Payee PSP without alteration. NPCI must validate authentication details and enforce the PIN requirement for transaction amounts exceeding INR 15,000. NPCI are advised to monitor repeat-payment traffic for anomaly detection and report deviations to the regulator.",
+      "UPI Apps must present a \"Pay again\" button that automatically populates the last payee and amount. UPI Apps must invoke ReqPay with an optional repeatTxnRefId flag to identify the repeat request. UPI Apps are advised to allow the user to edit the amount before PIN entry.",
+      "Payee PSPs must accept credit requests for repeat payments without additional verification steps. Payee PSPs must acknowledge receipt via RespPay in accordance with the standard flow. Payee PSPs are advised to reconcile the repeatTxnRefId with the original transaction for settlement accuracy."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Current practice does not prescribe a uniform internal dissemination clause. The circular must therefore contain an explicit instruction for internal distribution. The required clause is: \"Please disseminate the information contained herein to the officials concerned.\"",
+      "All PSP Banks, Issuer Banks and NPCI must embed the above clause at the conclusion of each issued circular. They must forward the complete document to their respective product, engineering and compliance units without alteration. This ensures consistent awareness across the ecosystem.",
+      "Compliance teams are advised to validate the presence and exact wording of the dissemination clause during the review process. Any deviation shall be flagged for correction prior to release. This step safeguards regulatory conformity.",
+      "The dissemination instruction shall be considered an integral part of the circular and enforceable upon receipt. Any omission or modification must be authorized in writing by the NPCI authority. Participants must treat non‑compliance as a breach of circular obligations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "The undersigned authority affirms that the directives contained in this circular are final and enforceable. All PSP Banks, Issuer Banks, and NPCI must adhere to the stipulated obligations without deviation.",
+      "The authority has validated that the One‑Tap Repeat feature complies with existing UPI message specifications and does not introduce new API schemas. No further modifications to the REQ_PAY flow are authorized.",
+      "Compliance monitoring shall be conducted by NPCI in accordance with its supervisory framework. Any breach shall be subject to corrective action as per prevailing regulations.",
+      "This signature block constitutes the formal endorsement of the circular and supersedes any prior informal guidance. The signatory's credentials are provided below."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [
+      "Yours Sincerely,\nSD/-\nAnita Sharma\nChief Executive Officer\nNPCI"
+    ],
+    "diagram_path": null,
+    "level": 1
+  }
+]

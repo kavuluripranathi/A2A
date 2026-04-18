@@ -73,6 +73,10 @@ const docgenApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Pre-clarify: get questions before generation (returns questions, blocking_gaps, rag_session_id)
+export const preClarify = (payload) =>
+  docgenApi.post('/api/pre-clarify', payload)
+
 // Start a bundle job (BRD + TSD + Product Note + Circular in parallel)
 export const generateDocBundle = (payload) =>
   docgenApi.post('/api/generate/bundle', payload)

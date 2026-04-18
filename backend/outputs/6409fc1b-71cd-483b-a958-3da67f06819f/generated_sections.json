@@ -1,0 +1,127 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India (NPCI) – UPI Division issues this circular. Reference: NPCI/UPI/OC No. 012/2025-2026. Issue Date: 17‑Apr‑2026 (right‑aligned)."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular is addressed to all participants responsible for implementing the ultra‑short undo window feature in the UPI ecosystem. **All PSP Banks, Issuer/Remitter Banks, Beneficiary/Payee Banks, UPI App Providers, and NPCI** are required to comply with the directives herein."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Implement ultra‑short undo window for UPI payments across all PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Current UPI operations process payments without an immediate reversal option, resulting in approximately 93 million erroneous transactions annually across ~186 billion payments. The absence of an ultra‑short undo window creates a significant consumer‑trust gap, drives grievance costs estimated at ₹11 billion per year, and is misaligned with RBI’s enhanced consumer‑safeguard expectations. To address this ecosystem limitation, the issuer has decided to mandate the introduction of a 10‑15 second undo window for all payment initiations, subject to the defined latency and UI specifications. This directive aims to curtail error‑driven disputes, reduce support expenses, and support transaction growth while remaining technically incremental."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce an ultra‑short undo window for UPI payments. The REQ_PAY message schema shall be extended with a Boolean field \"undoEnabled\" and an integer field \"undoTimeoutSec\". The Switch routing engine shall inspect \"undoEnabled\" and, when true, suspend debit processing for the period indicated by \"undoTimeoutSec\". The Common Library (CL) version shall be incremented to 2.38 to support the new fields.",
+      "Current UPI Apps lack a post‑payment safety net, creating a consumer‑trust gap. All PSPs must update their UI module to render an UndoOverlay component displaying a countdown timer of 10‑15 seconds after the Pay action. The UndoOverlay shall expose a tappable \"Undo\" button that, when activated, signals cancellation to the Switch. The UI change shall be delivered via OTA update and identified as module version UI‑Undo‑1.0.",
+      "The introduction of the undo window must not breach the 1‑second end‑to‑end latency SLA. The Transaction Control Service shall enforce that the additional round‑trip latency introduced by the undo logic does not exceed 0.4 seconds. Any latency breach shall trigger an automatic alert to the Compliance Monitoring System. PSPs are advised to conduct latency testing in staging environments prior to production rollout.",
+      "When a payment is cancelled within the undo window, the Switch shall generate a RESP_PAY response with status code \"DEEMED_CANCELLED\" and shall not forward a debit request to the Issuer Bank. All beneficiary and payer banks must treat the \"DEEMED_CANCELLED\" status as final and must not initiate settlement or reversal processes. The audit log shall record the cancellation event with timestamp, VPA, and transaction identifier. Dispute management processes remain unchanged for payments that complete beyond the undo window.",
+      "The undo feature satisfies the RBI directive for enhanced consumer safeguards in high‑frequency digital payments. Compliance teams must ensure that the updated UPI Specification Revision 2.38 documents the new fields, status codes, and UI requirements. They are advised to verify that audit logs are retained for a minimum of 24 months in accordance with regulatory retention policies. The feature rollout shall be reported to the RBI within 30 days of production launch."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI must define a new optional field \"undoFlag\" in the REQ_PAY message schema, versioned as clVersion >=2.36, and must disseminate the updated Common Library (CL) supporting the flag to all PSPs within 30 days of circular issuance. NPCI must also update the UPI switch routing logic to honor the flag by pausing transaction settlement for the configured 10‑15 second window.",
+      "PSP Bank must modify its payment initiation API to include the undoFlag set to true for transactions eligible for reversal, and must ensure the flag is transmitted unchanged through the NPCI switch. PSP Bank must also implement UI logic to display the countdown timer and \"Undo\" button on the UPI App, and must guarantee that the additional round‑trip latency does not exceed 0.4 seconds.",
+      "Issuer/Remitter Bank must accept REQ_PAY messages containing the undoFlag and must hold the debit request in a pending state until either the undo window expires or an explicit cancellation is received from the PSP. Issuer Bank must process a cancellation request within 200 ms and must not debit the customer account if the undo is invoked.",
+      "Beneficiary/Payee Bank must be prepared to receive a credit notification only after the undo window has closed; if a cancellation arrives, the bank must discard any pending credit entry. Beneficiary Bank must log the cancellation event for audit purposes and must not charge any settlement fees for reversed transactions.",
+      "UPI App developers (as part of PSP) are advised to integrate the CL version that supports the undoFlag, to render the countdown UI consistently across Android and iOS, and to conduct OTA updates for existing installations. They are advised to perform user acceptance testing to verify that the \"Undo\" button correctly aborts the transaction without residual holds.",
+      "Compliance and Risk teams of all participants are advised to update internal SOPs to reflect the new reversible‑payment flow, to train support staff on handling undo‑related grievance tickets, and to monitor key metrics (error rate, dispute volume) for a minimum of 90 days post‑deployment."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Current internal circulation of product feature updates is performed on an ad‑hoc basis without a mandated protocol. This creates gaps in awareness among product managers, engineering leads and compliance officers. All product managers must initiate formal distribution of this circular to the designated officials within their domain.",
+      "Engineers and compliance teams currently receive feature details through informal channels, leading to inconsistent implementation timelines. To close this gap, they are advised to acknowledge receipt of the circular and confirm understanding within two business days of distribution.",
+      "The standard internal dissemination instruction shall be reproduced verbatim in all related communications. Please disseminate the information contained herein to the officials concerned. Inclusion of this line guarantees uniformity across all units.",
+      "Dissemination must be conducted using approved secure channels to preserve the confidentiality classification of the feature details. Any deviation from the prescribed channels is prohibited. Compliance officers must verify that the transmission logs reflect adherence to the secure channel policy."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "Yours Sincerely, SD/-. This acknowledges the approval of the ultra‑short undo window feature for UPI transactions.",
+      "John Doe, Chief Product Officer, Product Management Department. The signatory affirms that the implementation complies with RBI consumer‑safeguard directives and NPCI specifications."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

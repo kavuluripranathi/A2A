@@ -14,7 +14,7 @@ import uuid
 import zipfile
 from datetime import datetime
 from pathlib import Path
-
+from agents.rag_client import call_rag_clarify
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
@@ -317,6 +317,53 @@ async def list_session_documents(session_id: str):
     return results
 
 
+@router.post("/pre-clarify")
+async def pre_clarify(request: BundleGenerateRequest):
+    """
+    Step 1 of the generate flow. Call this before /generate/bundle.
+    Returns RAG clarifying questions for the PM to answer.
+    Frontend shows questions → PM answers → POST /generate/bundle with clarification_answers.
+    """
+    _raw_prompt = request.prompt or ""
+    _canvas_sections = None
+    _research_report = None
+    _feature_desc = next(
+        (line.strip() for line in _raw_prompt.splitlines()
+         if line.strip() and not line.startswith("Product:")
+         and not line.startswith("##") and len(line.strip()) > 20),
+        _raw_prompt[:300]
+    )
+    if request.session_id:
+        try:
+            from memory.session_store import store as _store
+            detail = _store.get_detail(request.session_id)
+            if detail:
+                req_data = detail.get("requirement", {})
+                res_data = detail.get("research", {}).get("current_report") or {}
+                cvs_data = detail.get("canvas", {}).get("current_canvas") or {}
+                if req_data.get("feature_request"):
+                    _feature_desc = req_data["feature_request"]
+                if res_data.get("content"):
+                    _research_report = res_data
+                if cvs_data.get("sections"):
+                    _canvas_sections = cvs_data["sections"]
+        except Exception:
+            pass
+    rag_intel = call_rag_clarify(
+        feature_description=_feature_desc,
+        canvas_sections=_canvas_sections,
+        research_report=_research_report,
+    )
+    return {
+        "questions":          rag_intel.get("questions", []),
+        "blocking_gaps":      rag_intel.get("blocking_gaps", []),
+        "blocked":            rag_intel.get("blocked", False),
+        "rag_session_id":     rag_intel.get("session_id"),
+        "taxonomy":           rag_intel.get("taxonomy", {}),
+        "has_clarifications": len(rag_intel.get("questions", [])) > 0,
+    }
+
+
 @router.post("/generate/bundle", response_model=BundleStatusResponse)
 async def generate_bundle(request: BundleGenerateRequest, background_tasks: BackgroundTasks):
     bundle_id = str(uuid.uuid4())
@@ -328,6 +375,64 @@ async def generate_bundle(request: BundleGenerateRequest, background_tasks: Back
     }
 
     job_ids: dict[str, str] = {}
+
+    # Extract clean feature description (strip canvas/product header boilerplate)
+    _raw_prompt = request.prompt or ""
+    _feature_desc = next(
+        (line.strip() for line in _raw_prompt.splitlines()
+         if line.strip() and not line.startswith("Product:")
+         and not line.startswith("##") and len(line.strip()) > 20),
+        _raw_prompt[:300]
+    )
+
+    # Fetch full session content — canvas, research, requirements flow into every doc thread
+    session_context = ""
+    _canvas_sections = None
+    _research_report = None
+    if request.session_id:
+        try:
+            from memory.session_store import store as _store
+            detail = _store.get_detail(request.session_id)
+            if detail:
+                req_data = detail.get("requirement", {})
+                res_data = detail.get("research", {}).get("current_report") or {}
+                cvs_data = detail.get("canvas", {}).get("current_canvas") or {}
+
+                parts = []
+                if req_data.get("structured_output"):
+                    parts.append(f"REQUIREMENTS:\n{req_data['structured_output']}")
+                if req_data.get("feature_request"):
+                    _feature_desc = req_data["feature_request"]  # use PM's own words
+                if res_data.get("content"):
+                    parts.append(f"RESEARCH REPORT:\n{res_data['content'][:3000]}")
+                    _research_report = res_data
+                if cvs_data.get("sections"):
+                    canvas_text = "\n".join(
+                        f"{s.get('title', '')}: {s.get('content', '')}"
+                        for s in cvs_data["sections"] if s.get("content")
+                    )
+                    parts.append(f"PRODUCT CANVAS:\n{canvas_text}")
+                    _canvas_sections = cvs_data["sections"]
+                session_context = "\n\n".join(parts)
+                logger.info("[bundle] Loaded session context: req=%s res=%s canvas=%s",
+                            bool(req_data.get("structured_output")),
+                            bool(res_data.get("content")),
+                            bool(cvs_data.get("sections")))
+        except Exception as _e:
+            logger.warning("[bundle] Could not load session context: %s", _e)
+
+    # Call RAG /clarify once — get NPCI corpus proposals for all 4 doc threads
+    rag_intelligence = call_rag_clarify(
+        feature_description=_feature_desc,
+        canvas_sections=_canvas_sections,
+        research_report=_research_report,
+    )
+
+    rag_proposals = rag_intelligence.get("proposed_skeleton") or {}
+    rag_taxonomy  = rag_intelligence.get("taxonomy") or {}
+    if rag_intelligence.get("blocking_gaps"):
+        logger.warning("[bundle] Blocking gaps from RAG: %s", rag_intelligence["blocking_gaps"])
+
 
     for doc_type in _BUNDLE_DOC_TYPES:
         job_id = str(uuid.uuid4())
@@ -368,7 +473,7 @@ async def generate_bundle(request: BundleGenerateRequest, background_tasks: Back
             "signatory_name": request.signatory_name,
             "signatory_title": request.signatory_title,
             "signatory_department": request.signatory_department,
-            "additional_context": request.additional_context,
+            "additional_context": "\n\n".join(filter(None, [session_context, request.additional_context])),
             "session_id": request.session_id,
             "rag_context": "",
             "rag_chunks": [],
@@ -379,6 +484,9 @@ async def generate_bundle(request: BundleGenerateRequest, background_tasks: Back
             "output_path": None,
             "status": "pending",
             "error": None,
+            "proposals": rag_proposals,
+            "taxonomy":  rag_taxonomy,
+            "clarification_answers": request.clarification_answers or "",
         }
 
         t = threading.Thread(

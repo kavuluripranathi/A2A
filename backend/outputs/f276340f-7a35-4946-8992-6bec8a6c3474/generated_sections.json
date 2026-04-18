@@ -1,0 +1,380 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "The UPI ecosystem today processes repeat payments through the standard ReqPay/RespPay flow, where the payer app captures the payerVPA, payeeVPA, amount, initiationMode and purposeCode and forwards a ReqPay message to NPCI. NPCI then orchestrates ReqAuthDetail, debit and credit messages before sending a final ReqTxnConfirmation to both PSPs. In the current UI the user must locate the payee, enter the amount and confirm the UPI PIN, resulting in an average transaction time of about 4.2 seconds and three to four screen taps.",
+      "User research shows that 42 % of UPI users forget the payee details for recurring payments, causing an estimated ₹12 bn of untapped repeat‑payment volume and a 3 % abandonment rate. This friction limits transaction frequency for high‑value recurring use‑cases such as rent or subscriptions. Leveraging the existing ReqPay, ReqAuthDetail and ReqTxnConfirmation messages with an optional repeatTxnRefId allows a one‑tap repeat flow without introducing new APIs, satisfying RBI’s friction‑less payment mandate while preserving backward compatibility."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature enables a UPI user to complete a recurring payment with a single tap from the home screen or immediately after a prior transaction. The flow re‑uses the payer’s VPA, the previously used payee VPA, and the last transaction amount, while still allowing the user to edit the amount before confirming with the standard UPI PIN. The participants involved are the payer’s UPI app and PSP, the NPCI switch (which orchestrates the existing ReqPay/RespPay sequence), and the payee’s PSP and bank for authentication and settlement. By leveraging the current UPI request‑response infrastructure, no new message types or ecosystem partners are required.",
+      "From a business perspective, One‑Tap Repeat reduces the average time‑to‑pay from roughly 4.2 seconds and three to four taps to about 2.1 seconds and a single tap, cutting friction for high‑frequency recurring payments such as rent, subscriptions, and bill‑pay. This streamlined experience is expected to capture up to ₹12 billion of previously untapped repeat‑payment volume and drive adoption among at least 25 % of active users, translating into an estimated incremental revenue uplift of ₹3.5 billion. The feature aligns with RBI’s push for frictionless digital payments, enhances user engagement, and provides a competitive advantage without requiring additional backend integrations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature operates within the existing UPI ecosystem, leveraging the Payer PSP, Payee PSP, NPCI Switch, and the customer’s UPI App as core participants. The UPI App captures the payer’s VPA and biometric or PIN, forwards a ReqPay request to the Payer PSP, and displays the quick‑repeat banner upon successful confirmation. NPCI receives the ReqPay, forwards a ReqAuthDetail to the Payee PSP to obtain the merchant AC and IFSC, and subsequently coordinates the debit and credit legs with the Issuer/Remitter and Beneficiary banks. The final transaction outcome is communicated back to both PSPs via ReqTxnConfirmation, completing the end‑to‑end flow without any additional network hops.",
+      "Key design decisions focus on reusing the standard ReqPay/RespPay suite, avoiding schema breakage while adding an optional repeatTxnRefId flag for traceability and analytics. The request populates payerVPA, payeeVPA, amount, initiationMode=11 and purposeCode=14, and enforces UPI PIN authentication with a per‑transaction cap of INR 15,000, matching existing UPI limits. Real‑time (T+0) settlement is retained, and the feature introduces no new API messages, preserving the interaction topology and compliance posture across all participating banks and PSPs."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The Setting & Enrollment flow enables a payer to enroll a repeat‑pay transaction with a single tap. The UPI App pre‑checks stored payee details, then orchestrates the standard ReqPay/ReqAuthDetail/ReqTxnConfirmation sequence while the PSPs and NPCI handle authentication, debit, and credit. The process reuses existing UPI messages, adding only an optional repeat‑reference flag, and completes within the standard T+0 settlement window. This flow ensures compliance with UPI PIN authentication and transaction limits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "App validates presence of stored payee VPA and last amount; allows optional amount edit",
+          "UPI App"
+        ],
+        [
+          "Step 1",
+          "Payer PSP constructs ReqPay (type Pay) with payerVPA, payeeVPA, amount, initiationMode=11, purposeCode=14 and sends to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI forwards ReqAuthDetail to Payee PSP to obtain merchant account details",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Payee PSP validates merchant details and returns RespAuthDetail containing AC and IFSC",
+          "Payee PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI initiates debit request (ReqPay type Debit) to Issuer/Remitter Bank; bank processes and returns RespPay with transactionStatus",
+          "Issuer Bank"
+        ],
+        [
+          "Step 5",
+          "Payer PSP receives RespPay, confirms transaction status to UPI App",
+          "Payer PSP"
+        ],
+        [
+          "Step 6",
+          "NPCI sends ReqTxnConfirmation to both Payer PSP and Payee PSP with confirmationCode",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Payer PSP forwards RespTxnConfirmation to UPI App; UI updates to show quick‑repeat banner",
+          "Payer PSP"
+        ],
+        [
+          "Post Response",
+          "App records enrollment metadata (repeatTxnRefId) for future one‑tap repeats",
+          "UPI App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature reuses the standard UPI message set—ReqPay, ReqAuthDetail, and ReqTxnConfirmation—without introducing new APIs. When the user taps the repeat button, the Payer PSP builds a ReqPay request that includes the payer VPA, the stored payee VPA, the amount (editable), initiationMode=11 and purposeCode=14, and then forwards it to the NPCI switch. The transaction proceeds under the usual UPI PIN authentication and respects the INR 15,000 per‑transaction limit. Completion is real‑time (T+0) and the confirmation is propagated back to both PSPs.",
+      "A pre‑check validates that the repeat flag is present, the amount does not exceed the limit, and both VPAs are available. Step 1 sends the payment request, Step 2 triggers an authentication detail request to the Payee PSP, and Step 3 returns the merchant account number (AC) and IFSC. Step 4 initiates the debit against the payer’s account, followed by Step 5 where the Payer PSP receives the transaction status. Step 6 conveys a confirmation to both PSPs, and Step 7 updates the user interface with a quick‑repeat banner. The post‑response activities log the transaction, refresh the repeat cache, and enforce daily aggregate limits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate repeat flag, amount ≤ INR 15,000, and presence of payerVPA/payeeVPA",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Payer PSP constructs and sends ReqPay (type Pay) with payerVPA, payeeVPA, amount, initiationMode=11, purposeCode=14",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI forwards ReqAuthDetail to Payee PSP to obtain merchant account details",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Payee PSP validates merchant details and returns RespAuthDetail containing AC and IFSC",
+          "Payee PSP"
+        ],
+        [
+          "Step 4",
+          "NPCI initiates debit request (ReqPay type Debit) against payer's account via Issuer/Remitter Bank",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Payer PSP receives RespPay with transactionStatus (SUCCESS or FAILURE)",
+          "Payer PSP"
+        ],
+        [
+          "Step 6",
+          "NPCI sends ReqTxnConfirmation to both Payer PSP and Payee PSP",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Payer PSP receives RespTxnConfirmation, updates UI with quick‑repeat banner and logs transaction",
+          "Payer PSP"
+        ],
+        [
+          "Post Response",
+          "Log transaction, update repeat cache, enforce daily limits, release resources",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section defines the three UPI messages that support the One‑Tap Repeat feature: ReqPay/RespPay, ReqAuthDetail/RespAuthDetail, and ReqTxnConfirmation/RespTxnConfirmation. The scope of change is limited to re‑using these existing APIs with an optional repeat‑transaction flag or reference identifier, avoiding any new message types or breaking schema modifications. All other fields remain unchanged and the flow continues to follow the standard UPI request‑response sequence."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature re‑uses the existing UPI request‑response suite – ReqPay, ReqAuthDetail and ReqTxnConfirmation – to complete a repeat payment with a single tap. The payer’s VPA, the previously used payee VPA and the amount are populated automatically, while the user supplies the UPI PIN for authentication.",
+      "ReqPay is initiated by the Payer PSP and carries payerVPA, payeeVPA, amount, initiationMode and purposeCode. NPCI forwards a ReqAuthDetail to the Payee PSP, which returns the merchant’s AC and IFSC in RespAuthDetail; NPCI then triggers the debit, receives RespPay with transactionStatus, and finally sends ReqTxnConfirmation to both PSPs, which acknowledge with RespTxnConfirmation.",
+      "To identify a repeat transaction without breaking backward compatibility an optional field repeatTxnRefId is added to the ReqPay payload. This flag enables analytics and idempotency while remaining optional for legacy callers."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "repeatTxnRefId",
+          "String",
+          "36",
+          "Identifier for repeat transaction used for traceability",
+          "N"
+        ],
+        [
+          "initiationMode",
+          "Integer",
+          "2",
+          "Mode code for repeat payment (e.g., 11)",
+          "Y"
+        ],
+        [
+          "purposeCode",
+          "Integer",
+          "2",
+          "Business purpose code for the transaction (e.g., 14)",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:payerVPA>alice@bank</upi:payerVPA>\n    <upi:payeeVPA>bob@bank</upi:payeeVPA>\n    <upi:amount>1500.00</upi:amount>\n    <upi:initiationMode>11</upi:initiationMode>\n    <upi:purposeCode>14</upi:purposeCode>\n    <upi:repeatTxnRefId>TXN1234567890</upi:repeatTxnRefId>\n</upi:ReqPay>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespPay xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:transactionStatus>SUCCESS</upi:transactionStatus>\n</upi:RespPay>",
+      "<!-- Request: NPCI to Payee PSP -->\n<upi:ReqAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:payerVPA>alice@bank</upi:payerVPA>\n    <upi:payeeVPA>bob@bank</upi:payeeVPA>\n    <upi:amount>1500.00</upi:amount>\n</upi:ReqAuthDetail>",
+      "<!-- Response: Payee PSP to NPCI -->\n<upi:RespAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:AC>12345678901</upi:AC>\n    <upi:IFSC>ABCD0123456</upi:IFSC>\n</upi:RespAuthDetail>",
+      "<!-- Request: NPCI to PSPs -->\n<upi:ReqTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:confirmationCode>CONF1234567890</upi:confirmationCode>\n    <upi:transactionStatus>SUCCESS</upi:transactionStatus>\n</upi:ReqTxnConfirmation>",
+      "<!-- Response: PSP to NPCI -->\n<upi:RespTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:ack>ACK</upi:ack>\n</upi:RespTxnConfirmation>",
+      "Step | Activity | Responsible\nPre-Check | Validate repeat flag and amount limits | Payer PSP\nStep 1 | Initiate ReqPay with repeatTxnRefId | Payer PSP\nStep 2 | Forward ReqAuthDetail to Payee PSP | NPCI\nStep 3 | Return AC/IFSC in RespAuthDetail | Payee PSP\nStep 4 | Debit payer account and send RespPay | Issuer Bank / NPCI\nStep 5 | Send ReqTxnConfirmation to both PSPs | NPCI\nStep 6 | Acknowledge with RespTxnConfirmation | Both PSPs\nPost Response | Update UI with quick‑repeat banner | Payer PSP"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The ReqAuthDetail API is a secondary request initiated by NPCI to the Payee PSP to obtain the merchant's account credentials required for completing a repeat payment. In the one‑tap repeat flow NPCI forwards the payer and payee VPA, along with an optional repeat transaction reference, enabling the Payee PSP to validate the merchant details without additional user interaction.",
+      "The Payee PSP responds with RespAuthDetail containing the AC (account number) and IFSC of the payee, which NPCI uses to route the subsequent debit request to the Issuer Bank. This API operates transparently to the user, preserving the single‑tap experience while ensuring that the underlying settlement data is refreshed for each repeat transaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre‑Check",
+          "Validate that payerVPA and payeeVPA exist and that repeatTxnRefId (if present) maps to a prior successful transaction",
+          "NPCI"
+        ],
+        [
+          "Step 1",
+          "NPCI sends REQ_AUTH_DETAILS to Payee PSP with payerVPA, payeeVPA, and optional repeatTxnRefId",
+          "NPCI"
+        ],
+        [
+          "Step 2",
+          "Payee PSP verifies merchant details and returns RESP_AUTH_DETAILS containing AC and IFSC",
+          "Payee PSP"
+        ],
+        [
+          "Post Response",
+          "NPCI forwards AC/IFSC to the Issuer Bank for debit processing and logs the repeat reference for analytics",
+          "NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: NPCI to Payee PSP -->\n<upi:ReqAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:payerVPA>payer@bank</upi:payerVPA>\n    <upi:payeeVPA>payee@bank</upi:payeeVPA>\n    <upi:repeatTxnRefId>TXN1234567890</upi:repeatTxnRefId>\n</upi:ReqAuthDetail>",
+      "<!-- Response: Payee PSP to NPCI -->\n<upi:RespAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:AC>12345678901</upi:AC>\n    <upi:IFSC>ABCD0123456</upi:IFSC>\n</upi:RespAuthDetail>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat flow reuses the standard ReqPay, ReqAuthDetail and ReqTxnConfirmation messages, but it introduces specific validation points that can result in distinct error conditions. Integration engineers must handle each error scenario to ensure graceful fallback, accurate user messaging, and compliance with NPCI specifications."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "01",
+          "U001",
+          "Payer VPA not eligible for repeat payment (e.g., repeat disabled)",
+          "ReqPay",
+          "Payer PSP",
+          "BD"
+        ],
+        [
+          "02",
+          "U002",
+          "Payee activation missing or inactive for repeat transaction",
+          "ReqAuthDetail",
+          "Payee PSP",
+          "BD"
+        ],
+        [
+          "03",
+          "U003",
+          "Authentication failure – incorrect UPI PIN supplied",
+          "ReqPay",
+          "Issuer Bank",
+          "TD"
+        ],
+        [
+          "04",
+          "U004",
+          "Timeout waiting for RespAuthDetail from Payee PSP",
+          "ReqAuthDetail",
+          "NPCI",
+          "TD"
+        ],
+        [
+          "05",
+          "U005",
+          "Feature‑specific error – repeatTxnRefId missing in repeat request",
+          "ReqPay",
+          "Payer PSP",
+          "BD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "Payer PSP must invoke the existing ReqPay API with payerVPA, payeeVPA, amount, initiationMode=11 and purposeCode=14; no new API messages are introduced.",
+      "Include an optional repeatTxnRefId element in the ReqPay payload to uniquely identify the repeat request; this flag enables idempotency checks and analytics without altering the core schema.",
+      "If the transaction amount exceeds INR 15,000, the PSP must enforce UPI-PIN authentication before sending ReqPay, as amounts above this threshold require PIN verification per specification.",
+      "When a RespPay or RespTxnConfirmation is not received within 30 seconds, the PSP must trigger a REQ_CHK_TXN request to NPCI to determine the transaction status and avoid duplicate repeat attempts.",
+      "Display the quick-repeat banner to the user only after receiving a successful RespTxnConfirmation containing a confirmationCode; any failure response must suppress the banner and log the error."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

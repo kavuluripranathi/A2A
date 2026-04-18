@@ -1,0 +1,430 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "Today, when a customer wants to make a recurring payment, the UPI application requires the user to manually type the payee’s virtual address and the amount. The payer’s PSP (the bank that provides the UPI app) receives this input, encrypts the authentication data using the Common Library, and forwards the payment request to the NPCI switch. NPCI then routes the request to the payer’s bank for debit and to the payee’s bank for credit, following the standard five‑stage UPI settlement cycle. No shortcut UI exists to retrieve the last successful transaction, so each repeat payment repeats the full flow.",
+      "In the current sequence, the payer’s PSP initiates the payment request, NPCI forwards an authentication challenge to the payer’s bank, and the bank validates the PIN or biometric before debiting the account. After the debit, NPCI forwards the credit instruction to the beneficiary bank, which credits the payee’s account and sends a confirmation back through NPCI to both PSPs. Each PSP then updates its respective mobile application with the transaction status. The entire process completes in real time but requires the user to re‑enter details for every repeat transaction."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing repeat‑payment experience requires users to manually re‑enter the payee VPA and amount for every transaction, which creates unnecessary friction and increases the likelihood of input errors. This manual approach forces the PSP bank to invoke the full UPI request‑response flow each time, adding latency and consuming processing capacity. Moreover, the absence of a dedicated repeat‑payment indicator limits visibility for issuers and regulators, exposing the ecosystem to compliance and audit challenges."
+    ],
+    "bullet_points": [
+      "User friction – End‑users must recall and type the payee VPA and amount, leading to higher abandonment rates and reduced transaction frequency.",
+      "Processing overhead – PSP banks must execute the complete ReqPay, ReqAuthDetail, and settlement sequence for every repeat, straining scalability and increasing average latency.",
+      "Security risk – Repeated manual entry of UPI PIN or biometric prompts raises the chance of credential exposure and shoulder‑surfing attacks, impacting Issuer Banks and compliance obligations.",
+      "Regulatory visibility – Without a repeat‑payment flag or traceability field, NPCI and supervisory bodies lack clear audit trails, complicating adherence to RBI’s frictionless‑payment guidelines."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The RBI’s FY‑25 directive on friction‑less digital payments obliges all UPI participants to reduce user‑interface steps for recurring transactions, and the One‑Tap Repeat directly satisfies that mandate. By leveraging the existing ReqPay/RespPay flow with initiationMode=11 and purposeCode=14, the change avoids any schema modifications, thereby preserving the security guarantees of the Common Library and NPCI’s nonce‑based challenge mechanism. NPCI will continue to validate the initiationMode and purposeCode, ensuring that the repeat transaction is subject to the same authentication and settlement controls as a standard payment. This approach also complies with RBI’s requirement that any new functionality must not weaken the mandate for PIN or biometric verification for amounts above INR 15,000, which the PSP banks will enforce.",
+      "The anticipated user‑experience gain—cutting the repeat‑payment journey from three to one tap and halving the average time‑to‑pay—addresses the 42 % of users who currently abandon transactions due to forgotten payee details. Market analysis projects that capturing the untapped ₹12 billion repeat‑payment volume could lift overall UPI transaction volume by roughly 3 %, delivering an incremental ₹3.5 billion in interchange‑free revenue for PSP banks. Because the feature reuses the existing UPI messaging stack, Issuer and Beneficiary banks incur no additional integration effort, while NPCI’s routing engine processes the repeat flow without any performance penalty. Consequently, the solution offers a high‑impact, low‑risk enhancement that aligns regulatory expectations, strengthens security posture, and drives measurable business growth across the UPI ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature presents a “Pay again” tile on the PSP’s home screen that automatically fills the last successful payee VPA and amount, while still allowing the user to modify the amount before confirming. This capability is owned by the PSP Bank for UI implementation, by the Issuer Bank for debit processing, by the Beneficiary Bank for credit receipt, and by NPCI for unchanged routing of the standard ReqPay flow. The scope of change is limited to the PSP’s front‑end and the invocation of the existing ReqPay message with initiationMode=11, requiring no new APIs or message structures.",
+      "From a business perspective, the feature eliminates the manual re‑entry steps that cause friction for recurring payments such as rent, subscriptions, or regular transfers, cutting average time‑to‑pay by roughly 50 percent. By reducing abandonment risk, it is projected to unlock up to ₹12 billion of additional annual transaction value and increase overall UPI volume by about 3 percent, directly supporting RBI’s friction‑less payment mandate. The resulting higher transaction frequency strengthens user engagement and provides a competitive advantage for any UPI‑enabled app."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The Quick‑Repeat tile is introduced on the home screen of the UPI App immediately after a successful payment, and it remains visible for the next session. The PSP Bank is responsible for rendering the tile within the app’s UI framework and for persisting the last successful payee VPA and amount in the device’s secure enclave. The tile’s appearance is governed by the PSP’s configuration rules, which reference the NPCI‑provided Common Library version to ensure compatibility with biometric‑enabled flows. This placement reduces the number of taps required for a repeat transaction and creates a consistent entry point for enrollment in the one‑tap repeat experience.",
+      "When the user taps the Quick‑Repeat tile, the app presents a consent screen that pre‑populates the payee VPA and amount while allowing the payer to modify the amount if desired. The PSP Bank captures the user’s explicit consent by requiring a tap on the “Confirm” button, after which the CL encrypts the credentials and the app forwards a ReqPay request with initiationMode=11 and purposeCode=14 to NPCI. NPCI validates the initiation mode, routes the request to the Issuer Bank for debit, and subsequently forwards the credit instruction to the Beneficiary Bank, which returns the standard RespPay response. Upon receipt of the confirmation, the PSP Bank updates the UI to show success or failure, thereby completing the enrollment and transaction cycle."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "App checks that a recent successful transaction exists and that the user has not disabled Quick‑Repeat in settings",
+          "PSP Bank"
+        ],
+        [
+          "Step 1",
+          "Render Quick‑Repeat tile on home screen",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "User taps tile; display consent screen with pre‑filled VPA and amount",
+          "PSP Bank"
+        ],
+        [
+          "Step 3",
+          "User edits amount (if needed) and confirms; CL encrypts credentials and app sends ReqPay with initiationMode=11",
+          "PSP Bank"
+        ],
+        [
+          "Step 4",
+          "NPCI validates initiationMode and forwards debit request to Issuer Bank",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Issuer Bank debits payer account and returns RespPay to NPCI",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "NPCI forwards credit instruction to Beneficiary Bank and receives RespPay",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Beneficiary Bank credits payee account and returns RespPay to NPCI",
+          "Beneficiary Bank"
+        ],
+        [
+          "Post Response",
+          "App receives transaction confirmation, updates UI, and logs the repeat transaction for future Quick‑Repeat display",
+          "PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "When a user taps the Quick Repeat tile after a successful prior payment, the PSP app reads the stored VPA and amount, presents them for optional edit, and upon user confirmation initiates a ReqPay request with initiationMode=11 and purposeCode=14. This triggers the standard UPI authentication path: the PSP encrypts the credential block using the Common Library and forwards the request to NPCI. NPCI validates the initiationMode and forwards an authentication‑detail request to the payee PSP, which returns authentication confirmation.",
+      "After authentication, NPCI routes the debit request to the payer’s Issuer Bank, which debits the payer’s account and returns a RespPay. NPCI then forwards a credit instruction to the Beneficiary Bank, which credits the payee’s account and acknowledges. Finally, NPCI sends a transaction confirmation to both the payer and payee PSPs, which propagate the status to the respective UPI apps for UI update."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify stored VPA and amount exist; ensure user session is active",
+          "PSP Bank"
+        ],
+        [
+          "Step 1",
+          "Initiate ReqPay with stored VPA, amount, initiationMode=11 and purposeCode=14",
+          "PSP Bank"
+        ],
+        [
+          "Step 2",
+          "NPCI forwards authentication request (REQ_AUTH_DETAILS) to Payee PSP",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Payee PSP validates payee VPA and returns authentication response",
+          "Payee PSP (Beneficiary Bank)"
+        ],
+        [
+          "Step 4",
+          "NPCI sends debit request to Issuer Bank for fund settlement",
+          "NPCI"
+        ],
+        [
+          "Step 5",
+          "Issuer Bank debits payer account and returns RespPay",
+          "Issuer Bank"
+        ],
+        [
+          "Step 6",
+          "NPCI forwards credit instruction to Beneficiary Bank and receives acknowledgment",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Both payer and payee PSPs forward transaction confirmation to their respective apps",
+          "Payer PSP and Payee PSP"
+        ],
+        [
+          "Post Response",
+          "Apps display success/failure UI and update transaction history",
+          "PSP Bank"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature is presented as an optional convenience on the PSP Bank’s mobile application. PSP Bank shall display the “Last Payment Quick Repeat” tile only after the payer has successfully completed a prior transaction and has explicitly enabled the feature in the app settings. NPCI will continue to route the underlying ReqPay messages unchanged, preserving the existing security model.",
+      "To protect legacy workflows, Issuer Bank and Beneficiary Bank must process Quick‑Repeat payments using the same settlement and dispute timelines as any standard UPI transaction. PSP Bank shall ensure that the repeat transaction identifier does not interfere with existing reconciliation processes. NPCI shall maintain backward compatibility by accepting both initiationMode=11 and the default initiationMode=01."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "Opt‑in: The payer must explicitly enable Quick‑Repeat in the app settings; PSP Bank shall record the consent flag and expose it to NPCI with each ReqPay, and NPCI shall forward the flag unchanged.",
+      "Opt‑out: The payer may withdraw consent at any time; PSP Bank shall honor the withdrawal immediately and cease displaying the Quick‑Repeat tile for that VPA, and Issuer Bank shall reject any ReqPay that includes a repeat flag when consent is absent.",
+      "Device constraint: The Quick‑Repeat shortcut is only available on devices that support a hardware‑backed Secure Enclave or TEE; PSP Bank shall validate the presence of such capability before rendering the tile, and NPCI shall not route repeat requests from devices lacking the capability.",
+      "Amount limit edge case: For repeat payments exceeding INR 15,000, PSP Bank shall enforce mandatory UPI PIN entry and mandate collection of Mandate DS as per test case guidelines, and Issuer Bank shall reject the transaction if PIN or Mandate DS is missing.",
+      "Retry logic: If the initial ReqPay for a Quick‑Repeat fails due to network timeout, PSP Bank shall automatically retry once using the same repeat reference within 30 seconds; NPCI shall treat the retry as a new request but must preserve idempotency using the optional repeatTxnRefId, and Beneficiary Bank shall process the retry as a fresh transaction.",
+      "Backward compatibility: All existing UPI apps that do not implement the Quick‑Repeat UI shall continue to operate unchanged; NPCI shall continue to accept standard ReqPay messages without initiationMode=11, and PSP Bank shall default to initiationMode=01 when the repeat flag is absent.",
+      "Audit and traceability: PSP Bank shall include an optional repeatTxnRefId in every Quick‑Repeat ReqPay; NPCI shall log this field for analytics and dispute correlation, and Issuer Bank and Beneficiary Bank shall retain the field in transaction logs for the statutory retention period."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature does not modify the dispute management process defined in the standard UPI dispute framework. All repeat‑payment transactions are assigned the same transaction identifier as a normal ReqPay flow, and therefore they are handled by the existing dispute lifecycle. NPCI will continue to route dispute notifications through the UPI switch, while PSP banks must forward any dispute request to the Issuer bank in accordance with current procedures.",
+      "Liability for a disputed repeat payment remains with the payer’s Issuer bank as defined in the prevailing UPI rules, and the service level agreement of 24 hours for acknowledgement and 72 hours for resolution stays unchanged. The escalation path – PSP bank → Issuer bank → NPCI switch → regulator – is unchanged, and each participant is obligated to adhere to the same time‑frames and reporting requirements as for any other UPI transaction. Consequently, compliance, risk, and customer support teams can rely on the existing dispute handling SOPs without any additional implementation effort."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "The Quick Repeat feature introduces a streamlined payment path that automatically surfaces the most recent successful transaction, enabling users to complete repeat payments with a single tap while retaining the ability to modify the amount. This section enumerates the testable functional expectations that each participant must satisfy to deliver a consistent, secure, and compliant experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall display a “Last Payment Quick Repeat” tile on the home screen after a successful transaction.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall pre‑populate the payee VPA and amount from the most recent successful payment on the Quick Repeat tile.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall allow the user to edit the amount on the Quick Repeat screen before confirming the payment.",
+          "Medium"
+        ],
+        [
+          "FR-04",
+          "The system shall invoke the standard ReqPay API with initiationMode=11 and purposeCode=14 when the user confirms a Quick Repeat payment.",
+          "High"
+        ],
+        [
+          "FR-05",
+          "The system shall enforce collection of the UPI PIN and Mandate DS for repeat payments exceeding INR 15,000.",
+          "High"
+        ],
+        [
+          "FR-06",
+          "The system shall communicate the transaction outcome via the existing ReqTxnConfirmation / RespTxnConfirmation flow.",
+          "High"
+        ],
+        [
+          "FR-07",
+          "The system shall store the repeat‑transaction reference identifier (repeatTxnRefId) in the request payload for audit and idempotency purposes.",
+          "Medium"
+        ],
+        [
+          "FR-08",
+          "The system shall ensure that the Quick Repeat feature respects the standard per‑transaction and daily aggregate limits applicable to regular UPI payments.",
+          "Medium"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The NPCI platform must accommodate the One‑Tap Repeat capability by exposing the necessary settings and schema extensions that enable a PSP to launch a repeat payment with a single tap. This change preserves the existing end‑to‑end UPI flow while allowing the payer’s app to pre‑populate VPA and amount from the last successful transaction. NPCI’s role is to define the new optional fields, update the Common Library, and provide a configuration flag that participating PSPs can enable. The outcome is a frictionless repeat‑payment experience without altering the core settlement process.",
+      "To realize this, NPCI will introduce a new version of the Common Library that recognises an initiationMode of 11 and a purposeCode of 14, and will add an optional repeat transaction reference identifier to the ReqPay payload. The platform will also publish a Boolean flag “enableQuickRepeat” that PSPs must set to true in their onboarding profile. These adjustments are limited to the platform and schema layer; all downstream banks continue to handle debit and credit using the unchanged ReqPay/RespPay messages. The business impact is reduced user taps, lower abandonment, and higher transaction volume for recurring payments."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall add an optional field \"initiationMode\" with value 11 and \"purposeCode\" with value 14 to the ReqPay schema; NPCI is responsible for updating switch validation rules to accept these values.",
+      "2. NPCI shall extend the ReqPay schema with an optional element \"repeatTxnRefId\" that carries the identifier of the prior successful transaction; NPCI will publish this change in CL version 2.38.",
+      "3. NPCI shall release Common Library version 2.38 that encrypts and transmits the new fields, and shall introduce a configuration flag \"enableQuickRepeat\" that can be toggled by PSPs; NPCI owns the version rollout and documentation.",
+      "4. PSP Bank shall set the configuration flag \"quickRepeatEnabled\" in its integration profile, invoke ReqPay with initiationMode=11 and purposeCode=14 for repeat payments, and include repeatTxnRefId when available; PSP Bank is accountable for UI integration and request formation.",
+      "5. Issuer Bank shall accept ReqPay messages containing initiationMode=11 and repeatTxnRefId without additional schema validation, but must enforce UPI PIN collection for amounts greater than INR 15,000 as per existing guidelines; Issuer Bank owns the debit processing compliance.",
+      "6. Beneficiary Bank shall process credit messages as usual and log the repeatTxnRefId for reconciliation and analytics; Beneficiary Bank is responsible for maintaining accurate credit records."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI payment flow processes every repeat transaction as a fresh request, requiring the payer PSP to send a full ReqPay message and the NPCI switch to perform standard authentication, debit, and credit steps. This approach does not differentiate repeat payments from first‑time payments, leading to missed opportunities for optimized routing and analytics. By introducing explicit handling for repeat‑payment attributes, the NPCI platform can streamline processing while preserving the current security model. The following changes describe the routing, validation, and response enhancements that NPCI will implement.",
+      "All modifications are confined to the NPCI switch and the Common Library, ensuring that PSP banks, issuer banks, and beneficiary banks continue to operate unchanged except for the optional repeat‑reference flag they must forward. The enhancements maintain real‑time settlement (T+0) and adhere to existing dispute management rules, thereby delivering a frictionless experience without altering downstream settlement cycles. NPCI’s responsibilities are clearly delineated to avoid ambiguity across participants. These changes enable the One‑Tap Repeat feature to function with a single tap while retaining full auditability."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall interpret refCategory='05' as a biometric‑authenticated transaction and enforce that the accompanying credential block originates from a device‑registered TEE, rejecting any request that lacks this flag.",
+      "2. NPCI shall validate the encrypted credential block (CRED) using the CL version indicated in the request; if clVersion is lower than 2.36, NPCI shall return a validation error to the payer PSP.",
+      "3. NPCI shall route ReqPay messages that carry initiationMode=11 and purposeCode=14 to the payer’s issuing bank and the payee’s beneficiary bank, while preserving the repeat‑reference flag for downstream analytics.",
+      "4. NPCI shall append the optional repeatTxnRefId to the RespPay and RespTxnConfirmation messages and forward these enriched responses to both the payer PSP and the payee PSP for UI display and reconciliation.",
+      "5. NPCI shall invoke a REQ_CHK_TXN check on any repeat payment that does not receive a definitive RespPay within the standard timeout window, and propagate the status to the originating PSPs to ensure consistent user experience."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The One‑Tap Repeat feature requires the UPI application to guide the user through enrollment, capture explicit consent, and bind the device securely before the shortcut can be offered. PSP Bank shall extend the onboarding flow to include a consent screen that explains the repeat‑payment capability and records the user’s agreement. PSP Bank shall also present a device‑binding step that verifies the presence of a Trusted Execution Environment and stores a device‑specific key. These additions ensure regulatory compliance and protect the repeat‑payment token from misuse.",
+      "After successful enrollment, PSP Bank shall expose a “Last Payment Quick Repeat” tile on the home screen and enable the repeat‑payment button within the transaction confirmation screen. The UI components must invoke the Common Library SDK to encrypt the stored credential block before sending the ReqPay request with initiationMode=11. PSP Bank shall also enforce PIN entry for transactions exceeding INR 15,000 as per the existing mandate rules. The combined changes reduce user friction while preserving the security guarantees of the UPI ecosystem."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. PSP Bank shall add a “Quick Repeat” tile on the home screen that becomes visible after the first successful transaction, displaying the stored payee VPA and amount.",
+      "2. PSP Bank shall implement an enrollment screen that captures the user’s consent to store repeat‑payment details, with a mandatory opt‑in checkbox and a link to the privacy policy.",
+      "3. PSP Bank shall invoke the NPCI‑provided Common Library (CL) SDK during enrollment to generate and encrypt a device‑binding credential block, passing the clVersion that supports biometric flag refCategory='05'.",
+      "4. PSP Bank shall store the encrypted credential block in the device’s Secure Enclave or Trusted Execution Environment and associate it with the user’s VPA for future repeat payments.",
+      "5. PSP Bank shall perform a nonce‑based challenge‑response check with NPCI at each repeat‑payment initiation to ensure replay protection, using the stored device key.",
+      "6. PSP Bank shall present the UPI PIN entry screen for any repeat payment whose amount exceeds INR 15,000, and shall forward the PIN encrypted by the CL SDK in the CRED block to NPCI."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The PSP Bank is responsible for introducing the One‑Tap Repeat UI element that appears on the home screen immediately after a successful payment. This tile automatically retrieves the most recent successful payee VPA and amount from the app’s local transaction cache. The user may edit the amount, but the credential capture step remains unchanged, requiring the PSP to request authentication via the Common Library. All UI changes are owned by the PSP Bank, while NPCI continues to supply the CL SDK without modification.",
+      "When the user confirms the repeat payment, the PSP Bank must invoke the Common Library to capture the UPI PIN or biometric and generate the encrypted credential block. The PSP then packages the credential block into a standard ReqPay message, setting initiationMode=11 and purposeCode=14, and forwards it to NPCI for routing. If the CL invocation fails or the network does not respond within the defined timeout, the PSP Bank shall fall back to the conventional manual entry flow and surface an error banner to the user. Upon receipt of the RespTxnConfirmation from NPCI, the PSP Bank presents the outcome through the existing confirmation screen, ensuring consistency with all other UPI transactions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. PSP Bank shall modify the mobile UI to display a “Last Payment Quick Repeat” tile on the home screen and pre‑populate it with the most recent payee VPA and amount, while retaining edit capability for the amount.",
+      "2. PSP Bank shall invoke the NPCI‑provided Common Library to capture the user’s PIN or biometric, encrypt the credentials, and attach the resulting credential block to the ReqPay request.",
+      "3. PSP Bank shall include initiationMode=11 and purposeCode=14 in the ReqPay payload for every repeat‑payment initiation, ensuring NPCI can identify the transaction as a quick repeat.",
+      "4. PSP Bank shall implement fallback handling such that if CL credential generation fails or a network timeout occurs, the app automatically reverts to the standard manual entry flow and logs the incident for analytics.",
+      "5. PSP Bank shall present the transaction outcome to the user using the existing confirmation screen, reflecting success or failure as communicated by NPCI’s RespTxnConfirmation."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank is responsible for authenticating the payer and managing the credential lifecycle when a One‑Tap Repeat payment is initiated. It must extend its existing authentication flow to recognise the initiationMode=11 and purposeCode=14 that identify a repeat transaction. By doing so, the bank enables a seamless debit experience while preserving security and compliance standards.",
+      "In addition to authentication, the Issuer Bank must maintain a minimal repeat‑payment data set that supports audit, idempotency and dispute handling. This data set includes the original transaction identifier, the repeat reference flag and any biometric credential version used at the time of the original payment. The bank’s response to the debit request must reflect successful validation of these elements and return the standard RespPay message."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Issuer Bank shall store a repeat‑reference flag (e.g., repeatTxnRefId) alongside the original transaction record for a retention period of at least 90 days to support traceability and dispute resolution.",
+      "2. Issuer Bank shall validate that the incoming ReqPay message contains initiationMode=11 and purposeCode=14, rejecting any request that does not meet these criteria with an appropriate error response.",
+      "3. Issuer Bank shall enforce collection of the payer’s UPI PIN for repeat payments exceeding INR 15,000, and must verify the PIN against the stored credential block before debiting the account.",
+      "4. Issuer Bank shall verify the integrity of the encrypted credential block (CRED) received from the PSP, ensuring it aligns with the latest biometric version (refCategory='05') if biometric authentication is used.",
+      "5. Issuer Bank shall respond to the debit request with a standard RespPay message that includes the transaction status, the repeatTxnRefId for correlation, and any applicable settlement timestamps."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank must adapt its processing logic to support the One‑Tap Repeat flow initiated by the payer’s PSP. In the Quick‑Repeat scenario the credential block arrives with initiationMode=11 and purposeCode=14, signalling a repeat payment request. The Issuer Bank therefore needs to validate the embedded authentication data and enforce the same security checks as a standard payment.",
+      "These adaptations ensure that debit authorisation, response handling, and timeout recovery remain consistent with existing UPI standards while delivering the reduced‑latency experience promised to users. The Issuer Bank’s responsibilities are explicitly defined for each stage of the transaction flow. Compliance and settlement timelines are unchanged."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Issuer Bank shall decrypt and validate the CRED block using the CL version indicated, confirming that the authentication flag refCategory='05' is present for biometric‑enabled repeat payments.",
+      "2. Issuer Bank shall verify the payer’s VPA, ensure sufficient balance, and apply the standard per‑transaction and daily limits before debiting the account.",
+      "3. Issuer Bank shall return RespPay with response code ‘00’ on successful debit, ‘91’ for insufficient funds, and ‘68’ for timeout, matching the UPI response code matrix.",
+      "4. Issuer Bank shall implement a 5‑second timeout window for the debit request; if no acknowledgement is received from the core banking system, the Issuer Bank shall send a ‘68’ timeout response to NPCI and retain the transaction in a pending state for fallback processing.",
+      "5. Issuer Bank shall support fallback to the legacy debit path by re‑issuing the debit request with the original transaction reference if the initial attempt times out, ensuring eventual settlement without user intervention."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]
