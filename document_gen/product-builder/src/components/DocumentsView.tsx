@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import {
+  AlertTriangle,
   CheckCircle,
   ChevronRight,
   Download,
@@ -452,6 +453,15 @@ export default function DocumentsView({ documents, featureName, onUpdate, onAppr
                     />
                   </div>
                 </div>
+
+                {doc._rag_warning && (
+                  <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2">
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                    <p className="text-[10px] font-bold leading-snug text-amber-700">
+                      Generated without NPCI corpus — RAG service was unreachable. Start the RAG system and regenerate for accurate content.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3 p-5">

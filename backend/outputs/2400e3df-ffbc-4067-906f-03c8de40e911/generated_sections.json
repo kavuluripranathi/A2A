@@ -1,0 +1,486 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "Today a UPI payment is initiated by the payer app where the user manually enters the transaction amount. The entered amount is carried in the ReqPay message and, for amounts greater than INR 15,000, a UPI PIN must be supplied; for lower amounts a PIN is required only on the first transaction (seqNum=1). The flow then proceeds through authentication via ReqAuthDetails/RespAuthDetails and subsequent debit and credit messages without any UI‑level amount suggestion.",
+      "Manual amount entry adds measurable latency and increases the probability of input errors, especially for frequent contacts or merchants where users often repeat the same payment. The lack of contextual guidance based on historic transaction patterns results in repeated mistakes and contributes to an industry‑wide error rate of approximately 2 %. Consequently, transaction completion times are longer and support tickets related to wrong‑amount entries remain high.",
+      "The proposed technical approach introduces a GetSmartAmountSuggestions request/response pair that the payer PSP invokes after the user selects a contact or merchant, returning a ranked list of historic amounts. Two optional fields – suggestionId (String ≤20) and suggestionSource (values “CONTACT” or “MERCHANT”) – are added to the existing ReqPay payload to convey the chosen suggestion back to NPCI. By reusing the established ReqPay, authentication, and settlement flows, the solution delivers faster one‑tap amount selection while preserving the standard real‑time settlement cycle and avoiding additional settlement steps."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions provides a personalized, data‑driven list of the most frequently used payment amounts for a selected contact or merchant. When the payer selects a counterpart in the UPI App, the app displays up to three ranked historic amounts, allowing the user to tap a suggestion or edit it before confirming the payment. This replaces the current manual entry step and eliminates reliance on static quick‑pay buttons that often do not match a user’s typical spend.",
+      "The flow involves the payer PSP invoking the GetSmartAmountSuggestions request after the contact is chosen, receiving the suggestion list, and presenting it to the UPI App. Upon user selection, the chosen amount is incorporated into the standard ReqPay message that traverses the existing authentication (ReqAuthDetails/RespAuthDetails) and debit/credit APIs through the NPCI switch, ending with the usual real‑time settlement. By reducing entry time and input errors, Smart Amount Suggestions is expected to accelerate transaction completion, lower grievance tickets, and drive a measurable uplift in repeat UPI usage and overall transaction volume."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions introduces a lightweight analytics service that resides alongside the existing UPI switch. After a user selects a contact or merchant in the UPI App, the payer PSP invokes the GetSmartAmountSuggestions request to NPCI, which returns a ranked list of historic amounts. The payer PSP presents the three top suggestions to the user, who can tap one; the selected suggestionId and suggestionSource are then embedded as optional fields in the standard ReqPay payload. The enriched ReqPay follows the conventional UPI flow through ReqAuthDetails, ReqDebit, ReqCredit and ReqTxnConfirmation, preserving the established settlement cycle.",
+      "Key design decisions ensure backward compatibility and minimal impact on the core UPI protocol. The optional fields suggestionId (String ≤20) and suggestionSource (String values CONTACT or MERCHANT) are added to ReqPay without altering mandatory schema, allowing PSPs that do not adopt the feature to continue using existing messages. Funding for the suggestion service is bank‑funded, and no merchant‑sponsored rewards are introduced, keeping the transaction settlement unchanged. Security relies on the standard UPI PIN check, with the transaction limit of INR 15,000 applied as per NPCI rules, and the service scales by leveraging each PSP's transaction history store for real‑time suggestion generation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "suggestionId",
+          "String",
+          "≤20",
+          "UUID linking the chosen suggestion to the ReqPay request",
+          "N"
+        ],
+        [
+          "suggestionSource",
+          "String",
+          "Values: CONTACT, MERCHANT",
+          "Indicates whether the suggestion originates from a peer‑to‑peer contact or a merchant",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:GetSmartAmountSuggestionsRequest xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:VPA>merchant@bank</upi:VPA>\n  <upi:RequesterPSP>BankA</upi:RequesterPSP>\n</upi:GetSmartAmountSuggestionsRequest>",
+      "<!-- Response: NPCI to PSP -->\n<upi:GetSmartAmountSuggestionsResponse xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:Suggestion>\n    <upi:SuggestionId>abc123-def456</upi:SuggestionId>\n    <upi:Amount>199.00</upi:Amount>\n    <upi:Frequency>12</upi:Frequency>\n    <upi:LastUsedDate>2024-03-15</upi:LastUsedDate>\n  </upi:Suggestion>\n  <upi:Suggestion>\n    <upi:SuggestionId>def789-ghi012</upi:SuggestionId>\n    <upi:Amount>299.00</upi:Amount>\n    <upi:Frequency>8</upi:Frequency>\n    <upi:LastUsedDate>2024-02-28</upi:LastUsedDate>\n  </upi:Suggestion>\n</upi:GetSmartAmountSuggestionsResponse>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions enrollment begins when the payer opens the PSP app and selects a contact or merchant. The app first calls the GetSmartAmountSuggestions service to retrieve a ranked list of historic payment amounts tied to the selected VPA. The user picks a suggestion, optionally enters a UPI PIN for amounts above INR 15,000, and the PSP forwards a ReqPay message that carries the chosen suggestionId and suggestionSource alongside the standard payment fields. NPCI then executes the standard authentication, debit, credit and confirmation sequence, completing the enrollment without any additional settlement steps."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Validate active user session, device integrity, and that Smart Amount Suggestion service is enabled",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Invoke GetSmartAmountSuggestions with target VPA to retrieve ranked historic amounts",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "Present suggestion list to user; capture selected suggestionId and suggestionSource",
+          "UPI App (Payer PSP)"
+        ],
+        [
+          "Step 3",
+          "If amount >15000, display UPI PIN entry and generate encrypted CRED block via CL",
+          "UPI App (Payer PSP)"
+        ],
+        [
+          "Step 4",
+          "Send ReqPay to NPCI including amount, VPA, optional voucher, suggestionId, suggestionSource, and CRED block",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "NPCI forwards ReqAuthDetails to Payee PSP for merchant validation",
+          "NPCI"
+        ],
+        [
+          "Step 6",
+          "Payee PSP validates merchant and returns RespAuthDetail with AC/IFSC",
+          "Payee PSP"
+        ],
+        [
+          "Step 7",
+          "NPCI issues ReqDebit to Issuer Bank; bank debits account and returns RespDebit",
+          "Issuer Bank"
+        ],
+        [
+          "Step 8",
+          "NPCI issues ReqCredit to Payee Bank; bank credits merchant account and returns RespCredit",
+          "Payee Bank"
+        ],
+        [
+          "Step 9",
+          "Payee PSP sends ReqTxnConfirmation to NPCI; NPCI returns RespTxnConfirmation",
+          "Payee PSP"
+        ],
+        [
+          "Post Response",
+          "Payer PSP receives RespTxnConfirmation, updates UI, logs suggestion usage for analytics",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: GetSmartAmountSuggestions -->\n<upi:GetSmartAmountSuggestions xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:requestId>REQ123456789</upi:requestId>\n  <upi:targetVPA>merchant@bank</upi:targetVPA>\n  <upi:maxSuggestions>3</upi:maxSuggestions>\n</upi:GetSmartAmountSuggestions>",
+      "<!-- Response: GetSmartAmountSuggestions -->\n<upi:GetSmartAmountSuggestionsResponse xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:suggestion>\n    <upi:suggestionId>sg-001</upi:suggestionId>\n    <upi:amount>199</upi:amount>\n    <upi:frequency>12</upi:frequency>\n    <upi:lastUsedDate>2024-03-15</upi:lastUsedDate>\n  </upi:suggestion>\n  <upi:suggestion>\n    <upi:suggestionId>sg-002</upi:suggestionId>\n    <upi:amount>299</upi:amount>\n    <upi:frequency>8</upi:frequency>\n    <upi:lastUsedDate>2024-02-28</upi:lastUsedDate>\n  </upi:suggestion>\n  <upi:suggestion>\n    <upi:suggestionId>sg-003</upi:suggestionId>\n    <upi:amount>499</upi:amount>\n    <upi:frequency>5</upi:frequency>\n    <upi:lastUsedDate>2024-01-20</upi:lastUsedDate>\n  </upi:suggestion>\n</upi:GetSmartAmountSuggestionsResponse>",
+      "<!-- Request: ReqPay -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:transactionId>TXN987654321</upi:transactionId>\n  <upi:payeeVPA>merchant@bank</upi:payeeVPA>\n  <upi:amount>199</upi:amount>\n  <upi:txnType>Pay</upi:txnType>\n  <upi:suggestionId>sg-001</upi:suggestionId>\n  <upi:suggestionSource>MERCHANT</upi:suggestionSource>\n  <upi:credBlock>...</upi:credBlock>\n</upi:ReqPay>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions enhances the standard UPI payment flow by surfacing a ranked list of historically frequent amounts for the selected merchant or contact. After the payer selects a suggestion, the payer PSP includes the generated suggestionId and suggestionSource in the ReqPay payload and proceeds with the normal REQ_PAY sequence. The added fields are optional and do not alter the underlying authentication, debit, credit, or confirmation steps defined by NPCI.",
+      "The transaction continues with the existing UPI PIN‑based authentication and respects the INR 15,000 limit rule; amounts above the limit always trigger PIN verification. All subsequent messages – ReqAuthDetails, ReqDebit, ReqCredit, and ReqTxnConfirmation – follow the standard real‑time settlement cycle, ensuring that the Smart Amount Suggestions feature does not introduce any new settlement pathways."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Payer PSP retrieves smart amount suggestions for the selected merchant/contact.",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Payer PSP calls GetSmartAmountSuggestions with merchant/contact ID and receives ranked suggestion list (amount, frequency, last‑used‑date).",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "User selects a suggestion; Payer PSP constructs ReqPay including suggestionId, suggestionSource, amount, VPA, and optional voucher details.",
+          "Payer PSP"
+        ],
+        [
+          "Step 3",
+          "NPCI forwards ReqAuthDetails to Payee PSP to validate merchant details.",
+          "NPCI"
+        ],
+        [
+          "Step 4",
+          "Payee PSP validates merchant, returns account credentials (AC/IFSC) in RespAuthDetail.",
+          "Payee PSP"
+        ],
+        [
+          "Step 5",
+          "NPCI issues ReqDebit to debit payer's account or voucher after successful authentication.",
+          "NPCI"
+        ],
+        [
+          "Step 6",
+          "Payee PSP processes ReqCredit to credit merchant account and sends RespTxnConfirmation to NPCI.",
+          "Payee PSP"
+        ],
+        [
+          "Step 7",
+          "Payer PSP receives RespTxnConfirmation, confirms transaction status to the UPI App, and notifies the user.",
+          "Payer PSP"
+        ],
+        [
+          "Post Response",
+          "Transaction outcome is logged; analytics update suggestion usage metrics for future Smart Amount Suggestions.",
+          "Payer PSP / NPCI"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section defines the integration details for the Smart Amount Suggestions feature. It covers the existing UPI core messages—ReqPay, ReqAuthDetails, ReqDebit, ReqCredit, and ReqTxnConfirmation—along with the newly introduced GetSmartAmountSuggestions request/response pair. The scope includes schema extensions to ReqPay (suggestionId and suggestionSource) and the end‑to‑end flow modifications required to surface and process suggested amounts while preserving the standard UPI settlement and authentication model."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions leverages a new GetSmartAmountSuggestions API to surface the three most frequent historic amounts for a selected merchant or contact. The payer PSP first calls GetSmartAmountSuggestions after the user selects a counterpart, receives a ranked list, and the user taps a suggestion. The chosen suggestion is then embedded in the standard ReqPay payload using the optional suggestionId and suggestionSource fields. The remainder of the transaction follows the existing UPI payment flow.",
+      "The core UPI APIs – ReqPay, ReqAuthDetails, ReqDebit, ReqCredit and ReqTxnConfirmation – remain unchanged except for the two additional fields. ReqPay initiates the payment with type Pay, amount, VPA and the optional suggestion metadata. NPCI forwards authentication requests to the payee PSP, processes debit and credit, and finally sends a transaction confirmation to both PSPs. All messages continue to use UPI PIN authentication and adhere to the INR 15,000 transaction‑limit rule.",
+      "Because the suggestion service is funded by participating PSPs and uses the standard settlement cycle, no new settlement steps are introduced. The feature does not introduce rewards, keeping the transaction payload lightweight while enabling a personalized user experience."
+    ],
+    "bullet_points": [
+      "Pre‑Check: Validate suggestionId length ≤ 20 and suggestionSource value (CONTACT or MERCHANT).",
+      "Step 1: Payer PSP calls GetSmartAmountSuggestions after merchant selection.",
+      "Step 2: Payer PSP includes suggestionId and suggestionSource in ReqPay.",
+      "Step 3: Standard UPI flow processes the payment.",
+      "Post Response: PSP notifies user of success or failure."
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "suggestionId",
+          "String",
+          "20",
+          "UUID generated by GetSmartAmountSuggestions to identify the chosen suggestion",
+          "N"
+        ],
+        [
+          "suggestionSource",
+          "String",
+          "8",
+          "Indicates origin of suggestion; allowed values CONTACT or MERCHANT",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:TxnType>Pay</upi:TxnType>\n  <upi:Amount>199.00</upi:Amount>\n  <upi:VPA>merchant@bank</upi:VPA>\n  <upi:suggestionId>abcde-12345</upi:suggestionId>\n  <upi:suggestionSource>MERCHANT</upi:suggestionSource>\n  <upi:Cred>...</upi:Cred>\n</upi:ReqPay>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespPay xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:RespCode>00</upi:RespCode>\n  <upi:Message>Success</upi:Message>\n</upi:RespPay>",
+      "<!-- Request: NPCI to Payee PSP -->\n<upi:ReqAuthDetails xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:VPA>merchant@bank</upi:VPA>\n</upi:ReqAuthDetails>",
+      "<!-- Response: Payee PSP to NPCI -->\n<upi:RespAuthDetail xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:AcquirerCode>ABCD</upi:AcquirerCode>\n  <upi:IFSC>ABCD0123456</upi:IFSC>\n</upi:RespAuthDetail>",
+      "<!-- Request: NPCI to Issuer Bank -->\n<upi:ReqDebit xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:Amount>199.00</upi:Amount>\n  <upi:Cred>...</upi:Cred>\n</upi:ReqDebit>",
+      "<!-- Response: Issuer Bank to NPCI -->\n<upi:RespDebit xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:RespCode>00</upi:RespCode>\n</upi:RespDebit>",
+      "<!-- Request: NPCI to Payee Bank -->\n<upi:ReqCredit xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:Amount>199.00</upi:Amount>\n  <upi:Cred>...</upi:Cred>\n</upi:ReqCredit>",
+      "<!-- Response: Payee Bank to NPCI -->\n<upi:RespCredit xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:RespCode>00</upi:RespCode>\n</upi:RespCredit>",
+      "<!-- Request: PSP to NPCI -->\n<upi:ReqTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:Status>Success</upi:Status>\n</upi:ReqTxnConfirmation>",
+      "<!-- Response: NPCI to PSP -->\n<upi:RespTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:TxnId>TXN123456789</upi:TxnId>\n  <upi:RespCode>00</upi:RespCode>\n</upi:RespTxnConfirmation>",
+      "{\n  \"requestId\": \"REQ12345\",\n  \"payerVPA\": \"user@bank\",\n  \"counterpartyVPA\": \"merchant@bank\",\n  \"counterpartyType\": \"MERCHANT\"\n}",
+      "{\n  \"requestId\": \"REQ12345\",\n  \"suggestions\": [\n    {\n      \"suggestionId\": \"sug-001\",\n      \"amount\": 199.00,\n      \"frequency\": 12,\n      \"lastUsedDate\": \"2024-03-15\"\n    },\n    {\n      \"suggestionId\": \"sug-002\",\n      \"amount\": 299.00,\n      \"frequency\": 8,\n      \"lastUsedDate\": \"2024-02-28\"\n    },\n    {\n      \"suggestionId\": \"sug-003\",\n      \"amount\": 399.00,\n      \"frequency\": 5,\n      \"lastUsedDate\": \"2024-01-20\"\n    }\n  ]\n}"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The GetSmartAmountSuggestions API is a secondary service invoked by the payer PSP immediately after a user selects a contact or merchant, but before the standard ReqPay flow. It returns a ranked list of up to three historic amounts, each accompanied by a suggestionId, usage frequency, and last used date, enabling one‑tap selection of a familiar amount.",
+      "The chosen suggestionId and its source (CONTACT or MERCHANT) are then injected into the subsequent ReqPay request via the optional suggestionId and suggestionSource fields. This integration preserves the existing UPI settlement cycle while providing a personalized, value‑added experience."
+    ],
+    "bullet_points": [
+      "Pre-Check: PSP validates that the user has selected a payee and that the suggestion service is enabled.",
+      "Step 1: PSP sends GetSmartAmountSuggestionsReq to NPCI.",
+      "Step 2: NPCI forwards the request to the suggestion engine and returns GetSmartAmountSuggestionsResp.",
+      "Step 3: PSP presents the suggestion list; upon user selection, PSP adds suggestionId and suggestionSource to the ReqPay payload.",
+      "Post Response: PSP continues with the standard ReqPay → ReqAuthDetails → ReqDebit → ReqCredit → ReqTxnConfirmation flow."
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "requestId",
+          "String",
+          "<=36",
+          "Unique identifier for the suggestion request",
+          "Y"
+        ],
+        [
+          "payerVPA",
+          "String",
+          "<=50",
+          "Virtual Payment Address of the payer",
+          "Y"
+        ],
+        [
+          "payeeVPA",
+          "String",
+          "<=50",
+          "Virtual Payment Address of the payee/merchant",
+          "Y"
+        ],
+        [
+          "suggestionSource",
+          "String",
+          "<=10",
+          "Origin of suggestion – CONTACT or MERCHANT",
+          "Y"
+        ],
+        [
+          "responseId",
+          "String",
+          "<=36",
+          "Unique identifier for the suggestion response",
+          "Y"
+        ],
+        [
+          "suggestionId",
+          "String",
+          "<=20",
+          "Identifier for each suggestion entry",
+          "Y"
+        ],
+        [
+          "amount",
+          "Decimal",
+          "<=12",
+          "Suggested transaction amount in INR",
+          "Y"
+        ],
+        [
+          "frequency",
+          "Integer",
+          "<=5",
+          "Number of times this amount was used in recent history",
+          "N"
+        ],
+        [
+          "lastUsedDate",
+          "Date",
+          "10",
+          "Date of most recent use of the amount (YYYY-MM-DD)",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:GetSmartAmountSuggestionsReq xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:requestId>REQ123456789</upi:requestId>\n    <upi:payerVPA>alice@bank</upi:payerVPA>\n    <upi:payeeVPA>merchant@bank</upi:payeeVPA>\n    <upi:suggestionSource>MERCHANT</upi:suggestionSource>\n</upi:GetSmartAmountSuggestionsReq>",
+      "<!-- Response: NPCI to PSP -->\n<upi:GetSmartAmountSuggestionsResp xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:responseId>RESP987654321</upi:responseId>\n    <upi:suggestionList>\n        <upi:Suggestion>\n            <upi:suggestionId>SG001</upi:suggestionId>\n            <upi:amount>199.00</upi:amount>\n            <upi:frequency>12</upi:frequency>\n            <upi:lastUsedDate>2024-03-15</upi:lastUsedDate>\n        </upi:Suggestion>\n        <upi:Suggestion>\n            <upi:suggestionId>SG002</upi:suggestionId>\n            <upi:amount>299.00</upi:amount>\n            <upi:frequency>8</upi:frequency>\n            <upi:lastUsedDate>2024-02-28</upi:lastUsedDate>\n        </upi:Suggestion>\n        <upi:Suggestion>\n            <upi:suggestionId>SG003</upi:suggestionId>\n            <upi:amount>499.00</upi:amount>\n            <upi:frequency>5</upi:frequency>\n            <upi:lastUsedDate>2024-01-10</upi:lastUsedDate>\n        </upi:Suggestion>\n    </upi:suggestionList>\n</upi:GetSmartAmountSuggestionsResp>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestions feature introduces new error conditions that integration teams must handle across the GetSmartAmountSuggestions service and the existing ReqPay transaction flow. Errors are classified as Technical Decline (TD) or Business Decline (BD) based on whether the failure originates from system constraints or business rule violations. This table enumerates all supported response and error codes, the associated API, the responsible entity, and the decline type."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "2001",
+          "TD_PIN_FAIL",
+          "Three consecutive PIN entry failures cause transaction decline",
+          "ReqPay",
+          "Issuer Bank",
+          "TD"
+        ],
+        [
+          "2002",
+          "BD_DAILY_LIMIT_EXCEEDED",
+          "Edited suggested amount exceeds payer's daily transaction limit",
+          "ReqPay",
+          "Issuer Bank",
+          "BD"
+        ],
+        [
+          "3001",
+          "TD_SUGGESTION_SERVICE_UNAVAILABLE",
+          "GetSmartAmountSuggestions service not reachable or returns error",
+          "GetSmartAmountSuggestions",
+          "PSP",
+          "TD"
+        ],
+        [
+          "3002",
+          "BD_SUGGESTION_INELIGIBLE",
+          "Payer not eligible for Smart Amount Suggestions (e.g., insufficient transaction history)",
+          "GetSmartAmountSuggestions",
+          "NPCI",
+          "BD"
+        ],
+        [
+          "3003",
+          "TD_SUGGESTION_TIMEOUT",
+          "Timeout while awaiting GetSmartAmountSuggestions response",
+          "GetSmartAmountSuggestions",
+          "PSP",
+          "TD"
+        ],
+        [
+          "2003",
+          "BD_INVALID_SUGGESTION_ID",
+          "suggestionId missing or does not match any known suggestion",
+          "ReqPay",
+          "NPCI",
+          "BD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [
+      "PSP must invoke GetSmartAmountSuggestions request immediately after the user selects a merchant or contact and must include the payer’s VPA and merchant identifier in the request; the response must be processed within 2 seconds, otherwise the flow must fall back to manual amount entry and must not populate suggestionId or suggestionSource in the subsequent ReqPay.",
+      "When a suggestion is presented and the user selects it, the PSP must populate the optional fields suggestionId (String ≤20 characters, UUID format) and suggestionSource (String, allowed values \"CONTACT\" or \"MERCHANT\") in the ReqPay payload; any deviation from the allowed values must cause the PSP to reject the transaction before sending ReqPay to NPCI.",
+      "For any transaction where the chosen suggested amount exceeds INR 15,000, the UPIPIN field becomes mandatory in the ReqPay message regardless of the suggestion source, and the PSP must enforce PIN entry before forwarding the request to NPCI.",
+      "NPCI will forward the suggestionId and suggestionSource fields unchanged to the Issuer/Remitter and Beneficiary/Payee banks; downstream banks must ignore these fields for settlement but must retain them in audit logs for traceability.",
+      "PSPs must implement a retry‑backoff mechanism for GetSmartAmountSuggestions: a single retry after 500 ms is allowed; if the second attempt also fails or exceeds the overall 2‑second deadline, the PSP must proceed without suggestions and must log the failure with timestamp and error code.",
+      "All suggestion service interactions are funded by the PSP and must not involve merchant‑sponsored parameters; therefore, no reward‑type fields (e.g., CASHBACK, POINTS) shall be added to ReqPay, and any attempt to include such fields must be rejected by the PSP validation layer."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

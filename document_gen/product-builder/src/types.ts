@@ -39,6 +39,7 @@ export interface Document {
   _docgen_job_id?: string;
   _docgen_base_url?: string;
   _bundle_id?: string;
+  _rag_warning?: string | null;
 }
 
 export interface PrototypeData {

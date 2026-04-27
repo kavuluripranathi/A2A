@@ -65,7 +65,7 @@ SECTION_PROMPTS = {
 - Trust/Grievance KPIs: grievance rate targets, resolution time benchmarks
 - Day-0 automation: what must be automated for smooth launch?
 - SGF/FRM impact: settlement guarantee fund exposure, fraud risk management metrics
-- Infrastructure and transaction KPIs: TPS capacity, latency, uptime SLAs""",
+- Infrastructure  and transaction KPIs: TPS capacity, latency, uptime SLAs""",
 
     "risks": """Expand the 'Risks' section covering:
 - Fraud and abuse vectors: specific attack patterns this feature could enable

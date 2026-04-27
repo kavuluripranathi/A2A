@@ -1,0 +1,466 @@
+[
+  {
+    "section_key": "background",
+    "section_heading": "Background",
+    "render_style": "body",
+    "paragraphs": [
+      "Today a UPI payment follows a fixed API sequence. The payer PSP sends a ReqPay to NPCI, NPCI requests authentication details from the payee PSP, the payee returns RESP_AUTH_DETAILS, and finally the payer PSP confirms the transaction. The transaction amount is supplied by the user at the UI layer and is validated only against the static per‑transaction limits (₹15,000 for standard UPI, ₹500 for UPI‑Lite) and daily aggregate limits. No protocol‑level mechanism exists to suggest amounts.",
+      "Manual entry of the amount adds latency and introduces a measurable typographical error rate. Payers cannot quickly select amounts they historically use for a given payee VPA, causing friction especially for repeat contacts or merchant payments. This gap limits the user experience and reduces transaction efficiency across the ecosystem.",
+      "The Smart Amount Suggestion for Payments addresses this gap by introducing a GetAmountSuggestions request (payerVPA, payeeVPA, maxSuggestions) that returns up to three suggested_amounts with optional confidence_score. The suggestions are derived from the payer’s transaction history but are subject to the same per‑transaction and daily limits, preserving existing risk controls. By surfacing personalized amounts at the UI, the flow remains compatible with the existing ReqPay sequence while reducing completion time and error probability."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_overview",
+    "section_heading": "Product Overview",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestion for Payments feature enriches the UPI payment initiation flow by presenting the payer with up to three amounts that the payer has historically paid to the selected payee. The suggestion engine runs on the PSP side, consumes the payer’s transaction history identified by the payer’s VPA and the payee’s VPA, and returns the top‑most frequent amounts before the user enters a value. The UI in the UPI App displays these amounts as tappable options while still allowing manual edits. The underlying UPI message sequence (ReqPay, authentication, debit, credit, confirmation) remains unchanged, and all existing per‑transaction (₹15,000 standard, ₹500 UPI‑Lite) and daily aggregate limits continue to apply to any suggested amount.",
+      "Detailed specifications, tables, and code samples in the surrounding sections implement the requirements summarized above."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "product_construct",
+    "section_heading": "Product Construct",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestion for Payments feature introduces a lightweight analytics service, referred to as the GetAmountSuggestions engine, that resides within the PSP’s backend ecosystem. When a user opens the PSP app and selects a payee VPA, the app invokes the GetAmountSuggestions request (payerVPA, payeeVPA, maxSuggestions) to retrieve up to three historically‑frequent amounts. The response is returned to the UI for one‑tap selection, after which the standard UPI payment flow proceeds using ReqPay, ReqAuthDetails, ReqTxnConfirmation (or ReqDebit) messages orchestrated by the NPCI switch. All participants – Payer PSP, Payee PSP, NPCI, and the suggestion service – operate under the existing VPA‑based identification model.",
+      "Key design decisions enforce the current per‑transaction limits of INR 15,000 for standard UPI and INR 500 for UPI‑Lite on any suggested amount, and the daily aggregate limits remain unchanged. Authentication continues to rely on the UPI PIN, with the CL handling encryption of the credential block (CRED) as in the baseline flow. The suggestion engine derives amounts from the payer’s transaction history of the past 30 days, limiting the output to three values and optionally attaching a confidence_score for future analytics. Integration is non‑intrusive: no modifications to the core ReqPay/ReqAuthDetails messages are required, preserving backward compatibility for all downstream systems."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "payerVPA",
+          "String",
+          "64",
+          "Virtual Payment Address of the payer",
+          "Y"
+        ],
+        [
+          "payeeVPA",
+          "String",
+          "64",
+          "Virtual Payment Address of the payee/merchant",
+          "Y"
+        ],
+        [
+          "maxSuggestions",
+          "Integer",
+          "2",
+          "Maximum number of suggested amounts to return (up to 3)",
+          "Y"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_setting",
+    "section_heading": "Process Flow: Setting & Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestion for Payments enrollment flow begins with the PSP application validating the payer's session and VPA status before invoking the suggestion service. A lightweight GetAmountSuggestions request is sent to NPCI, which returns up to three historically frequent amounts for the selected payee VPA. The user selects or edits a suggested amount, and the standard UPI payment flow proceeds using ReqPay, authentication, and confirmation messages while respecting existing transaction limits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "Verify payer VPA is active and user session is authenticated",
+          "PSP App (UPI App)"
+        ],
+        [
+          "Step 1",
+          "Invoke GetAmountSuggestions with payerVPA, payeeVPA, maxSuggestions=3",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI processes request, queries transaction history, returns up to three suggested_amounts with optional confidence_score",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Display suggestions; user selects or edits an amount",
+          "UPI App"
+        ],
+        [
+          "Step 4",
+          "Send ReqPay (amount, payerVPA, payeeVPA, purposeCode) to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "NPCI forwards ReqAuthDetails to Payee PSP",
+          "NPCI"
+        ],
+        [
+          "Step 6",
+          "Payee PSP validates merchant details and returns RespAuthDetails",
+          "Payee PSP"
+        ],
+        [
+          "Step 7",
+          "Payer PSP sends ReqTxnConfirmation (or ReqDebit for voucher) to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 8",
+          "NPCI processes debit and returns RespTxnConfirmation to Payer PSP",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "Update UI with final transaction status (success or failure)",
+          "PSP App"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "process_flow_transaction",
+    "section_heading": "Process Flow: Transaction",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestion for Payments augments the standard UPI payment flow by first retrieving up to three personalized amount suggestions based on the payer's recent transaction history. The suggestion request is issued via the GetAmountSuggestions API, after which the user selects a suggested amount or edits it before proceeding. The selected amount then follows the conventional UPI transaction sequence, ensuring compliance with existing per‑transaction limits and UPI PIN authentication.",
+      "All transactions are subject to the standard limits of INR 15,000 for standard UPI and INR 500 for UPI‑Lite, with daily aggregate caps unchanged. The flow leverages the existing ReqPay, ReqAuthDetails, ReqTxnConfirmation (or ReqDebit) and RespPay messages, preserving the established roles of Payer PSP, NPCI, and Payee PSP while introducing no new error codes."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "App invokes GetAmountSuggestions on Payer PSP; suggestions returned for user selection",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Payer PSP sends ReqPay with selected amount, payerVPA, payeeVPA, purposeCode",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "NPCI forwards ReqAuthDetails to Payee PSP",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "Payee PSP validates merchant details and returns RespAuthDetails",
+          "Payee PSP"
+        ],
+        [
+          "Step 4",
+          "Payer PSP sends ReqTxnConfirmation (or ReqDebit for voucher) to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "NPCI processes debit, applies limits, and returns RespTxnConfirmation to Payer PSP",
+          "NPCI"
+        ],
+        [
+          "Post Response",
+          "Payer PSP receives RespTxnConfirmation, notifies App, and completes the transaction",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: App to Payer PSP (GetAmountSuggestions) -->\n<upi:GetAmountSuggestions xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:payerVPA>alice@bank</upi:payerVPA>\n  <upi:payeeVPA>merchant@bank</upi:payeeVPA>\n  <upi:maxSuggestions>3</upi:maxSuggestions>\n</upi:GetAmountSuggestions>",
+      "<!-- Response: Payer PSP to App (GetAmountSuggestionsResponse) -->\n<upi:GetAmountSuggestionsResponse xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:suggested_amounts>\n    <upi:amount>199</upi:amount>\n    <upi:amount>299</upi:amount>\n    <upi:amount>499</upi:amount>\n  </upi:suggested_amounts>\n  <upi:confidence_score>0.92</upi:confidence_score>\n</upi:GetAmountSuggestionsResponse>",
+      "<!-- Request: Payer PSP to NPCI (ReqPay) -->\n<upi:ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n  <upi:amount>199</upi:amount>\n  <upi:payerVPA>alice@bank</upi:payerVPA>\n  <upi:payeeVPA>merchant@bank</upi:payeeVPA>\n  <upi:purposeCode>0000</upi:purposeCode>\n</upi:ReqPay>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "tech_specs_intro",
+    "section_heading": "Technical Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Technical Specifications section details the UPI message set that underpins Smart Amount Suggestion for Payments. It specifies the existing core APIs—ReqPay/RespPay, ReqAuthDetails/RespAuthDetails, ReqTxnConfirmation/RespTxnConfirmation, and ReqDebit/RespDebit—along with the newly introduced GetAmountSuggestions request and its response. The scope of changes is limited to adding the GetAmountSuggestions message and extending the ReqPay flow to carry suggested_amount fields while preserving all existing per‑transaction and daily limits and authentication via UPI PIN."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "api_spec_primary",
+    "section_heading": "i. Primary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestion for Payments introduces a data‑driven UI layer that surfaces up to three historically frequent amounts for a given merchant. The core UPI transaction flow remains unchanged, leveraging the existing ReqPay, ReqAuthDetails, ReqTxnConfirmation and ReqDebit messages while a new GetAmountSuggestions API supplies the suggestion list to the UPI app before the payment request is built.",
+      "The participant flow begins with the payer PSP invoking GetAmountSuggestions using the payer and payee VPA. The response returns up to three suggested_amount values and an optional confidence_score. The app then presents these amounts; the user selects one and the PSP proceeds with the standard ReqPay sequence, followed by authentication, debit and confirmation as defined in the UPI specification."
+    ],
+    "bullet_points": [
+      "ReqPay – initiates payment with amount, payerVPA, payeeVPA, purposeCode.",
+      "ReqAuthDetails – NPCI requests authentication details from the payee PSP.",
+      "ReqTxnConfirmation – payer PSP confirms transaction after authentication.",
+      "ReqDebit – NPCI debits the payer account or voucher.",
+      "GetAmountSuggestions – new JSON API that returns personalized amount suggestions."
+    ],
+    "numbered_items": [
+      "Step 1 – Payer PSP calls GetAmountSuggestions (payerVPA, payeeVPA, maxSuggestions).",
+      "Step 2 – PSP receives up to three suggested_amounts and optional confidence_score.",
+      "Step 3 – User selects a suggestion; PSP sends ReqPay to NPCI.",
+      "Step 4 – NPCI forwards ReqAuthDetails to Payee PSP and receives RespAuthDetails.",
+      "Step 5 – PSP sends ReqTxnConfirmation (or ReqDebit) and receives final confirmation."
+    ],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory"
+      ],
+      "rows": [
+        [
+          "payerVPA",
+          "String",
+          "64",
+          "Virtual Payment Address of the payer",
+          "Y"
+        ],
+        [
+          "payeeVPA",
+          "String",
+          "64",
+          "Virtual Payment Address of the payee/merchant",
+          "Y"
+        ],
+        [
+          "maxSuggestions",
+          "Integer",
+          "2",
+          "Maximum number of amount suggestions to return (up to 3)",
+          "Y"
+        ],
+        [
+          "suggested_amounts",
+          "Decimal",
+          "12",
+          "Array of up to three suggested payment amounts in INR",
+          "Y"
+        ],
+        [
+          "confidence_score",
+          "Decimal",
+          "5",
+          "Optional confidence metric (0.0 – 1.0) indicating prediction reliability",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: Payer PSP to NPCI -->\n<ReqPay xmlns:upi=\"http://npci.org/upi/schema/\">\n  <amount>199</amount>\n  <payerVPA>alice@bank</payerVPA>\n  <payeeVPA>merchant@bank</payeeVPA>\n  <purposeCode>00</purposeCode>\n</ReqPay>",
+      "<!-- Response: NPCI to Payer PSP -->\n<RespPay xmlns:upi=\"http://npci.org/upi/schema/\">\n  <status>SUCCESS</status>\n  <txnId>TXN123456789</txnId>\n</RespPay>",
+      "<!-- Request: NPCI to Payee PSP -->\n<ReqAuthDetails xmlns:upi=\"http://npci.org/upi/schema/\">\n  <txnId>TXN123456789</txnId>\n  <payeeVPA>merchant@bank</payeeVPA>\n</ReqAuthDetails>",
+      "<!-- Response: Payee PSP to NPCI -->\n<RespAuthDetails xmlns:upi=\"http://npci.org/upi/schema/\">\n  <authStatus>APPROVED</authStatus>\n</RespAuthDetails>",
+      "<!-- Request: Payer PSP to NPCI (Confirmation) -->\n<ReqTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n  <txnId>TXN123456789</txnId>\n  <authCode>123456</authCode>\n</ReqTxnConfirmation>",
+      "<!-- Response: NPCI to Payer PSP (Confirmation) -->\n<RespTxnConfirmation xmlns:upi=\"http://npci.org/upi/schema/\">\n  <status>COMPLETED</status>\n</RespTxnConfirmation>",
+      "<!-- Request: NPCI to Debit Engine -->\n<ReqDebit xmlns:upi=\"http://npci.org/upi/schema/\">\n  <txnId>TXN123456789</txnId>\n  <amount>199</amount>\n  <payerVPA>alice@bank</payerVPA>\n</ReqDebit>",
+      "<!-- Response: Debit Engine to NPCI -->\n<RespDebit xmlns:upi=\"http://npci.org/upi/schema/\">\n  <debitStatus>SUCCESS</debitStatus>\n</RespDebit>",
+      "<!-- Request: GetAmountSuggestions (JSON) -->\n{\n  \"payerVPA\": \"alice@bank\",\n  \"payeeVPA\": \"merchant@bank\",\n  \"maxSuggestions\": 3\n}",
+      "<!-- Response: GetAmountSuggestions (JSON) -->\n{\n  \"suggested_amounts\": [199, 299, 499],\n  \"confidence_score\": 0.92\n}"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "api_spec_secondary",
+    "section_heading": "ii. Secondary API Specifications",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestion for Payments introduces a supporting API named GetAmountSuggestions. This API enables the payer’s UPI app to request up to three historically frequent payment amounts for a specific merchant before the payment initiation flow begins. The request originates from the Payer PSP, is processed by the NPCI switch, and the response contains the suggested amounts along with an optional confidence score that reflects the algorithmic relevance.",
+      "GetAmountSuggestions operates as a pre‑payment enrichment step and does not alter the core payment flow defined by ReqPay, ReqAuthDetails, ReqTxnConfirmation, and ReqDebit. The suggested amounts are subject to the existing per‑transaction limits of INR 15,000 for standard UPI and INR 500 for UPI‑Lite, and daily aggregate limits remain unchanged. The UI presents the suggestions for one‑tap selection, after which the standard payment flow proceeds with the chosen amount."
+    ],
+    "bullet_points": [
+      "Pre-Check: Validate payerVPA and payeeVPA format – Payer PSP",
+      "Step 1: Payer PSP sends GetAmountSuggestions request to NPCI",
+      "Step 2: NPCI retrieves historical transaction data, applies suggestion algorithm, and constructs response",
+      "Step 3: NPCI returns GetAmountSuggestions response to Payer PSP",
+      "Post Response: Payer PSP renders up to three suggested amounts in the payment UI"
+    ],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Field Name",
+        "dType",
+        "dLength",
+        "Description",
+        "Mandatory (Y/N)"
+      ],
+      "rows": [
+        [
+          "payerVPA",
+          "String",
+          "50",
+          "Virtual Payment Address of the payer",
+          "Y"
+        ],
+        [
+          "payeeVPA",
+          "String",
+          "50",
+          "Virtual Payment Address of the merchant/payee",
+          "Y"
+        ],
+        [
+          "maxSuggestions",
+          "Integer",
+          "1",
+          "Maximum number of suggested amounts to return (up to 3)",
+          "Y"
+        ],
+        [
+          "suggestedAmount",
+          "Numeric",
+          "8",
+          "One of the suggested payment amounts derived from payer history",
+          "Y"
+        ],
+        [
+          "confidenceScore",
+          "Decimal",
+          "5",
+          "Algorithmic confidence (0.0 to 1.0) for the suggestion set",
+          "N"
+        ]
+      ]
+    },
+    "code_blocks": [
+      "<!-- Request: PSP to NPCI -->\n<upi:GetAmountSuggestionsRequest xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:payerVPA>alice@bank</upi:payerVPA>\n    <upi:payeeVPA>merchant@bank</upi:payeeVPA>\n    <upi:maxSuggestions>3</upi:maxSuggestions>\n</upi:GetAmountSuggestionsRequest>",
+      "<!-- Response: NPCI to PSP -->\n<upi:GetAmountSuggestionsResponse xmlns:upi=\"http://npci.org/upi/schema/\">\n    <upi:suggestedAmount>199</upi:suggestedAmount>\n    <upi:suggestedAmount>299</upi:suggestedAmount>\n    <upi:suggestedAmount>499</upi:suggestedAmount>\n    <upi:confidenceScore>0.92</upi:confidenceScore>\n</upi:GetAmountSuggestionsResponse>"
+    ],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "error_handling",
+    "section_heading": "iii. Error Handling",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestion for Payments feature introduces new validation points that must be robustly handled by all participants in the UPI flow. Errors can arise from eligibility checks, activation of the suggestion service, authentication failures, timeout conditions, and feature‑specific rule violations. Each error scenario is mapped to a precise response code and error code to enable deterministic handling by PSPs, NPCI, and banks.",
+      "Integration engineers should implement the error handling logic as defined in the table below, ensuring that UI feedback, transaction rollback, and retry mechanisms align with the originating entity's responsibility. This approach maintains compliance with existing UPI limits while providing clear user messaging for suggestion‑related failures."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Response Code",
+        "Error Code",
+        "Description",
+        "API",
+        "Entity",
+        "TD/BD"
+      ],
+      "rows": [
+        [
+          "01",
+          "TECH_DECLINE",
+          "PIN entry failed after selecting a suggested amount greater than ₹15,000; transaction is declined with a technical decline code.",
+          "REQ_PAY",
+          "Issuer/Remitter Bank",
+          "TD"
+        ],
+        [
+          "02",
+          "LIMIT_EXCEEDED",
+          "Suggested amount exceeds the applicable per‑transaction limit (₹15,000 standard UPI, ₹500 UPI‑Lite); UI blocks selection and displays an error.",
+          "GetAmountSuggestions",
+          "PSP",
+          "BD"
+        ],
+        [
+          "03",
+          "SUGGESTION_UNAVAILABLE",
+          "No historical transaction data available to generate suggestions; GetAmountSuggestions returns an empty list.",
+          "GetAmountSuggestions",
+          "PSP",
+          "BD"
+        ],
+        [
+          "04",
+          "AUTH_FAILURE",
+          "Authentication details are invalid or PIN verification fails for amounts within the allowed limit.",
+          "REQ_AUTH_DETAILS",
+          "Issuer/Remitter Bank",
+          "TD"
+        ],
+        [
+          "05",
+          "TIMEOUT",
+          "No response from NPCI within the stipulated time; transaction is marked pending and REQ_CHK_TXN may be invoked for status reconciliation.",
+          "REQ_PAY",
+          "NPCI",
+          "TD"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "note",
+    "section_heading": "iv. Note:",
+    "render_style": "body",
+    "paragraphs": [
+      "The following technical notes capture cross‑flow integration requirements, edge‑case handling, timeout expectations, and operational safeguards for Smart Amount Suggestion for Payments. They must be adhered to by all PSPs, the suggestion service, and NPCI components to ensure seamless user experience and compliance with existing UPI limits.",
+      "Each note is actionable and reflects the authoritative specifications, including the new GetAmountSuggestions API, per‑transaction and daily limits, and fallback behavior when the suggestion service is unavailable or delayed."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Integration Rule: Prior to rendering the payment UI, the Payer PSP must invoke the GetAmountSuggestions request (payerVPA, payeeVPA, maxSuggestions) and render only the amounts returned in the subsequent ReqPay message; the amount field in ReqPay must exactly match the selected suggested_amount.",
+      "2. Edge‑Case Validation: The suggestion engine must filter out any suggested_amount that exceeds the standard per‑transaction limit (₹15,000 for standard UPI, ₹500 for UPI‑Lite) or would cause the payer’s daily aggregate limit (₹1 Lakh or ₹10 K) to be breached; such amounts must not be returned to the UI.",
+      "3. Timeout Handling: If GetAmountSuggestions does not respond within 5 seconds, the PSP must abort the suggestion flow and fall back to the static quick‑pay buttons or manual amount entry to avoid user‑perceived latency.",
+      "4. Operational Rule: All suggestion service logs must retain only the payerVPA and payeeVPA identifiers; no additional PII may be stored, ensuring compliance with RBI data‑privacy guidelines.",
+      "5. Failure Path: In case the selected suggested amount triggers a validation error during ReqPay (e.g., limit breach detected by NPCI), the PSP must present an error to the user and allow manual amount correction before re‑issuing ReqPay."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

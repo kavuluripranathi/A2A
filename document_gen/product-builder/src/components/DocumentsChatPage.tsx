@@ -41,6 +41,7 @@ interface BundleStatusJob {
   status: string;
   progress: number;
   current_step: string;
+  rag_warning?: string | null;
   document: Document;
 }
 
@@ -106,6 +107,7 @@ function mergeBundleDocuments(status: BundleStatusResponse, previous: Document[]
       _status: job.status === 'failed' ? 'failed' : job.document._status ?? 'generating',
       _progress: job.progress,
       _current_step: job.current_step,
+      _rag_warning: job.rag_warning ?? null,
     };
   });
 }

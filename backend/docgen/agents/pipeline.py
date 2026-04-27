@@ -32,7 +32,7 @@ from docgen.document_validator import repair_sections_for_validation, validate_g
 from docgen.document_guides import build_blueprint_plan, get_document_blueprint
 from docgen.models import DocumentPlan, GeneratedContent
 from docgen.plan_store import save_json_artifact
-from docgen.rag.engine import retrieve_multi_query, retrieve_hybrid
+from agents.rag_client import retrieve_from_rag_system, RagServiceUnavailable
 from docgen.tools.diagram_generator import generate_diagram
 from docgen.tools.docx_builder import assemble_document
 
@@ -163,6 +163,114 @@ def _format_proposals_for_doc_type(proposals: dict, doc_type: str) -> str:
         f"APIs: {_json.dumps(proposals.get('apis', []))}\n"
         f"Flow: {_json.dumps(proposals.get('flow_sequence', []))}\n"
     )
+
+
+def _format_proposals_for_section(proposals: dict, doc_type: str,
+                                   section_key: str | None, heading: str) -> str:
+    """Return only the proposals fields relevant to this specific section.
+
+    Routing rules: keywords in section_key/heading decide which fields are surfaced.
+    This prevents Background sections from receiving error-code dumps, etc.
+    """
+    import json as _json
+    if not proposals:
+        return ""
+
+    key = ((section_key or "") + " " + heading).lower()
+    base = "\n\nAUTHORITATIVE SPECIFICATIONS for this section (NPCI corpus — do NOT invent alternatives):\n"
+    lines: list[str] = []
+
+    # ── Background / current state / limitations ──────────────────────────────
+    if any(t in key for t in ("background", "current state", "introduction", "context", "overview", "executive")):
+        if proposals.get("current_state"):
+            lines.append(f"Current State: {proposals['current_state']}")
+        if proposals.get("limitations"):
+            lines.append(f"Limitations / Pain Points: {proposals['limitations']}")
+
+    # ── Functional requirements / acceptance criteria ─────────────────────────
+    if any(t in key for t in ("functional", "requirement", "acceptance", "scope", "feature")):
+        frs = proposals.get("functional_requirements") or []
+        if frs:
+            lines.append("Functional Requirements:\n" + "\n".join(f"  {fr}" for fr in frs))
+
+    # ── APIs / flow / construct / transaction / technical spec ────────────────
+    if any(t in key for t in ("api", "flow", "construct", "transaction", "sequence", "technical", "integration", "message")):
+        if proposals.get("apis"):
+            lines.append(f"APIs: {_json.dumps(proposals['apis'], indent=2)}")
+        if proposals.get("flow_sequence"):
+            lines.append(f"Flow Sequence:\n" + "\n".join(f"  {s}" for s in proposals["flow_sequence"]))
+        if proposals.get("auth_method"):
+            lines.append(f"Auth Method: {proposals['auth_method']}")
+        if proposals.get("transaction_limit"):
+            lines.append(f"Transaction Limit: {proposals['transaction_limit']}")
+
+    # ── Request / response fields ─────────────────────────────────────────────
+    if any(t in key for t in ("request", "response", "field", "parameter", "payload", "xml", "xsd")):
+        if proposals.get("request_fields"):
+            lines.append(f"Request Fields: {_json.dumps(proposals['request_fields'], indent=2)}")
+        if proposals.get("response_fields"):
+            lines.append(f"Response Fields: {_json.dumps(proposals['response_fields'], indent=2)}")
+
+    # ── Error codes / handling ────────────────────────────────────────────────
+    if any(t in key for t in ("error", "exception", "decline", "failure", "handling", "response code")):
+        if proposals.get("error_codes"):
+            lines.append(f"Error Codes (UPI format): {_json.dumps(proposals['error_codes'], indent=2)}")
+        if proposals.get("failure_scenarios"):
+            lines.append("Failure Scenarios:\n" + "\n".join(f"  {f}" for f in proposals["failure_scenarios"]))
+
+    # ── User journey / product construct / enrollment ─────────────────────────
+    if any(t in key for t in ("journey", "product construct", "setting", "enrollment", "user experience", "ux")):
+        if proposals.get("user_journey_plain"):
+            lines.append("User Journey:\n" + "\n".join(f"  {s}" for s in proposals["user_journey_plain"]))
+
+    # ── Testing / certification ───────────────────────────────────────────────
+    if any(t in key for t in ("test", "certif", "uat", "scenario", "validation")):
+        tests = proposals.get("test_scenarios") or []
+        if tests:
+            lines.append("Test Scenarios:\n" + "\n".join(
+                f"  - {t.get('scenario','')} | {t.get('objective','')} | {t.get('owner','')}"
+                for t in tests
+            ))
+
+    # ── Policy / salient / key considerations ────────────────────────────────
+    if any(t in key for t in ("policy", "salient", "consideration", "rule", "guideline", "key point")):
+        if proposals.get("policy_rules"):
+            lines.append("Policy Rules:\n" + "\n".join(f"  {r}" for r in proposals["policy_rules"]))
+
+    # ── Dispute / UDIR ────────────────────────────────────────────────────────
+    if any(t in key for t in ("dispute", "udir", "chargeback", "liability", "grievance")):
+        if proposals.get("dispute_framework"):
+            lines.append(f"Dispute Framework: {proposals['dispute_framework']}")
+
+    # ── Participant obligations / envisaged changes ───────────────────────────
+    if any(t in key for t in ("obligation", "participant", "envisaged", "stakeholder", "role", "responsibility")):
+        obligs = proposals.get("participant_obligations") or {}
+        if obligs:
+            oblig_lines = "\n".join(f"  {p}: {'; '.join(duties)}" for p, duties in obligs.items())
+            lines.append(f"Participant Obligations:\n{oblig_lines}")
+
+    # ── Timeline / implementation / go-live ───────────────────────────────────
+    if any(t in key for t in ("timeline", "go-live", "implementation", "milest", "schedule")):
+        if proposals.get("go_live_timeline"):
+            lines.append(f"Go-Live Timeline: {proposals['go_live_timeline']}")
+
+    # ── Circular: supersedes ──────────────────────────────────────────────────
+    if any(t in key for t in ("supersede", "circular", "directive", "mandate")):
+        if proposals.get("supersedes_circular"):
+            lines.append(f"Supersedes Circular: {proposals['supersedes_circular']}")
+
+    # Fallback — if no section-specific fields matched, return compact summary
+    if not lines:
+        return _format_proposals_for_doc_type(proposals, doc_type)
+
+    doc_rules = {
+        "TSD": "RULE: Use ONLY these API names, field names, error codes. Never invent HTTP codes.",
+        "BRD": "RULE: Business language only. No XML, no XSD field names.",
+        "Product Note": "RULE: Stakeholder-friendly language only. No XML, no internal class names.",
+        "Circular": "RULE: Terse, formal directive language. Use 'must' for mandatory obligations.",
+    }
+    lines.append(doc_rules.get(doc_type, ""))
+    return base + "\n".join(lines)
 
 
 def _build_diagram_prompt(dtype: str, description: str, proposals: dict = None) -> str:
@@ -1157,10 +1265,9 @@ def retrieve_context(state: dict) -> dict:
     try:
         prompt = state.get("prompt", "")
         doc_type = state.get("doc_type", "TSD")
-        collection = state.get("collection_name", "default")
         use_rag = state.get("use_rag", True)
 
-        if not use_rag or not collection:
+        if not use_rag:
             state["rag_chunks"] = []
             state["rag_context"] = ""
             return state
@@ -1176,36 +1283,59 @@ def retrieve_context(state: dict) -> dict:
         seen: set[str] = set()
         all_chunks: list[str] = []
 
+        proposals = state.get("proposals") or {}
+        taxonomy = state.get("taxonomy") or {}
+
         # 1. Doc-type targeted queries — fetch NPCI pattern chunks specific to this doc type
         for query in _DOC_TYPE_QUERIES.get(doc_type, _DOC_TYPE_QUERIES["TSD"]):
-            for chunk in retrieve_hybrid(query, collection_name=collection, top_k=2):
+            for chunk in retrieve_from_rag_system(query, top_k=2, doc_format=doc_type):
                 if chunk not in seen:
                     seen.add(chunk)
                     all_chunks.append(chunk)
 
-        # 2. Feature-specific semantic search — analogous NPCI feature chunks
-        chunks, _ = retrieve_multi_query(
-            prompt=clean_prompt,
-            topic=" ".join(clean_prompt.split()[:8]),
-            collection_name=collection,
-        )
-        for chunk in chunks:
+        # 2. Feature-specific semantic search — broad feature description query
+        for chunk in retrieve_from_rag_system(clean_prompt, top_k=8, doc_format=doc_type):
             if chunk not in seen:
                 seen.add(chunk)
                 all_chunks.append(chunk)
+
+        # 3. Proposal-driven targeted queries — surface NPCI docs specific to THIS feature's APIs/flows
+        feature_queries: list[str] = []
+        feature_name = taxonomy.get("feature_name", "")
+        if feature_name:
+            feature_queries.append(feature_name)
+        api_names = [a.get("name", "") for a in (proposals.get("apis") or []) if a.get("name")]
+        if api_names:
+            feature_queries.append(" ".join(api_names[:4]) + " UPI")
+        flow_keywords = " ".join(
+            w for step in (proposals.get("flow_sequence") or [])[:3]
+            for w in step.split()[:4]
+        )
+        if flow_keywords:
+            feature_queries.append(flow_keywords)
+        category = taxonomy.get("primary_category", "")
+        if category:
+            feature_queries.append(f"{category} UPI NPCI specification")
+
+        for query in feature_queries:
+            if not query.strip():
+                continue
+            for chunk in retrieve_from_rag_system(query, top_k=2, doc_format=doc_type):
+                if chunk not in seen:
+                    seen.add(chunk)
+                    all_chunks.append(chunk)
 
         context = "\n\n---\n\n".join(all_chunks)
         state["rag_chunks"] = all_chunks
         state["rag_context"] = context
         if all_chunks:
             logger.info(
-                "[retrieve_context] doc_type=%s collection=%s chunks=%d",
-                doc_type, collection, len(all_chunks),
+                "[retrieve_context] doc_type=%s chunks=%d (pgvector/rag_system)",
+                doc_type, len(all_chunks),
             )
         else:
             logger.warning(
-                "[retrieve_context] collection=%s, no chunks retrieved — documents will be generated without RAG context.",
-                collection,
+                "[retrieve_context] no chunks retrieved from rag_system — documents will be generated without RAG context."
             )
 
         # If a reference file was uploaded, extract its structure
@@ -1213,6 +1343,14 @@ def retrieve_context(state: dict) -> dict:
         if ref_path and Path(ref_path).exists():
             from docgen.rag.engine import extract_reference_structure
             state["reference_structure"] = extract_reference_structure(ref_path)
+
+    except RagServiceUnavailable as e:
+        msg = str(e)
+        logger.error("[retrieve_context] %s", msg)
+        state["rag_warning"] = msg
+        state["rag_chunks"] = []
+        state["rag_context"] = ""
+        # Do NOT fail the job — continue with LLM-only generation but surface the warning
 
     except Exception as e:
         logger.error("[retrieve_context] error: %s", e, exc_info=True)
@@ -1261,6 +1399,40 @@ def _validate_plan(plan: dict, doc_type: str) -> list[str]:
     return errors
 
 
+def _inject_proposals_into_blueprint(plan_data: dict, proposals: dict, doc_type: str,
+                                       clarification_answers: str = "", taxonomy: dict = None) -> None:
+    """Append proposal-derived facts to each blueprint section's content_instructions.
+
+    Blueprint sections define the structure but carry generic instructions. This function
+    appends the feature-specific data from proposals so the writer LLM has concrete
+    NPCI-grounded facts to work with, not just structural guidance.
+    Mutates plan_data in place.
+    """
+    import json as _json
+    taxonomy = taxonomy or {}
+    feature_name = taxonomy.get("feature_name", "") or ""
+    category = taxonomy.get("primary_category", "") or ""
+    feature_label = feature_name or category
+
+    for section in plan_data.get("sections", []):
+        sk = section.get("section_key", "")
+        heading = section.get("heading", "")
+        snippet = _format_proposals_for_section(proposals, doc_type, sk, heading)
+        if not snippet.strip():
+            continue
+
+        existing = section.get("content_instructions", "") or ""
+        additions = []
+        if feature_label:
+            additions.append(f"Feature: {feature_label}.")
+        additions.append(snippet.strip())
+        if clarification_answers:
+            additions.append(
+                f"PM Clarification Answers (authoritative — override assumptions):\n{clarification_answers}"
+            )
+        section["content_instructions"] = existing + "\n\n" + "\n\n".join(additions)
+
+
 # ---------------------------------------------------------------------------
 # Node 2 — plan_document
 # ---------------------------------------------------------------------------
@@ -1295,6 +1467,15 @@ def plan_document(state: dict) -> dict:
         blueprint_plan = build_blueprint_plan(doc_type, brief)
         if blueprint_plan:
             plan_data = DocumentPlan.model_validate(blueprint_plan).model_dump()
+
+            # Enrich blueprint section content_instructions with proposal data so
+            # writers aren't blind to feature-specific details even on the blueprint path.
+            if proposals:
+                clarification_answers = state.get("clarification_answers") or ""
+                taxonomy = state.get("taxonomy") or {}
+                _inject_proposals_into_blueprint(plan_data, proposals, doc_type,
+                                                  clarification_answers, taxonomy)
+
             state["document_plan"] = plan_data
             # Extract diagram specs from blueprint sections
             diagram_specs = []
@@ -1794,6 +1975,8 @@ def _write_section(
     feature_prompt: str = "",
     proposals: dict = None,
     clarification_answers: str = "",
+    additional_context: str = "",
+    taxonomy: dict = None,
 ) -> dict:
     section_key = section.get("section_key")
     heading = section.get("heading", "Section")
@@ -1802,21 +1985,56 @@ def _write_section(
     prompt_instruction = section.get("prompt_instruction", "")
     include_table = section.get("include_table", False)
     table_guidance = _table_guidance(section_key, heading) if include_table else ""
+    mode_guidance = _section_mode_guidance(doc_type, section_key, heading)
 
     system_msg = _writer_system_prompt(doc_type)
 
-    
+    # Section-aware proposals: only surface fields relevant to THIS section
     proposals_snippet = ""
     if proposals:
-        proposals_snippet = _format_proposals_for_doc_type(proposals, doc_type)
+        proposals_snippet = _format_proposals_for_section(proposals, doc_type, section_key, heading)
 
-    context_snippet = rag_context[:5000] if rag_context else ""
+    # Feature name comes ONLY from the LLM classifier (taxonomy.feature_name).
+    # No heuristic fallback — first-line extraction is unreliable with multi-line prompts.
+    feature_name = (taxonomy or {}).get("feature_name", "") or ""
+    taxonomy_hint = ""
+    if taxonomy:
+        cat = taxonomy.get("primary_category", "")
+        labels = taxonomy.get("labels", [])
+        if cat or labels or feature_name:
+            taxonomy_hint = (
+                f"Feature Classification: {feature_name or cat}"
+                + (f" [{', '.join(labels)}]" if labels else "") + "\n"
+            )
+
+    # Per-section targeted retrieval — fetch chunks most relevant to THIS section from pgvector
+    # doc_format preference ensures a BRD section sees BRD-style reference chunks, not TSD ones
+    section_rag_context = ""
+    try:
+        section_query = f"{heading} {feature_prompt[:150]}".strip()
+        section_chunks = retrieve_from_rag_system(section_query, top_k=4, doc_format=doc_type or None)
+        if section_chunks:
+            section_rag_context = "\n\n---\n\n".join(section_chunks)
+    except RagServiceUnavailable:
+        pass  # rag_warning already set in state by retrieve_context; fall back to shared context
+    except Exception:
+        pass
+
+    context_snippet = (section_rag_context or rag_context)[:5000]
     user_msg = (
-        f"Write content for section: '{heading}'\n"
-        f"Instructions: {instructions}\n"
+        (
+            f"CRITICAL: The feature name is '{feature_name}'. "
+            f"Use this EXACT name throughout. NEVER write 'Product Feature', 'UPI Feature', "
+            f"'the feature', or any other generic placeholder.\n"
+            if feature_name else ""
+        )
+        + f"Write content for section: '{heading}'\n"
+        + f"Instructions: {instructions}\n"
+        + (f"{taxonomy_hint}" if taxonomy_hint else "")
         + (f"{proposals_snippet}\n" if proposals_snippet else "")
-        + (f"Feature context (use this as the primary source of specific details):\n{feature_prompt[:3000]}\n" if feature_prompt else "")
+        + (f"Feature context (primary source of specific details):\n{feature_prompt[:3000]}\n" if feature_prompt else "")
         + (f"Required structure/style: {prompt_instruction}\n" if prompt_instruction else "")
+        + (f"Writing guidance for this section: {mode_guidance}\n" if mode_guidance else "")
         + (f"Audience focus: {audience}\n" if audience else "")
         + (f"Desired outcome: {desired_outcome}\n" if desired_outcome else "")
         + (f"Required table format: {table_guidance}\n" if table_guidance else "")
@@ -1829,6 +2047,10 @@ def _write_section(
         + (
             f"\nKnowledge-base context (NPCI corpus — use only where directly relevant):\n{context_snippet}"
             if context_snippet else ""
+        )
+        + (
+            f"\nAdditional session context (requirements, research, canvas — use for depth and accuracy):\n{additional_context[:2000]}\n"
+            if additional_context else ""
         )
         # clarification_answers LAST — authoritative, overrides everything above
         + (
@@ -1888,6 +2110,8 @@ def write_content(state: dict) -> dict:
         proposals = state.get("proposals") or {}
         feature_prompt = state.get("prompt", "")
         clarification_answers = state.get("clarification_answers") or ""
+        additional_context = state.get("additional_context") or ""
+        taxonomy = state.get("taxonomy") or {}
 
         def _write_one(idx_section: tuple[int, dict]) -> tuple[int, dict]:
             idx, section = idx_section
@@ -1901,6 +2125,8 @@ def write_content(state: dict) -> dict:
                 feature_prompt=feature_prompt,
                 proposals=proposals,
                 clarification_answers=clarification_answers,
+                additional_context=additional_context,
+                taxonomy=taxonomy,
             )
             content["section_key"] = section.get("section_key")
             content["render_style"] = section.get("render_style", "body")
@@ -1986,6 +2212,61 @@ def review_document(state: dict) -> dict:
         if repair_notes:
             review.setdefault("warnings", [])
             review["warnings"].extend(f"Auto-repair: {n}" for n in repair_notes)
+
+        # Attempt to regenerate sections that failed validation (one retry pass)
+        if review.get("errors"):
+            failed_headings = set()
+            for err in review["errors"]:
+                for sec in plan.get("sections", []):
+                    if sec.get("heading", "") in err:
+                        failed_headings.add(sec.get("heading", ""))
+
+            if failed_headings:
+                logger.warning("[review_document] Regenerating %d failed sections: %s",
+                               len(failed_headings), failed_headings)
+                llm = _make_llm_json()
+                proposals = state.get("proposals") or {}
+                clarification_answers = state.get("clarification_answers") or ""
+                additional_context = state.get("additional_context") or ""
+                taxonomy = state.get("taxonomy") or {}
+                doc_type = plan.get("doc_type", state.get("doc_type", "BRD"))
+                rag_context = state.get("rag_context", "")
+                audience = plan.get("document_meta", {}).get("audience", state.get("audience", ""))
+                desired_outcome = plan.get("document_meta", {}).get("desired_outcome", state.get("desired_outcome", ""))
+                feature_prompt = state.get("prompt", "")
+
+                updated = list(sections)
+                for i, section_plan in enumerate(plan.get("sections", [])):
+                    if section_plan.get("heading", "") not in failed_headings:
+                        continue
+                    logger.info("[review_document] Re-writing section: %s", section_plan.get("heading"))
+                    new_content = _write_section(
+                        llm, section_plan, rag_context,
+                        doc_type=doc_type, audience=audience,
+                        desired_outcome=desired_outcome,
+                        feature_prompt=feature_prompt,
+                        proposals=proposals,
+                        clarification_answers=clarification_answers,
+                        additional_context=additional_context,
+                        taxonomy=taxonomy,
+                    )
+                    new_content["section_key"] = section_plan.get("section_key")
+                    new_content["render_style"] = section_plan.get("render_style", "body")
+                    new_content["level"] = section_plan.get("level", 1)
+                    new_content["section_heading"] = section_plan.get("heading", "")
+                    if i < len(updated):
+                        updated[i] = new_content
+
+                updated, _ = repair_sections_for_validation(plan, updated)
+                state["generated_sections"] = updated
+                save_json_artifact(state.get("job_id", "tmp"), "generated_sections.json", updated)
+
+                # Re-validate after regeneration
+                review = validate_generated_document(
+                    plan=plan, sections=updated,
+                    include_diagrams=state.get("include_diagrams", True),
+                )
+
         state["review_report"] = review
         save_json_artifact(state.get("job_id", "tmp"), "review_report.json", review)
         if review["errors"]:
@@ -2025,6 +2306,22 @@ def assemble_doc(state: dict) -> dict:
         else:
             output_path = str(Path(settings.output_dir) / job_id / "document.docx")
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        # Post-process: replace any remaining "Product Feature" placeholder with
+        # the actual feature name. Deterministic string replacement — does not
+        # touch document structure, formatting, or the NPCI template.
+        feature_name = (state.get("taxonomy") or {}).get("feature_name", "") or ""
+        if feature_name and feature_name != "Product Feature":
+            def _replace_in_section(obj):
+                if isinstance(obj, str):
+                    return obj.replace("Product Feature", feature_name)
+                if isinstance(obj, list):
+                    return [_replace_in_section(i) for i in obj]
+                if isinstance(obj, dict):
+                    return {k: _replace_in_section(v) for k, v in obj.items()}
+                return obj
+            sections = [_replace_in_section(s) for s in sections]
+            plan = _replace_in_section(plan)
 
         final_path = assemble_document(
             plan,

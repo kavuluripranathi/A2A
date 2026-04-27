@@ -1,0 +1,416 @@
+[
+  {
+    "section_key": "background_current_state",
+    "section_heading": "i. Current State",
+    "render_style": "body",
+    "paragraphs": [
+      "When a consumer initiates a payment, the UPI App captures the payer VPA and forwards a payment request to the payer PSP Bank. NPCI then obtains authentication from the payee PSP Bank and routes a debit instruction to the Issuer Bank, which validates the payer’s credentials and debits the account. After the debit is successful, NPCI forwards a credit instruction to the Beneficiary Bank, which posts the amount to the merchant’s account and sends a confirmation back through the switch to both PSPs.",
+      "In the existing flow the amount is entered manually by the user and the app only prompts for a PIN when the entered value exceeds the PSP‑defined threshold. No mechanism exists to suggest amounts based on the payer’s historic transactions, and the UI provides only static quick‑pay buttons that may not match the user’s typical spend. This manual entry process results in slower checkout times and a higher incidence of typo‑related payment failures."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_limitations",
+    "section_heading": "ii. Limitations / Challenges",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI payment flow requires the payer to type the transaction amount manually before authentication. This manual step adds latency and creates a measurable error rate, which conflicts with the ecosystem’s goal of frictionless payments.",
+      "Because the current architecture does not expose a mechanism for surfacing historical payment patterns, PSPs and merchants cannot present personalized amount options. Consequently, the platform misses an opportunity to increase transaction velocity and to comply with emerging data‑driven service expectations."
+    ],
+    "bullet_points": [
+      "Manual amount entry – Payer – results in slower checkout times and a 2 % typo‑related failure rate, increasing support tickets and grievance volume.",
+      "Absence of personalized suggestion UI – PSP Bank – prevents one‑tap selection of frequent amounts, limiting user experience improvements and reducing repeat‑usage uplift.",
+      "No visibility into payer’s historic spend – Issuer Bank – hampers risk‑based authentication and fraud monitoring, potentially exposing the ecosystem to higher false‑positive declines.",
+      "Current flow lacks a lightweight analytics layer – NPCI – creates scalability concerns as millions of users would require real‑time aggregation of transaction history for suggestions.",
+      "Regulatory privacy considerations – Beneficiary Bank – require strict handling of transaction data for suggestion generation; the present specification does not define data‑privacy safeguards, risking non‑compliance."
+    ],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "background_rationale",
+    "section_heading": "iii. Why the Proposed Change",
+    "render_style": "body",
+    "paragraphs": [
+      "The RBI’s directive to enhance transaction speed and security mandates that the UPI ecosystem continuously reduce friction while preserving robust authentication controls. Smart Amount Suggestions aligns with this mandate by leveraging the payer’s VPA, a standard identifier already validated by NPCI, to surface historically frequent payment amounts without altering the existing per‑transaction ceiling of INR 15,000 or daily aggregate limits set by each PSP Bank. NPCI will introduce the SuggestionRequest and SuggestionResponse messages to the switch, enabling PSP Banks to retrieve and present personalized amounts while the Issuer Bank continues to enforce PIN verification for amounts above the regulatory threshold. Beneficiary Banks remain unaffected in the settlement path, preserving the current credit flow and dispute management framework.",
+      "By presenting up to three data‑driven amount options, the user experience is expected to accelerate checkout time by roughly 50 % and cut typographical error rates to below 1 %, directly supporting the RBI’s goal of lowering grievance tickets. This approach was chosen over static quick‑pay buttons because it utilizes each user’s transaction history, delivering a measurable lift in repeat UPI usage and incremental revenue without requiring extensive changes to the core payment flow. PSP Banks will own the UI integration and analytics layer, while NPCI supplies the suggestion service, ensuring a coordinated rollout across the ecosystem. The result is a scalable, low‑risk enhancement that drives higher transaction throughput and consumer confidence."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_description",
+    "section_heading": "i. Product Description",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions presents the payer with up to three amounts that the payer most frequently paid to the selected payee, derived from the payer’s transaction history stored with NPCI. The PSP Bank will invoke a SuggestionRequest to NPCI, receive a SuggestionResponse, and render the amounts on the payment screen for one‑tap selection. The Issuer Bank is required to expose the payer’s historic transaction data to NPCI so that accurate suggestions can be generated. The Beneficiary Bank’s role remains unchanged; it will receive the standard ReqPay‑based debit‑credit flow once the payer confirms the chosen amount.",
+      "By eliminating manual entry, the feature reduces average checkout time by roughly 50 % and lowers typo‑related failure rates, delivering a measurable lift in repeat UPI usage. PSP Banks are accountable for integrating the suggestion UI, enforcing the existing INR 15,000 PIN rule on suggested amounts that exceed the threshold, and preserving the edit‑before‑confirm capability. NPCI is responsible for securely routing SuggestionRequests, applying the same amount‑threshold validation as in the baseline flow, and ensuring data privacy compliance. The combined effect is higher transaction throughput, increased average transaction value, and a reduction in grievance tickets, directly supporting the ecosystem’s revenue growth objectives."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_setting",
+    "section_heading": "ii. Product Construct: Setting / Enrollment",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions does not require a separate enrollment or setting step. Users access the suggested amounts directly from the payment screen after selecting a contact or merchant, without any prior registration or opt‑in."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "No enrollment required for Smart Amount Suggestions",
+          "N/A"
+        ],
+        [
+          "Post Response",
+          "Feature accessed directly from payment UI without prior opt‑in",
+          "N/A"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "product_construct_transaction",
+    "section_heading": "iii. Product Construct: Transaction Flow",
+    "render_style": "body",
+    "paragraphs": [
+      "When a user opens the UPI app and selects a contact or merchant, the app automatically invokes a SuggestionRequest to NPCI using the payer and payee VPA. NPCI returns a SuggestionResponse that contains up to three amounts most frequently used for that payee, and the app presents these as one‑tap options. This pre‑payment step reduces manual entry time and aligns the transaction with the user’s historical spending pattern.",
+      "After the user taps a suggested amount – which remains editable – the app checks the INR 15,000 per‑transaction ceiling and, if exceeded, prompts for the UPI PIN. The Payer PSP then initiates a standard ReqPay message to NPCI, which orchestrates authentication via ReqAuthDetail to the Payee PSP, forwards a debit request to the Issuer Bank, and finally triggers a credit request to the Beneficiary Bank. Upon successful debit and credit, the Payer PSP sends a ReqTxnConfirmation and the Payee PSP returns a RespTxnConfirmation. The app displays the final confirmation to the user, completing the Smart Amount Suggestions flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "Step",
+        "Activity",
+        "Responsible"
+      ],
+      "rows": [
+        [
+          "Pre-Check",
+          "UI retrieves recent transaction amounts for selected payee",
+          "Payer PSP"
+        ],
+        [
+          "Step 1",
+          "Send SuggestionRequest with payerVPA and payeeVPA to NPCI",
+          "Payer PSP"
+        ],
+        [
+          "Step 2",
+          "Receive SuggestionResponse containing up to three suggested amounts",
+          "NPCI"
+        ],
+        [
+          "Step 3",
+          "User selects a suggested amount; amount field pre‑filled and editable",
+          "Payer PSP"
+        ],
+        [
+          "Step 4",
+          "If amount exceeds INR 15,000, prompt for UPI PIN and capture authentication",
+          "Payer PSP"
+        ],
+        [
+          "Step 5",
+          "Initiate ReqPay with selected amount, payerVPA, payeeVPA",
+          "Payer PSP"
+        ],
+        [
+          "Step 6",
+          "NPCI forwards ReqAuthDetail to Payee PSP for merchant validation",
+          "NPCI"
+        ],
+        [
+          "Step 7",
+          "Payee PSP validates merchant details and returns RespAuthDetail",
+          "Payee PSP"
+        ],
+        [
+          "Step 8",
+          "NPCI forwards ReqDebit to payer’s Issuer Bank to debit the account",
+          "NPCI"
+        ],
+        [
+          "Step 9",
+          "Payer PSP sends ReqTxnConfirmation to NPCI after debit acknowledgment",
+          "Payer PSP"
+        ],
+        [
+          "Step 10",
+          "NPCI triggers ReqCredit to Payee PSP to credit the beneficiary account",
+          "NPCI"
+        ],
+        [
+          "Step 11",
+          "Payee PSP returns RespTxnConfirmation confirming credit",
+          "Payee PSP"
+        ],
+        [
+          "Post Response",
+          "App displays transaction success to user and logs Smart Amount Suggestion usage",
+          "Payer PSP"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "salient_points",
+    "section_heading": "Other Salient Points",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions introduces a personalization layer that operates alongside the existing UPI payment flow. All new interactions must respect the established VPA identifiers for both payer and payee, ensuring seamless integration with the current ReqPay message structure. The operational model therefore relies on coordinated responsibilities among NPCI, the payer PSP, and the issuer and beneficiary banks.",
+      "Because the feature adds optional UI elements and new service calls, backward compatibility and consent management are critical. Legacy applications that do not invoke the SuggestionRequest must continue to function without degradation, and any withdrawal of user consent must be reflected across the ecosystem within defined timeframes. These constraints safeguard both user experience and regulatory compliance."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall enforce that suggested amounts are derived exclusively from the payer's own transaction history, prohibiting any cross‑user data sharing or aggregation.",
+      "2. The payer PSP shall limit the number of displayed suggestions to a maximum of three per transaction, and must truncate any excess results returned by the SuggestionResponse.",
+      "3. The issuer bank must reject any suggested amount that exceeds the payer's daily transaction limit as configured by the PSP, ensuring that daily caps are never breached by suggestion‑driven payments.",
+      "4. Payers must explicitly opt‑in to Smart Amount Suggestions through the UPI app settings; the PSP is responsible for persisting this consent and must forward an empty suggestion list to NPCI when a user has opted out.",
+      "5. Existing ReqPay flows remain unchanged for legacy apps; the payer PSP must continue to support transactions without invoking SuggestionRequest, and NPCI shall route SuggestionRequest only when the request payload includes the dedicated API call.",
+      "6. If the SuggestionResponse is not received within the 200 ms service‑level target, the payer PSP shall fall back to the static quick‑pay buttons and log the timeout for NPCI monitoring.",
+      "7. Upon a payer withdrawing consent, the PSP must purge any cached suggestion data within 24 hours, and NPCI must cease processing further SuggestionRequest messages for that VPA.",
+      "8. The suggestion UI shall be rendered only on devices that support the CL version containing the biometric flag refCategory='05' when biometric‑based suggestions are offered; the PSP must verify the CL version before displaying any suggestions."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dispute_management",
+    "section_heading": "Dispute Management",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestions feature does not alter the dispute management process. All disputes continue to be governed by the standard UDIR dispute and chargeback framework that NPCI maintains. The payer and payee remain identified by their VPA, and any grievance follows the existing flow from the PSP Bank to the Issuer and Beneficiary banks. Consequently, no new dispute categories are introduced and the current resolution timeline is unchanged.",
+      "Liability for disputed transactions remains with the Issuer Bank for unauthorized debits and with the Beneficiary Bank for credit errors, as defined in the UDIR rules. The Service Level Agreement of 24-hour acknowledgment and 48-hour settlement continues to apply, with the PSP Bank responsible for initial complaint logging and status updates. Escalation proceeds from the PSP Bank to NPCI’s dispute handling unit, and if unresolved, to the regulator under the existing escalation path. All participants—NPCI, PSP Bank, Issuer Bank, and Beneficiary Bank—must adhere to these unchanged obligations."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "functional_requirements",
+    "section_heading": "Functional Requirements",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions enhances the payment initiation experience by leveraging each payer’s recent transaction history with a specific payee. The functionality retrieves historic amounts, surfaces up to three personalized suggestions, and integrates seamlessly with the existing UPI request flow. This introduction outlines the testable functional requirements that the NPCI, PSP banks, and issuer/beneficiary banks must implement and support."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": {
+      "headers": [
+        "ID",
+        "Requirement",
+        "Priority"
+      ],
+      "rows": [
+        [
+          "FR-01",
+          "The system shall retrieve the payer's last N transaction amounts for a given payee from the NPCI transaction history.",
+          "High"
+        ],
+        [
+          "FR-02",
+          "The system shall display up to three suggested amounts on the payment screen, ranked by recency and frequency.",
+          "High"
+        ],
+        [
+          "FR-03",
+          "The system shall allow the payer to select a suggested amount with a single tap.",
+          "High"
+        ],
+        [
+          "FR-04",
+          "The system shall enable the selected amount to be edited before final confirmation, preserving the one‑tap convenience.",
+          "Medium"
+        ],
+        [
+          "FR-05",
+          "The system shall generate the payment request from a suggested amount using the existing ReqPay → ReqAuthDetail → ReqDebit flow unchanged.",
+          "High"
+        ],
+        [
+          "FR-06",
+          "The system shall enforce mandatory UPI PIN entry for suggested amounts greater than INR 15,000 in accordance with current PIN rules.",
+          "Medium"
+        ],
+        [
+          "FR-07",
+          "The system shall apply the payer’s existing daily UPI aggregate limit to transactions initiated via the suggestion UI, rejecting any request that exceeds the limit.",
+          "High"
+        ],
+        [
+          "FR-08",
+          "The system shall capture and log suggestion usage metrics, including selection rate and edit frequency, for reporting to NPCI and PSPs.",
+          "Low"
+        ]
+      ]
+    },
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "changes_npci_setting",
+    "section_heading": "A. NPCI (UPI Platform & CL) — Setting / Schema / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The NPCI platform must be extended to support Smart Amount Suggestions during the enrollment and setting flow. NPCI will add two new service messages – SuggestionRequest and SuggestionResponse – that PSP banks will invoke after the user selects a payee but before the payment request is built. The messages will carry the payer’s VPA and the payee’s VPA and will return up to three historic amounts with usage frequency. NPCI will also publish the updated schema definitions to all participants.",
+      "NPCI will release a new version of the Common Library that includes a client‑side helper for constructing SuggestionRequest and parsing SuggestionResponse, and will set a configuration flag “enableSmartAmountSuggestions” that PSP banks must activate in their onboarding profile. The CL version bump will be communicated as version 2.38, and PSP banks will be required to integrate the updated library before the feature can be turned on for customers. Issuer and Beneficiary banks do not need to modify their core transaction processing, but they must recognize the new flag in the registration payload to allow the suggestion service to be queried. This coordinated change ensures that the Smart Amount Suggestions feature can be delivered without impacting existing payment flows."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall define and publish the SuggestionRequest message specification, including required payer and payee identifiers, and make it available to all PSP banks.",
+      "2. NPCI shall define and publish the SuggestionResponse message specification, detailing the list of up to three suggested amounts, frequency metadata, and response status, to be consumed by PSP banks.",
+      "3. NPCI shall introduce a new schema element in the PSP onboarding payload named “smartAmountSuggestionEnabled” (boolean) that indicates whether the PSP opts into the Smart Amount Suggestions service; PSP banks will set this flag during registration.",
+      "4. NPCI shall release Common Library version 2.38 that incorporates client‑side APIs for building SuggestionRequest and handling SuggestionResponse, and shall mandate that all PSP banks upgrade to this version before enabling the feature.",
+      "5. NPCI shall add a configuration flag in the switch to route SuggestionRequest messages to a dedicated analytics service, ensuring the routing logic respects existing transaction limits and security checks."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_npci_transaction",
+    "section_heading": "B. NPCI (UPI Platform & CL) — Transaction Flow / Processing Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The existing UPI payment flow processes a ReqPay request, authenticates the payer, and then routes debit and credit messages through the NPCI switch. With Smart Amount Suggestions, the payer selects a pre‑computed amount before the ReqPay is generated, requiring the switch to recognise the suggestion context and enforce the same security checks as a manually entered amount. NPCI must therefore extend its processing logic to handle the suggestion‑derived amount without altering the downstream bank interactions.",
+      "By embedding the suggestion flag and ensuring rigorous credential validation, NPCI will preserve transaction integrity while delivering a faster, one‑tap experience for users. The enhanced routing will keep latency low and maintain compliance with the INR 15,000 per‑transaction ceiling and PIN enforcement rules. These changes are expected to reduce payment completion time and error rates, directly supporting the business case for Smart Amount Suggestions."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. NPCI shall extend the refCategory handling to recognise a new sub‑category for Smart Amount Suggestions, ensuring that any transaction flagged as a suggestion is processed with the same authentication standards as standard payments.",
+      "2. NPCI shall validate the encrypted credential block in each ReqPay to confirm that the amount matches the value returned by the SuggestionResponse and that the CRED integrity checks pass before forwarding the request to the acquiring bank.",
+      "3. NPCI shall introduce a routing flag \"SMART_SUGGESTION\" in the switch logic, directing suggestion‑derived transactions through a low‑latency path while preserving existing routing rules for all other payments.",
+      "4. NPCI shall augment the RespPay message with a response indicator that the transaction originated from a Smart Amount Suggestion, enabling the payer PSP to surface confirmation of suggestion acceptance in the UI.",
+      "5. NPCI shall enforce the INR 15,000 per‑transaction limit and trigger a PIN challenge for any suggested amount exceeding this threshold, applying the same daily aggregate limits already defined by the payer PSP."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_app",
+    "section_heading": "A. UPI App / PSP — App-side Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The introduction of Smart Amount Suggestions requires coordinated changes on both the UPI App and the PSP side to support enrollment, consent capture, and device binding. The UPI App must surface a new consent dialog and a dynamic suggestion UI while the PSP must provide the SuggestionRequest service and enforce policy checks. These enhancements are scoped to the payment initiation experience and do not alter the downstream ReqPay, ReqAuthDetail, and ReqDebit flow. Together they aim to reduce checkout time and input errors for end‑users.",
+      "All modifications are confined to user‑interface elements, Common Library (CL) SDK invocations, secure local key storage, and device verification logic. The UPI App will leverage the CL to encrypt consent and suggestion payloads, store device‑bound keys in the secure enclave, and enforce PIN rules for high‑value suggestions. The PSP will validate the encrypted payload, bind the device identifier to the payer VPA, and return up to three suggested amounts. This division of responsibility ensures compliance, data privacy, and a seamless one‑tap payment experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. UI Enhancement – The UPI App shall add a suggestion panel on the payment screen that displays up to three amounts retrieved via the PSP’s SuggestionRequest; the PSP shall supply the amounts based on the payer’s transaction history.",
+      "2. Consent Capture – The UPI App shall present a one‑time consent screen explaining the use of historical transaction data for Smart Amount Suggestions and shall store the consent flag in the device’s secure enclave; the PSP shall honor the consent flag before processing SuggestionRequest calls.",
+      "3. CL SDK Invocation – The UPI App shall invoke the Common Library SDK to encrypt the consent token and the SuggestionRequest payload before transmission; the PSP shall decrypt using the corresponding CL version and forward the request to NPCI.",
+      "4. Secure Local Key Storage – The UPI App shall generate a device‑bound encryption key and store it within the TEE/secure enclave for all future Smart Amount Suggestions interactions; the PSP shall reference this key identifier when validating device binding.",
+      "5. Device Binding Verification – The PSP shall compare the device identifier received in the encrypted SuggestionRequest with the stored key binding for the payer VPA and reject mismatched devices, causing the app to fall back to manual amount entry.",
+      "6. PIN Enforcement for High‑Value Suggestions – The UPI App shall enforce mandatory UPI PIN entry when a suggested amount exceeds INR 15,000, aligning with existing PIN rules; the PSP shall validate the PIN outcome before proceeding with the standard ReqPay flow."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_psp_transaction",
+    "section_heading": "B. UPI App / PSP — Transaction-time Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "Smart Amount Suggestions introduces a pre‑payment step where the payer’s UPI app presents three historically frequent amounts for the selected merchant. The PSP Bank is responsible for invoking the new SuggestionRequest message to NPCI as soon as the merchant VPA is known, and for rendering the SuggestionResponse in the app UI. This addition occurs before the standard ReqPay request and does not alter the downstream debit‑credit flow.",
+      "After the user selects a suggested amount, the UPI app must capture the UPI PIN, invoke the Common Library supplied by NPCI, and embed the encrypted credential block in the ReqPay message. The PSP Bank must also implement a fallback path that reverts to manual amount entry if the Suggestion service fails or exceeds its timeout, ensuring no transaction is blocked. Finally, the PSP Bank presents the RespPay and RespTxnConfirmation responses, clearly indicating that a suggested amount was used, while preserving existing error handling semantics."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "PSP Bank shall add a dynamic suggestion UI that displays up to three amounts retrieved via the new SuggestionRequest before the payer initiates ReqPay.",
+      "PSP Bank shall invoke SuggestionRequest to NPCI (or the designated suggestion service) using payerVPA and payeeVPA immediately after merchant selection, and shall process the SuggestionResponse to populate the UI.",
+      "PSP Bank shall trigger the Common Library provided by NPCI to capture the UPI PIN after a suggested amount is tapped, encrypt the credentials, and attach the resulting CRED block to the subsequent ReqPay message.",
+      "PSP Bank shall implement a timeout‑driven fallback that, upon SuggestionResponse failure, automatically switches to the legacy quick‑pay buttons or manual entry to maintain transaction continuity.",
+      "PSP Bank shall render the RespPay and RespTxnConfirmation outcomes to the user, explicitly labeling the transaction as ‘Smart Amount Suggestion used’ while preserving the standard error‑display logic for any debit or credit failures."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_auth",
+    "section_heading": "A. Issuer Bank — Auth / Registration Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Smart Amount Suggestions feature introduces a new data‑exchange path between the payer’s PSP and NPCI that relies on the Issuer Bank’s historical transaction repository. To support this path, the Issuer Bank must make payer‑payee amount patterns available while preserving existing security and compliance controls.",
+      "These changes do not alter the core debit‑credit flow, but they add explicit responsibilities for the Issuer Bank during authentication and registration phases. The bank’s actions are limited to data storage, request validation, and timely response generation, all of which are owned by the Issuer Bank."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "The Issuer Bank shall store, for each VPA pair, the last N transaction amounts and timestamps in a secure repository that can be queried by NPCI on behalf of an authorized PSP.",
+      "The Issuer Bank shall validate that every SuggestionRequest originates from a PSP that is registered with NPCI and that the payerVPA in the request matches an active account held by the Issuer Bank.",
+      "The Issuer Bank shall enforce the INR 15,000 per‑transaction ceiling on any amount returned as a suggestion and shall flag amounts above this limit for mandatory PIN enforcement downstream.",
+      "The Issuer Bank shall generate a SuggestionResponse containing up to three suggested amounts, ordered by recency and frequency, and include optional metadata such as last used date; the response must be delivered to NPCI within the standard 200 ms SLA.",
+      "The Issuer Bank shall apply the payer’s existing daily aggregate UPI limit to any transaction that proceeds from a suggested amount and must reject the request if the limit would be exceeded, returning an appropriate error code."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  },
+  {
+    "section_key": "changes_issuer_transaction",
+    "section_heading": "B. Issuer Bank — Transaction Flow Changes",
+    "render_style": "body",
+    "paragraphs": [
+      "The Issuer Bank’s processing of authenticated debit requests must be extended to accommodate the Smart Amount Suggestions UI. When a payer selects a suggested amount, the payer’s VPA and the chosen amount are transmitted in the standard payment request. The Issuer Bank is required to validate the encrypted credential block and enforce the PIN rule for amounts exceeding the per‑transaction ceiling. This ensures that the convenience of one‑tap suggestions does not compromise security or compliance.",
+      "In addition to validation, the Issuer Bank must handle response generation, timeout, and fallback in line with the existing UPI standards. A definitive success or failure code must be returned to the switch so that credit can be routed promptly. If the debit processing exceeds the allocated window, the Issuer Bank must emit a timeout response that triggers NPCI’s transaction‑status check. Should the debit remain unresolved, the Issuer Bank must participate in the fallback reconciliation flow to guarantee settlement integrity and a consistent payer experience."
+    ],
+    "bullet_points": [],
+    "numbered_items": [
+      "1. Issuer Bank must validate the encrypted credential block accompanying the debit request, confirming that the payer VPA matches the selected suggestion and that the UPI PIN is verified for amounts above INR 15,000.",
+      "2. Issuer Bank must process the debit against the payer’s account within the standard processing window, applying the INR 15,000 per‑transaction limit and respecting the daily aggregate limit set by the PSP.",
+      "3. Issuer Bank must return a definitive success response code for completed debits or a specific failure code for insufficient funds, limit breaches, or authentication mismatches, enabling downstream credit routing.",
+      "4. Issuer Bank must implement a timeout mechanism that generates a timeout response if debit confirmation is not received within the allocated window, prompting NPCI to invoke the transaction‑status check flow.",
+      "5. Issuer Bank must support the fallback reconciliation process, participating in the REQ_CHK_TXN flow to resolve any ambiguous or partial debit and ensure the payer is notified of the final outcome within the agreed SLA."
+    ],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 2
+  }
+]

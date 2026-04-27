@@ -1,0 +1,130 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "National Payments Corporation of India (NPCI) is the issuing authority for this circular. All references herein are issued under the authority of NPCI.",
+      "The Department of UPI Standards and Operations is responsible for the issuance. Compliance with this circular is mandatory for all PSP Banks, Issuer Banks and related participants.",
+      "Circular Reference: NPCI/UPI/OC No. 012/2025-2026. This reference shall be cited in all communications and implementations concerning Smart Amount Suggestion for Payments.",
+      "Issue Date: 20 April 2026. The date shall be considered the effective start for all obligations described herein."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular promulgates the mandatory directives for the Smart Amount Suggestion for Payments feature. It applies to all participants engaged in the UPI payment ecosystem as defined by NPCI.",
+      "The addressees are **All PSP Banks, Issuer Banks and NPCI**. These entities are collectively responsible for implementing, enforcing and routing the specified functionalities. Each listed participant must adhere to the obligations set forth herein.",
+      "All PSP Banks must implement the UI to fetch and display amount suggestions and must validate final amounts against existing UPI limits before issuing ReqPay. Issuer Banks must continue to enforce PIN verification for amounts above defined thresholds and must respond to standard UPI APIs without modification. NPCI must route ReqPay, ReqAuthDetails and related messages unchanged and must validate amount limits as per existing specifications.",
+      "No other entities, including UPI App providers or third‑party aggregators, are bound by this circular unless expressly incorporated by subsequent amendment. Compliance with these directives is mandatory for the effective deployment of Smart Amount Suggestion for Payments."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Directive to implement Smart Amount Suggestion for Payments across UPI transaction flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "The present UPI payment flow mandates manual entry of the transaction amount and validates it against static limits, with no UI‑level amount suggestion capability. This manual entry extends payment completion time and raises the probability of typographical errors, creating a functional gap in the user experience. Consequently, the issuer mandates the implementation of Smart Amount Suggestion for Payments to present up to three historically frequent amounts for a payer‑payee VPA pair, while adhering to existing per‑transaction and daily aggregate limits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce Smart Amount Suggestion for Payments across the UPI ecosystem. The decision mandates the addition of the GetAmountSuggestions API and the extension of the ReqPay message schema to accommodate suggested amounts.",
+      "The scope of this decision covers all PSPs, Issuer/Remitter Banks, and Payee Banks supporting both standard UPI and UPI‑Lite. The affected technical modules include the Amount Suggestion Engine, the GetAmountSuggestions service, and the Limit Enforcement Module.",
+      "The GetAmountSuggestions request shall accept payerVPA, payeeVPA, and maxSuggestions parameters, and the response shall return up to three suggested_amounts with optional confidence_score. This API shall be incorporated into the Common Library (CL) version 2.36 or later.",
+      "The ReqPay message shall transmit the selected or edited amount unchanged, and the existing per‑transaction limits of ₹15,000 for standard UPI and ₹500 for UPI‑Lite shall be applied to any suggested amount. Daily aggregate limits shall remain unchanged and be enforced by the Limit Enforcement Module.",
+      "All UPI Apps shall invoke GetAmountSuggestions prior to rendering the payment entry screen to present up to three amount suggestions to the payer. The UI shall allow a single‑tap selection of a suggestion and subsequent editing before confirmation."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must implement the user interface to fetch and display amount suggestions from their transaction repository via the GetAmountSuggestions API. The UI must present up to three suggested amounts on the payment initiation screen for the payer VPA and payee VPA. The interface shall adhere to NPCI branding and accessibility guidelines.",
+      "PSP Banks must validate the final selected amount against existing per‑transaction limits (₹15,000 for standard UPI, ₹500 for UPI‑Lite) and daily aggregate limits (₹1 Lakh for standard UPI, ₹10 K for UPI‑Lite) before constructing a ReqPay message. Any amount exceeding these limits must be rejected and an appropriate error response returned to the UPI App.",
+      "Issuer Banks must continue to enforce PIN verification for transactions where the final amount exceeds the defined PIN‑verification threshold. Issuer Banks must process ReqPay and related messages without modification to the standard UPI API contracts.",
+      "NPCI must route ReqPay, REQ_AUTH_DETAILS and related messages unchanged for transactions initiated via Smart Amount Suggestion for Payments. NPCI must validate amount limits as per existing specifications and reject any request that violates those limits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [
+      "{\n  \"payerVPA\": \"alice@bank\",\n  \"payeeVPA\": \"merchant@bank\",\n  \"maxSuggestions\": 3\n}",
+      "{\n  \"suggestedAmounts\": [199, 2999, 499],\n  \"confidenceScores\": [0.95, 0.88, 0.73]\n}"
+    ],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "Please disseminate the information contained herein to the officials concerned. All participants must acknowledge receipt within two working days."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "Yours Sincerely,\nSD/-\nMr. Rajesh Kumar\nDirector – Product Management\nNational Payments Corporation of India (NPCI)"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

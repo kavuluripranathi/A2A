@@ -230,6 +230,7 @@ class BundleJobDetail(BaseModel):
     current_step: str
     error: Optional[str] = None
     output_path: Optional[str] = None
+    rag_warning: Optional[str] = None
 
 
 class BundleStatusResponse(BaseModel):
@@ -245,6 +246,7 @@ class JobStatusResponse(BaseModel):
     current_step: str
     error: Optional[str] = None
     output_path: Optional[str] = None
+    rag_warning: Optional[str] = None
 
 
 class RAGUploadResponse(BaseModel):

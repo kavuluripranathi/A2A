@@ -43,8 +43,32 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"RAG initialization failed in thread: {e}")
 
+    def _check_rag_system():
+        import httpx
+        url = f"{config.RAG_SYSTEM_URL}/retrieve"
+        try:
+            resp = httpx.post(url, json={"query": "health check", "top_k": 1}, timeout=10)
+            if resp.status_code == 200:
+                logger.info("RAG system reachable at %s", config.RAG_SYSTEM_URL)
+            else:
+                logger.error(
+                    "RAG system at %s returned HTTP %d — document generation will run without NPCI corpus context.",
+                    config.RAG_SYSTEM_URL, resp.status_code,
+                )
+        except Exception as e:
+            logger.error(
+                "=" * 70 + "\n"
+                "RAG SYSTEM UNREACHABLE: %s\n"
+                "URL: %s\n"
+                "Documents will be generated WITHOUT NPCI corpus context.\n"
+                "Start the rag_system service before generating documents.\n"
+                + "=" * 70,
+                e, config.RAG_SYSTEM_URL,
+            )
+
     t = threading.Thread(target=_init_rag, daemon=True, name="rag-init")
     t.start()
+    threading.Thread(target=_check_rag_system, daemon=True, name="rag-system-check").start()
     logger.info("RAG ingestion started in background thread — server ready immediately.")
 
     yield

@@ -71,14 +71,20 @@ const COLOR_MAP = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────── //
 
-function buildPromptFromCanvas(canvas, structuredOutput) {
+function buildPromptFromCanvas(canvas, _structuredOutput) {
   if (!canvas?.sections) return ''
 
   const lines = []
-  const featureName = structuredOutput?.feature_name || 'Product Feature'
+  // structuredOutput is the requirement agent's gathered dict — it has no feature_name.
+  // Derive the feature name from the canvas Feature section content instead.
+  const featureSection = canvas.sections?.find(s => s.key === 'feature' || s.key === 'overview')
+  const featureContentSnippet = featureSection?.content
+    ?.replace(/^#+.*$/gm, '')   // drop entire header lines (## Feature, ### 1. etc.)
+    ?.replace(/[*_`[\]]/g, '')  // strip bold/italic/code markers
+    ?.trim().split(/\s+/).slice(0, 6).join(' ')
+  const featureName = featureContentSnippet || 'UPI Feature'
   lines.push(`Product: ${featureName}`)
   lines.push('')
-  lines.push('Product Canvas Summary:')
 
   canvas.sections.forEach((s) => {
     const title = s.key?.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) || s.key
@@ -298,14 +304,14 @@ function ClarifyChat({ questions, onSkip, onSubmit, submitting }) {
                 AI
               </div>
             )}
-            <div className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm
+            <div className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm whitespace-pre-wrap
               ${b.role === 'ai'
                 ? 'bg-white dark:bg-navy-800 border border-slate-200 dark:border-navy-600 text-slate-800 dark:text-slate-200 rounded-bl-sm'
                 : b.skipped
                   ? 'bg-slate-100 dark:bg-navy-700 text-slate-400 dark:text-slate-500 italic rounded-br-sm'
                   : 'bg-brand-600 text-white rounded-br-sm'
               }`}>
-              {b.content}
+              {b.content.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/`([^`]+)`/g, '$1')}
             </div>
             {b.role === 'user' && (
               <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-navy-700
@@ -530,9 +536,16 @@ export default function DocumentGeneration() {
     }, 2500)
   }
 
-  const buildPayload = () => {
+  const buildPayload = (featureNameOverride) => {
     const prompt = buildPromptFromCanvas(canvas, structuredOutput)
-    const featureName = structuredOutput?.feature_name || 'Product Feature'
+    // Feature name: use override from pre-clarify taxonomy if available,
+    // otherwise derive from canvas Feature section (same logic as buildPromptFromCanvas)
+    const featureSection = canvas?.sections?.find(s => s.key === 'feature' || s.key === 'overview')
+    const featureContentSnippet = featureSection?.content
+      ?.replace(/^#+.*$/gm, '')
+      ?.replace(/[*_`[\]]/g, '')
+      ?.trim().split(/\s+/).slice(0, 6).join(' ')
+    const featureName = featureNameOverride || featureContentSnippet || 'UPI Feature'
     return {
       prompt,
       session_id: sessionId,
@@ -575,13 +588,16 @@ export default function DocumentGeneration() {
     setClarifying(true)
     try {
       const res = await preClarify(payload)
-      const { questions = [], blocking_gaps = [], blocked = false, rag_session_id, has_clarifications } = res.data
+      const { questions = [], blocking_gaps = [], blocked = false, rag_session_id, has_clarifications, taxonomy = {} } = res.data
+      // Use the LLM-classified feature name from taxonomy to fix document titles
+      const ragFeatureName = taxonomy?.feature_name
+      const finalPayload = ragFeatureName ? buildPayload(ragFeatureName) : payload
       if (has_clarifications && questions.length > 0) {
-        setClarifyModal({ questions, blockingGaps: blocking_gaps, blocked, ragSessionId: rag_session_id, basePayload: payload })
+        setClarifyModal({ questions, blockingGaps: blocking_gaps, blocked, ragSessionId: rag_session_id, basePayload: finalPayload })
         return
       }
       // No questions — go straight to bundle (still pass rag_session_id if present)
-      await runBundle(rag_session_id ? { ...payload, rag_session_id } : payload)
+      await runBundle(rag_session_id ? { ...finalPayload, rag_session_id } : finalPayload)
     } catch (e) {
       // Pre-clarify failed — fall back to direct generation
       console.warn('Pre-clarify failed, generating directly:', e.message)

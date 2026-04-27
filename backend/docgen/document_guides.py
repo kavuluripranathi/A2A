@@ -1,6 +1,7 @@
 """Document anatomy guides and blueprint helpers."""
 from __future__ import annotations
 
+import re
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -924,7 +925,13 @@ def build_blueprint_plan(doc_type: str, brief: dict[str, Any]) -> dict[str, Any]
     blueprint["title"] = subject.replace("Subject:", "").strip() or "Circular"
     if _normalize_doc_type(doc_type) != "circular":
         blueprint["title"] = brief.get("document_title") or blueprint["title"]
-    blueprint["subtitle"] = prompt[:120] if prompt else blueprint["subtitle"]
+    # Build subtitle from prompt: drop entire header lines, markdown, and
+    # the "Product Canvas Summary:" label — keep only plain feature description text.
+    clean_prompt = re.sub(r'^#+.*$', '', prompt, flags=re.MULTILINE)  # drop header lines
+    clean_prompt = re.sub(r'Product Canvas Summary\s*:?', '', clean_prompt, flags=re.IGNORECASE)
+    clean_prompt = re.sub(r'[*_`]', '', clean_prompt)
+    clean_prompt = re.sub(r'\s+', ' ', clean_prompt).strip()
+    blueprint["subtitle"] = clean_prompt[:120] if clean_prompt else blueprint["subtitle"]
     blueprint["document_meta"] = {
         "organization_name": organization_name,
         "reference_code": reference_code,

@@ -1,0 +1,134 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "NPCI, UPI Department, issues this circular as OC No. 045/2024-2025. Issue Date: 20‑Apr‑2026."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "All **PSP Banks** are bound by this circular. They must implement the Smart Amount Suggestions feature in accordance with the specified obligations and ensure compliance with the prescribed message flows. Non‑compliance will be subject to regulatory action.",
+      "All **Issuer Banks** are addressed by this circular. They must support real‑time debit of credit/voucher accounts for Smart Amount Suggestions transactions and respond to the required UPI messages with appropriate status codes. Failure to do so constitutes a breach of NPCI specifications.",
+      "The **NPCI** is a recipient of this circular. It must route ReqPay messages for Smart Amount Suggestions, validate InitiationMode and PurposeCode values, and oversee adherence to the standard settlement timeline. NPCI shall monitor compliance across participants.",
+      "All **UPI App Providers, Product Management teams, and Compliance Teams** are required to incorporate the Smart Amount Suggestions identifier usage (VPA) and enforce the standard transaction limits as defined. They must ensure that suggestion metadata is correctly handled in request and response structures while preserving backward compatibility. These entities must align their implementations with the directives herein."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Directive to implement Smart Amount Suggestions across the UPI payment initiation flow."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "At present, a UPI payment follows the standard ReqPay‑RespPay sequence in which the payer PSP transmits a ReqPay, NPCI obtains authentication details, and the transaction amount is entered manually by the user. This manual entry introduces latency and a measurable error rate, representing a gap in the checkout experience for repeat contacts and frequent merchants. The issuer therefore directs that all PSPs shall support the Smart Amount Suggestions capability by augmenting the ReqPay payload with an optional suggestionContext/suggestedAmount element and, where desired, may expose a lightweight FetchSuggestions pre‑call API. All such enhancements shall preserve backward compatibility and remain subject to existing UPI transaction limits and settlement timelines."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "[Organization] has decided to enable Smart Amount Suggestions across the UPI payment initiation stack. The decision applies to the ReqPay message, the Cred block structure, the optional suggestionContext field in request/response schemas, and the lightweight FetchSuggestions API where implemented.",
+      "The system shall capture the Amount field from the user interface and shall present up to three suggested amounts derived from the payer’s recent transactions. The payer may edit any suggested amount before final submission, and the edited value shall replace the suggestion in the subsequent ReqPay payload.",
+      "For any transaction where Amount exceeds ₹15,000, the Cred block must contain a valid UPI_PIN as per Revised Testcases CZ. The ReqPay payload must include InitiationMode=11 and PurposeCode=14 whenever Smart Amount Suggestions are utilized.",
+      "After the ReqPay message is transmitted, the system shall invoke the ReqAuthDetails flow as defined in the e‑RUPI specification. Upon successful debit and credit, the payer PSP must receive a RespTxnConfirmation message that echoes the suggestionContext data for traceability.",
+      "All existing settlement and limit rules remain unchanged; transactions initiated via Smart Amount Suggestions shall follow the standard UPI T+0 real‑time settlement and the standard per‑transaction and daily caps. No new mandatory API messages are introduced, but implementations may optionally expose a FetchSuggestions API to pre‑fetch suggestion metadata."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [
+      "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"suggestionContext\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"suggestedAmount\": { \"type\": \"number\" },\n        \"source\": { \"type\": \"string\" },\n        \"confidence\": { \"type\": \"number\" },\n        \"lastTxnRef\": { \"type\": \"string\" }\n      },\n      \"required\": [\"suggestedAmount\"]\n    }\n  },\n  \"additionalProperties\": true\n}",
+      "{\n  \"VPA\": \"payer@bank\",\n  \"payeeVPA\": \"merchant@bank\",\n  \"Amount\": 199,\n  \"InitiationMode\": 11,\n  \"PurposeCode\": 14,\n  \"suggestionContext\": {\n    \"suggestedAmount\": 199,\n    \"source\": \"history\",\n    \"confidence\": 0.92,\n    \"lastTxnRef\": \"TXN123456789\"\n  },\n  \"Cred\": {\n    \"encryptedData\": \"...\",\n    \"UPI_PIN\": \"****\"\n  }\n}"
+    ],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must implement ReqPay, ReqAuthDetails, ReqDebit and ReqCredit as prescribed by NPCI for Smart Amount Suggestions. They must validate amount thresholds against standard UPI limits and enforce PIN entry rules for all suggested‑amount transactions. They must incorporate the optional suggestionContext field in the request payload and echo the same field in the response for traceability.",
+      "Issuer Banks must support real‑time debit of credit or voucher accounts for Smart Amount Suggestions. They must respond to ReqDebit and ReqCredit with status codes defined in the NPCI specification. They must enforce both per‑transaction and aggregate daily limits in line with the standard UPI caps.",
+      "NPCI must route ReqPay to the Payee PSP after receiving the authentication request for Smart Amount Suggestions. NPCI must validate InitiationMode and PurposeCode values in each request. NPCI must verify that any suggestionContext data, when present, conforms to the approved schema and does not alter routing logic.",
+      "All participants are advised to augment analytics and logging to capture suggestion acceptance and usage metrics. All participants are advised to ensure data‑privacy compliance when handling suggestionContext metadata and to retain backward compatibility with legacy UPI clients."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [
+      "{\n  \"suggestionContext\": {\n    \"suggestedAmount\": \"199.00\",\n    \"source\": \"transactionHistory\",\n    \"confidence\": \"0.92\",\n    \"lastTxnRef\": \"TXN1234567890\"\n  }\n}",
+      "{\n  \"messageType\": \"REQ_PAY\",\n  \"payerVPA\": \"alice@bank\",\n  \"payeeVPA\": \"merchant@bank\",\n  \"amount\": \"199.00\",\n  \"suggestionContext\": {\n    \"suggestedAmount\": \"199.00\",\n    \"source\": \"transactionHistory\",\n    \"confidence\": \"0.92\",\n    \"lastTxnRef\": \"TXN1234567890\"\n  },\n  \"initiationMode\": \"UPI_APP\",\n  \"purposeCode\": \"00\"\n}"
+    ],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "All participants shall incorporate the Smart Amount Suggestions capability into their UPI payment initiation flows. The capability shall be invoked via the existing ReqPay message with the optional suggestionContext field as defined in the specification.",
+      "PSP Banks must implement ReqPay, ReqAuthDetails, ReqDebit, and ReqCredit in strict accordance with NPCI specifications. PSP Banks must validate amount thresholds against standard UPI limits and enforce PIN entry as per existing rules.",
+      "Issuer Banks must support real-time debit of credit or voucher accounts for transactions arising from Smart Amount Suggestions. Issuer Banks must respond to ReqDebit and ReqCredit with appropriate status codes reflecting success or failure.",
+      "NPCI shall route ReqPay to the Payee PSP after receipt of the authentication request and shall validate InitiationMode and PurposeCode values for Smart Amount Suggestions. NPCI shall ensure that the suggestionContext field, when present, is echoed in the corresponding response for traceability.",
+      "Please disseminate the information contained herein to the officials concerned. Compliance with this instruction is mandatory for all concerned entities."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [
+      "Yours Sincerely,\nSD/-\nDr. A. K. Sharma\nChief Executive Officer\nNational Payments Corporation of India (NPCI)"
+    ],
+    "diagram_path": null,
+    "level": 1
+  }
+]

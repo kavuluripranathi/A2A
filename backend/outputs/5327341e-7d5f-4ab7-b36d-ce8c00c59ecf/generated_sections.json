@@ -1,0 +1,126 @@
+[
+  {
+    "section_key": "letterhead_reference",
+    "section_heading": "Letterhead & Reference Block",
+    "render_style": "circular_reference",
+    "paragraphs": [
+      "NPCI, UPI Governance, issues this circular under reference OC No. 012/2025-2026. Issue Date: 20-APR-2026."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "addressee_line",
+    "section_heading": "Addressee Line",
+    "render_style": "circular_addressee",
+    "paragraphs": [
+      "This circular is addressed to **All PSP Banks, Issuer Banks and NPCI**. All entities listed are required to implement the Smart Amount Suggestions feature as specified herein.",
+      "The directive applies uniformly to every PSP Bank participating in the UPI network, to each Issuer Bank that processes remitter or beneficiary accounts, and to NPCI as the central switch operator. Each recipient must treat the instructions as binding and enforce them across all relevant systems and services.",
+      "Compliance with the obligations for Smart Amount Suggestions is mandatory and shall be observed without deviation. Failure to adhere shall constitute a breach of the UPI regulatory framework.",
+      "Any exceptions, queries, or required clarifications must be communicated promptly to NPCI in writing. All responses shall be provided within the timelines prescribed by NPCI."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "subject_line",
+    "section_heading": "Subject Line",
+    "render_style": "circular_subject",
+    "paragraphs": [
+      "Directive to implement Smart Amount Suggestions API within UPI transaction initiation scope."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "context_paragraph",
+    "section_heading": "Context Paragraph",
+    "render_style": "body",
+    "paragraphs": [
+      "Currently, a UPI payment follows the multi‑step ReqPay → ReqAuthDetail → ReqDebit → ReqCredit flow, with the payer entering the amount manually and the application invoking PIN verification only when the amount exceeds the configured threshold. This manual entry introduces checkout latency and a 2 % error rate, and PSPs and merchants lack visibility into users’ historic payment patterns, preventing one‑tap selection of frequently used amounts. To address this ecosystem gap, the Issuer directs the introduction of Smart Amount Suggestions, a value‑added service that surfaces up to three historically frequent amounts for a given payerVPA‑payeeVPA pair via the new SuggestionRequest and SuggestionResponse messages. The Issuer mandates that all PSPs integrate Smart Amount Suggestions while preserving the existing ReqPay flow and adhering to the prevailing INR 15,000 per‑transaction ceiling and daily aggregate limits."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "decision_scope",
+    "section_heading": "Decision & Scope Statement",
+    "render_style": "body",
+    "paragraphs": [
+      "NPCI has decided to introduce Smart Amount Suggestions as a value‑added capability for payment initiation. The decision mandates the creation of new API messages and UI enhancements while preserving the existing payment flow.",
+      "The scope of this decision includes the definition of the SuggestionRequest and SuggestionResponse messages, the augmentation of the transaction history retrieval service, and the integration of a suggestion engine module within the PSP backend.",
+      "The existing ReqPay → ReqAuthDetails → ReqDebit flow shall remain unchanged for transactions originated from a suggested amount. All downstream processing modules, including the CL encryption block and NPCI Switch routing, shall continue to operate without modification.",
+      "The Smart Amount Suggestions feature shall enforce the standard per‑transaction ceiling of INR 15,000 and shall inherit the payer’s daily aggregate limit as defined by the PSP. Any suggested amount exceeding INR 15,000 shall trigger mandatory UPI PIN entry as per current PIN rules."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "participant_obligations",
+    "section_heading": "Participant Impact & Obligations",
+    "render_style": "body",
+    "paragraphs": [
+      "PSP Banks must implement the SuggestionRequest and SuggestionResponse APIs by retrieving historic transaction data from NPCI as defined in the Smart Amount Suggestions specification. PSP Banks must enforce UPI PIN verification for any suggested amount that exceeds INR 15,000 in accordance with the baseline per‑transaction ceiling.",
+      "PSP Banks must ensure that the suggestion UI integrates seamlessly with the existing ReqPay flow without altering message semantics. PSP Banks must honor the payer’s daily aggregate UPI limit as configured in the PSP’s risk parameters.",
+      "Issuer Banks must expose historical transaction data to NPCI for authorized PSPs in a format compatible with the suggestion retrieval service. Issuer Banks must respond to debit and credit requests within the standard processing timelines stipulated for UPI transactions.",
+      "NPCI will route SuggestionRequest messages to the appropriate data stores and provide SuggestionResponse messages securely to the requesting PSP. NPCI will validate amount thresholds and enforce PIN requirements for suggested amounts exceeding INR 15,000 as per existing specifications."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "dissemination_instruction",
+    "section_heading": "Dissemination Instruction",
+    "render_style": "circular_dissemination",
+    "paragraphs": [
+      "NPCI must issue this circular to all PSP Banks, Issuer Banks, and other ecosystem participants. The circular pertains to the implementation of Smart Amount Suggestions and does not supersede any existing directive.",
+      "PSP Banks must disseminate the information contained herein to their product, engineering, and compliance teams responsible for Smart Amount Suggestions. They must obtain acknowledgment of receipt from each designated team.",
+      "Issuer Banks must disseminate the information contained herein to their technology and operations units that will provide historical transaction data for Smart Amount Suggestions. They must confirm in writing that the relevant units have been informed.",
+      "All participants are advised to retain a copy of this circular for audit and reference purposes. Please disseminate the information contained herein to the officials concerned."
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  },
+  {
+    "section_key": "signature_block",
+    "section_heading": "Signature Block",
+    "render_style": "circular_signature",
+    "paragraphs": [
+      "Yours Sincerely,\nSD/-\nAnil Kumar\nChief Executive Officer\nNational Payments Corporation of India"
+    ],
+    "bullet_points": [],
+    "numbered_items": [],
+    "table_data": null,
+    "code_blocks": [],
+    "diagram_path": null,
+    "level": 1
+  }
+]

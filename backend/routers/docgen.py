@@ -135,6 +135,7 @@ def _update_job(job_id: str, state: dict):
     JOBS[job_id]["current_step"] = STATUS_STEP.get(status, status)
     JOBS[job_id]["error"] = state.get("error")
     JOBS[job_id]["output_path"] = state.get("output_path")
+    JOBS[job_id]["rag_warning"] = state.get("rag_warning")
 
 
 def _run_pipeline_background(job_id: str, initial_state: dict):
@@ -223,6 +224,7 @@ async def get_job_status(job_id: str):
         current_step=job.get("current_step", ""),
         error=job.get("error"),
         output_path=job.get("output_path"),
+        rag_warning=job.get("rag_warning"),
     )
 
 
@@ -421,11 +423,12 @@ async def generate_bundle(request: BundleGenerateRequest, background_tasks: Back
         except Exception as _e:
             logger.warning("[bundle] Could not load session context: %s", _e)
 
-    # Call RAG /clarify once — get NPCI corpus proposals for all 4 doc threads
+    # Call RAG /clarify once (or load the existing session from /pre-clarify — avoids duplicate pipeline run)
     rag_intelligence = call_rag_clarify(
         feature_description=_feature_desc,
         canvas_sections=_canvas_sections,
         research_report=_research_report,
+        rag_session_id=request.rag_session_id or None,
     )
 
     rag_proposals = rag_intelligence.get("proposed_skeleton") or {}
@@ -549,6 +552,7 @@ async def get_bundle_status(bundle_id: str):
             current_step=job.get("current_step", ""),
             error=job.get("error"),
             output_path=job.get("output_path"),
+            rag_warning=job.get("rag_warning"),
         ))
 
     terminal = {"completed", "failed", "FAILED"}
